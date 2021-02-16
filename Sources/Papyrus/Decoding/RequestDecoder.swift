@@ -1,8 +1,3 @@
-/// The strategy for mapping the property names in the
-/// `DecodableRequest` type to their correlating fields (header,
-/// query, path parameter, etc) on a request.
-typealias KeyMapping = (String) -> String
-
 /// A component of an HTTP request.
 private enum RequestComponent {
     /// The request body.

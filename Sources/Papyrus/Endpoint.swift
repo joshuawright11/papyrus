@@ -21,13 +21,18 @@ public struct Endpoint<Request: EndpointRequest, Response: Codable> {
     /// The `baseURL` of this endpoint.
     public var baseURL: String = ""
     
+    /// Any `KeyMapping` of this endpoint.
+    public var keyMapping: KeyMapping = .useDefaultKeys
+    
     /// Creates a copy of this `Endpoint` with the provided `baseURL`.
     ///
-    /// - Parameter baseURL: The baseURL for the `Endpoint`.
+    /// - Parameter baseURL: The base URL for the `Endpoint`.
+    /// - Parameter keyMapping: The `KeyMapping` for the `Endpoint`.
     /// - Returns: A copy of this `Endpoint` with the `baseURL`.
-    public func with(baseURL: String) -> Self {
+    public func with(baseURL: String, keyMapping: KeyMapping) -> Self {
         var copy = self
         copy.baseURL = baseURL
+        copy.keyMapping = keyMapping
         return copy
     }
 }

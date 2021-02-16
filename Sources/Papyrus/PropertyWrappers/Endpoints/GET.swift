@@ -19,7 +19,7 @@ public class GET<Req: EndpointRequest, Res: Codable> {
         wrapped wrappedKeyPath: ReferenceWritableKeyPath<EnclosingSelf, Endpoint<Req, Res>>,
         storage storageKeyPath: ReferenceWritableKeyPath<EnclosingSelf, GET<Req, Res>>
     ) -> Endpoint<Req, Res> {
-        get { object[keyPath: storageKeyPath].wrappedValue.with(baseURL: object.baseURL) }
+        get { object[keyPath: storageKeyPath].wrappedValue.with(baseURL: object.baseURL, keyMapping: object.keyMapping) }
         // This setter is needed so that the propert wrapper will have
         // a `WritableKeyPath` for using this subscript.
         set { fatalError("Endpoints should not be set.") }
