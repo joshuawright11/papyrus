@@ -60,7 +60,7 @@ public protocol EndpointGroupSettings {
 }
 
 extension EndpointGroupSettings {
-    var keyMapping: KeyMapping { .useDefaultKeys }
+    public var keyMapping: KeyMapping { .useDefaultKeys }
 }
 
 
