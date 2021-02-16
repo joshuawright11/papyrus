@@ -1,3 +1,5 @@
+import Foundation
+
 /// `Endpoint` is an abstraction around making REST requests. It
 /// includes a `Request` type, representing the data needed to
 /// make the request, and a `Response` type, representing the
@@ -24,15 +26,23 @@ public struct Endpoint<Request: EndpointRequest, Response: Codable> {
     /// Any `KeyMapping` of this endpoint.
     public var keyMapping: KeyMapping = .useDefaultKeys
     
+    /// Used for encoding any JSON body of this endpoint's request.
+    public var jsonEncoder: JSONEncoder = JSONEncoder()
+    
+    /// Used for decoding and JSON body of this endpoint's response.
+    public var jsonDecoder: JSONDecoder = JSONDecoder()
+    
     /// Creates a copy of this `Endpoint` with the provided `baseURL`.
     ///
     /// - Parameter baseURL: The base URL for the `Endpoint`.
     /// - Parameter keyMapping: The `KeyMapping` for the `Endpoint`.
     /// - Returns: A copy of this `Endpoint` with the `baseURL`.
-    public func with(baseURL: String, keyMapping: KeyMapping) -> Self {
+    public func with(baseURL: String, keyMapping: KeyMapping, jsonEncoder: JSONEncoder, jsonDecoder: JSONDecoder) -> Self {
         var copy = self
         copy.baseURL = baseURL
         copy.keyMapping = keyMapping
+        copy.jsonEncoder = jsonEncoder
+        copy.jsonDecoder = jsonDecoder
         return copy
     }
 }
