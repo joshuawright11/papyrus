@@ -10,7 +10,7 @@ extension Endpoint {
     /// - Returns: A struct containing any information needed to
     ///   request this endpoint with the provided instance of `Request`.
     public func parameters(dto: Request) throws -> RequestComponents {
-        let helper = EncodingHelper(dto)
+        let helper = EncodingHelper(dto, keyMapping: self.keyMapping)
         return RequestComponents(
             method: self.method,
             headers: helper.getHeaders(),
@@ -108,7 +108,9 @@ private struct EncodingHelper {
     ///   `Encoder`.
     ///
     /// - Parameter value: The value to load request data from.
-    fileprivate init<T: EndpointRequest>(_ value: T) {
+    /// - Parameter keyMapping: Any mapping for the keys of value's
+    ///   properties.
+    fileprivate init<T: EndpointRequest>(_ value: T, keyMapping: KeyMapping) {
         Mirror(reflecting: value)
             .children
             .forEach { child in
@@ -116,7 +118,7 @@ private struct EncodingHelper {
                     return print("No label on a child")
                 }
 
-                let sanitizedLabel = String(label.dropFirst())
+                let sanitizedLabel = keyMapping.map(input: String(label.dropFirst()))
                 if let query = child.value as? AnyQuery {
                     self.queries[sanitizedLabel] = query
                 } else if let body = child.value as? AnyBody {
@@ -125,6 +127,8 @@ private struct EncodingHelper {
                     self.headers[sanitizedLabel] = header
                 } else if let path = child.value as? Path {
                     self.paths[sanitizedLabel] = path
+                } else {
+                    fatalError("EndpointRequest's must have all properties wrapped by @URLQuery, @Body, @Path, or @Header. Property \(label) had type \(type(of: label)) which isn't allowed.")
                 }
             }
     }
