@@ -57,10 +57,22 @@ public protocol EndpointGroupSettings {
     /// The key mapping strategy of endpoints in this group. Defaults
     /// to `.useDefaultKeys`.
     var keyMapping: KeyMapping { get }
+    
+    /// JSONEncoder for encoding JSON to a request body. This may be
+    /// modified after access to apply the given `keyMapping`.
+    /// Defaults to `JSONEncoder()`.
+    var jsonEncoder: JSONEncoder { get }
+    
+    /// JSONDecoder for decoding JSON from a response body. This may
+    /// be modified after access to apply the given `keyMapping`.
+    /// Defaults to `JSONDecoder()`.
+    var jsonDecoder: JSONDecoder { get }
 }
 
 extension EndpointGroupSettings {
     public var keyMapping: KeyMapping { .useDefaultKeys }
+    public var jsonEncoder: JSONEncoder { JSONEncoder() }
+    public var jsonDecoder: JSONDecoder { JSONDecoder() }
 }
 
 
