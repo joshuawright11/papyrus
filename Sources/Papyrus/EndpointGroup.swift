@@ -118,7 +118,7 @@ public enum KeyMapping {
         }
     }
     
-    var jsonEncodingStrategy: JSONEncoder.KeyEncodingStrategy {
+    public var jsonEncodingStrategy: JSONEncoder.KeyEncodingStrategy {
         switch self {
         case .snakeCase:
             return .convertToSnakeCase
@@ -135,7 +135,7 @@ public enum KeyMapping {
         }
     }
     
-    var jsonDecodingStrategy: JSONDecoder.KeyDecodingStrategy {
+    public var jsonDecodingStrategy: JSONDecoder.KeyDecodingStrategy {
         switch self {
         case .snakeCase:
             return .convertFromSnakeCase
