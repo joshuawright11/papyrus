@@ -9,7 +9,7 @@ protocol AnyQuery {
 public struct URLQuery<Value: Codable>: Codable, AnyQuery {
     // MARK: AnyQuery
     
-    public var value: Codable { wrappedValue }
+    public var value: Codable { self.wrappedValue }
     
     /// The value of the query item.
     public var wrappedValue: Value

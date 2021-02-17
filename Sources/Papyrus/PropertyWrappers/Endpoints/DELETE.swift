@@ -1,6 +1,6 @@
 /// Represents a DELETE `Endpoint`.
 @propertyWrapper
-public class DELETE<Req: EndpointRequest, Res: Codable> {
+public class DELETE<Req: RequestComponents, Res: Codable> {
     /// A DELETE REST endpoint with the given path.
     public var wrappedValue: Endpoint<Req, Res>
 

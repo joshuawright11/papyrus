@@ -9,22 +9,22 @@ extension Endpoint {
     ///   the `Endpoint`.
     /// - Returns: A struct containing any information needed to
     ///   request this endpoint with the provided instance of `Request`.
-    public func parameters(dto: Request) throws -> RequestComponents {
+    public func parameters(dto: Request) throws -> RawRequestComponents {
         let helper = EncodingHelper(dto, keyMapping: self.keyMapping)
-        return RequestComponents(
+        return RawRequestComponents(
             method: self.method,
             headers: helper.getHeaders(),
             basePath: self.path,
             query: helper.queryString(),
             fullPath: try helper.getFullPath(self.path),
-            body: try helper.getBody(),
+            body: helper.getBody(),
             bodyEncoding: Request.bodyEncoding
         )
     }
 }
 
 /// Represents the components needed to make an HTTP request.
-public struct RequestComponents {
+public struct RawRequestComponents {
     /// The method of this request.
     public let method: EndpointMethod
     
@@ -56,8 +56,8 @@ public struct RequestComponents {
     ///   - method: The method of the request.
     /// - Returns: The `RequestComponents` representing a request with
     ///   the given `url` and `method`.
-    public static func just(url: String, method: EndpointMethod) -> RequestComponents {
-        RequestComponents(
+    public static func just(url: String, method: EndpointMethod) -> RawRequestComponents {
+        RawRequestComponents(
             method: method,
             headers: [:],
             basePath: url,
@@ -87,10 +87,10 @@ public struct RequestComponents {
 }
 
 /// Private helper type for pulling out the relevant request
-/// components from an `EndpointRequest`.
+/// components from an `RequestComponents`.
 private struct EncodingHelper {
-    /// Erased storage of any `@Boyd`s on the request.
-    private var bodies: [String: AnyBody] = [:]
+    /// Erased storage of any `@Body` on the request.
+    private var body: AnyBody? = nil
     
     /// Erased storage of any `@Header`s on the request.
     private var headers: [String: Header] = [:]
@@ -101,7 +101,7 @@ private struct EncodingHelper {
     /// Erased storage of any `@Path`s on the request.
     private var paths: [String: Path] = [:]
     
-    /// Initialize from a generic `EndpointRequest`.
+    /// Initialize from a generic `RequestComponents`.
     ///
     /// - Warning: Uses `Mirror` so it will have poor efficiency at
     ///   high volume. Ideally, this will be replaced by a custom
@@ -110,27 +110,35 @@ private struct EncodingHelper {
     /// - Parameter value: The value to load request data from.
     /// - Parameter keyMapping: Any mapping for the keys of value's
     ///   properties.
-    fileprivate init<T: EndpointRequest>(_ value: T, keyMapping: KeyMapping) {
-        Mirror(reflecting: value)
-            .children
-            .forEach { child in
-                guard let label = child.label else {
-                    return print("No label on a child")
-                }
+    fileprivate init<R: RequestConvertible>(_ value: R, keyMapping: KeyMapping) {
+        if let value = value as? RequestComponents {
+            Mirror(reflecting: value)
+                .children
+                .forEach { child in
+                    guard let label = child.label else {
+                        return print("No label on a child")
+                    }
 
-                let sanitizedLabel = keyMapping.map(input: String(label.dropFirst()))
-                if let query = child.value as? AnyQuery {
-                    self.queries[sanitizedLabel] = query
-                } else if let body = child.value as? AnyBody {
-                    self.bodies[sanitizedLabel] = body
-                } else if let header = child.value as? Header {
-                    self.headers[sanitizedLabel] = header
-                } else if let path = child.value as? Path {
-                    self.paths[sanitizedLabel] = path
-                } else {
-                    fatalError("EndpointRequest's must have all properties wrapped by @URLQuery, @Body, @Path, or @Header. Property \(label) had type \(type(of: label)) which isn't allowed.")
+                    let sanitizedLabel = keyMapping.map(input: String(label.dropFirst()))
+                    if let query = child.value as? AnyQuery {
+                        self.queries[sanitizedLabel] = query
+                    } else if let body = child.value as? AnyBody {
+                        guard self.body == nil else {
+                            fatalError("Only one body is allowed per request.")
+                        }
+                        
+                        self.body = body
+                    } else if let header = child.value as? Header {
+                        self.headers[sanitizedLabel] = header
+                    } else if let path = child.value as? Path {
+                        self.paths[sanitizedLabel] = path
+                    } else {
+                        fatalError("RequestComponents's must have all properties wrapped by @URLQuery, @Body, @Path, or @Header. Property \(label) had type \(type(of: label)) which isn't allowed.")
+                    }
                 }
-            }
+        } else if let value = value as? RequestBody {
+            self.body = value
+        }
     }
     
     /// Generates the full path of this request, including any path
@@ -162,17 +170,10 @@ private struct EncodingHelper {
     /// Returns a tuple representing the content and content type of
     /// this request's body.
     ///
-    /// - Throws: An error if there is more than one `@Body` on the
-    ///   `EndpointRequest` used to generate this helper.
     /// - Returns: A type representing the content and content type
     ///   of this request's body.
-    func getBody() throws -> AnyEncodable? {
-        guard self.bodies.count <= 1 else {
-            throw PapyrusError("Only one `@Body` attribute is allowed per request. This will likely"
-                                + " be a `Codable` type with all the body's fields on it.")
-        }
-        
-        return self.bodies.first.map { $0.value.content }
+    func getBody() -> AnyEncodable? {
+        return self.body.map { $0.content }
     }
     
     /// Generates the headers of this request.

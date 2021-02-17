@@ -66,7 +66,7 @@ struct MockRequest: DecodableRequest {
     }
 }
 
-struct DecodeTestRequest: EndpointRequest {
+struct DecodeTestRequest: RequestComponents {
     @Path
     var path1: String
     

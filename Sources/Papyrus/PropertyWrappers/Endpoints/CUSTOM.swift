@@ -1,6 +1,6 @@
 /// Represents an `Endpoint` with a custom HTTP method.
 @propertyWrapper
-public class CUSTOM<Req: EndpointRequest, Res: Codable> {
+public class CUSTOM<Req: RequestComponents, Res: Codable> {
     /// A REST endpoint with the given method & path.
     public var wrappedValue: Endpoint<Req, Res>
     

@@ -25,7 +25,7 @@ final class TestAPI: EndpointGroup {
     var custom: Endpoint<Empty, Empty>
 }
 
-struct TestRequest: EndpointRequest {
+struct TestRequest: RequestComponents {
     @Path
     var path1: String
     
@@ -57,7 +57,7 @@ struct TestRequest: EndpointRequest {
     var body: SomeJSON
 }
 
-struct TestURLBody: EndpointRequest {
+struct TestURLBody: RequestComponents {
     static var bodyEncoding: BodyEncoding = .urlEncoded
     
     @Body
@@ -68,12 +68,12 @@ struct TestURLBody: EndpointRequest {
     }
 }
 
-struct TestQueryCodable: EndpointRequest {
+struct TestQueryCodable: RequestComponents {
     @URLQuery
     var body: SomeJSON
 }
 
-struct MultipleBodies: EndpointRequest {
+struct MultipleBodies: RequestComponents {
     @Body
     var body1 = SomeJSON(string: "foo", int: 0)
     

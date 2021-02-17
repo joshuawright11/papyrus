@@ -1,6 +1,6 @@
 /// Represents a GET `Endpoint`.
 @propertyWrapper
-public class GET<Req: EndpointRequest, Res: Codable> {
+public class GET<Req: RequestComponents, Res: Codable> {
     /// A GET REST endpoint with the given path.
     public var wrappedValue: Endpoint<Req, Res>
     

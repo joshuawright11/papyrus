@@ -13,7 +13,7 @@ import Foundation
 /// validating endpoints. There are partner libraries
 /// (`PapyrusAlamofire` and `Alchemy`) for requesting or
 /// validating endpoints on client or server platforms.
-public struct Endpoint<Request: EndpointRequest, Response: Codable> {
+public struct Endpoint<Request: RequestConvertible, Response: Codable> {
     /// The method, or verb, of this endpoint.
     public let method: EndpointMethod
     
@@ -57,17 +57,11 @@ public enum BodyEncoding {
 }
 
 /// A type that can be the `Request` type of an `Endpoint`.
-public protocol EndpointRequest: Codable {
+public protocol RequestConvertible: Codable {
     /// The method of encoding for the request body. Defaults to
     /// `.json`.
     static var bodyEncoding: BodyEncoding { get }
-}
-
-extension EndpointRequest {
-    public static var bodyEncoding: BodyEncoding { .json }
-}
-
-extension EndpointRequest {
+    
     /// Initialize this request data from a `DecodableRequest`. Useful
     /// for loading expected request data from incoming requests on
     /// the provider of this `Endpoint`.
@@ -75,19 +69,39 @@ extension EndpointRequest {
     /// - Parameter request: The request to initialize this type from.
     /// - Throws: Any error encountered while decoding this type from
     ///   the request.
+    init(from request: DecodableRequest) throws
+}
+
+extension RequestConvertible {
+    public static var bodyEncoding: BodyEncoding { .json }
+}
+
+public protocol RequestBody: RequestConvertible, AnyBody {}
+
+extension RequestBody {
+    public var content: AnyEncodable { .init(self) }
+    
+    public init(from request: DecodableRequest) throws {
+        self = try request.decodeBody(encoding: Self.bodyEncoding)
+    }
+}
+
+public protocol RequestComponents: RequestConvertible {}
+
+extension RequestComponents {
     public init(from request: DecodableRequest) throws {
         try self.init(from: RequestDecoder(request: request))
     }
 }
 
 extension DecodableRequest {
-    /// Decodes the given `EndpointRequest` type from this request.
+    /// Decodes the given `RequestComponents` type from this request.
     ///
     /// - Parameter requestType: The type to decode. Defaults to
     ///   `E.self`.
     /// - Throws: An error encountered while decoding the type.
     /// - Returns: An instance of `E` decoded from this request.
-    public func decodeRequest<E: EndpointRequest>(_ requestType: E.Type = E.self) throws -> E {
+    public func decodeRequest<E: RequestConvertible>(_ requestType: E.Type = E.self) throws -> E {
         try E(from: self)
     }
 }

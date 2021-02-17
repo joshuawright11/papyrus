@@ -51,8 +51,4 @@ final class EncodingTests: XCTestCase {
         XCTAssert(params.fullPath.hasPrefix("/body"))
         XCTAssertEqual(params.bodyEncoding, .urlEncoded)
     }
-    
-    func testMultipleBodyThrows() throws {
-        XCTAssertThrowsError(try self.testAPI.multipleBodies.parameters(dto: MultipleBodies()))
-    }
 }

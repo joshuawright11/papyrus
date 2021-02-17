@@ -238,7 +238,7 @@ private struct RequestComponentContainer: SingleValueDecodingContainer {
 /// - Returns: A generic type, though this never returns.
 private func error<T>() throws -> T {
     throw PapyrusError("Only properties wrapped by @Body, @Path, @Header, or @Query are " +
-                        "supported on an `EndpointRequest`")
+                        "supported on an `RequestComponents`")
 }
 
 extension String {
