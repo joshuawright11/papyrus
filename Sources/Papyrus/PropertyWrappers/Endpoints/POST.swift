@@ -1,6 +1,6 @@
 /// Represents a POST `Endpoint`.
 @propertyWrapper
-public class POST<Req: RequestComponents, Res: Codable> {
+public class POST<Req: RequestConvertible, Res: Codable> {
     /// A POST REST endpoint with the given path.
     public var wrappedValue: Endpoint<Req, Res>
 

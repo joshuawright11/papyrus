@@ -1,6 +1,6 @@
 /// Represents a PATCH `Endpoint`.
 @propertyWrapper
-public class PATCH<Req: RequestComponents, Res: Codable> {
+public class PATCH<Req: RequestConvertible, Res: Codable> {
     /// A PATCH REST endpoint with the given path.
     public var wrappedValue: Endpoint<Req, Res>
 

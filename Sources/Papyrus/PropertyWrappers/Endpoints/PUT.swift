@@ -1,6 +1,6 @@
 /// Represents a PUT `Endpoint`.
 @propertyWrapper
-public class PUT<Req: RequestComponents, Res: Codable> {
+public class PUT<Req: RequestConvertible, Res: Codable> {
     /// A PUT REST endpoint with the given path.
     public var wrappedValue: Endpoint<Req, Res>
 
