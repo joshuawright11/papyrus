@@ -36,24 +36,10 @@ import Foundation
 /// Ensure that all defined `Endpoint`s are properties of an
 /// `EndpointGroup` type so that their `baseURL` can be
 /// automatically inferred when they are requested.
-public typealias EndpointGroup = EndpointGroupBase & EndpointGroupSettings
-
-/// Base class for `EndpointGroup`s.
-open class EndpointGroupBase {
+public protocol EndpointGroup: AnyObject {
     /// The base URL for all `Endpoint`s defined in this group.
-    public let baseURL: String
+    var baseURL: String { get }
     
-    /// Initialize a group with a base url.
-    ///
-    /// - Parameter baseURL: The `baseURL` for all `Endpoint`s
-    ///   defined in this group.
-    public init(baseURL: String) {
-        self.baseURL = baseURL
-    }
-}
-
-/// Any settings for this EndpointGroup.
-public protocol EndpointGroupSettings {
     /// The key mapping strategy of endpoints in this group. Defaults
     /// to `.useDefaultKeys`.
     var keyMapping: KeyMapping { get }
@@ -69,7 +55,8 @@ public protocol EndpointGroupSettings {
     var jsonDecoder: JSONDecoder { get }
 }
 
-extension EndpointGroupSettings {
+// Default values.
+extension EndpointGroup {
     public var keyMapping: KeyMapping { .useDefaultKeys }
     public var jsonEncoder: JSONEncoder { JSONEncoder() }
     public var jsonDecoder: JSONDecoder { JSONDecoder() }

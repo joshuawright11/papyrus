@@ -1,6 +1,8 @@
 @testable import Papyrus
 
 final class TestAPI: EndpointGroup {
+    var baseURL: String { "http://localhost" }
+    
     @POST("/foo/:path1/bar")
     var post: Endpoint<TestRequest, Empty>
     

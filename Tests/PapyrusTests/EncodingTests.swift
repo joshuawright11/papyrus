@@ -2,7 +2,7 @@ import XCTest
 @testable import Papyrus
 
 final class EncodingTests: XCTestCase {
-    private let testAPI = TestAPI(baseURL: "http://localhost")
+    private let testAPI = TestAPI()
     
     func testBaseURL() {
         XCTAssertEqual(self.testAPI.post.baseURL, "http://localhost")
