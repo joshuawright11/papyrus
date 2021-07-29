@@ -31,6 +31,23 @@ final class DecodingTests: XCTestCase {
     }
 }
 
+final class TestDecoderAPI: EndpointGroup {
+    var baseURL: String = "123"
+    
+    var jsonDecoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
+    
+    @POST("/test")
+    var thing: Endpoint<Request, String>
+}
+
+struct Request: RequestBody {
+    var thing: String = ""
+}
+
 struct MockRequest: DecodableRequest {
     let headers: [String: String]
     let paths: [String: String]

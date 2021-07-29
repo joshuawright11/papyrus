@@ -9,44 +9,47 @@ extension Endpoint {
     ///   the `Endpoint`.
     /// - Returns: A struct containing any information needed to
     ///   request this endpoint with the provided instance of `Request`.
-    public func parameters(dto: Request) throws -> RawRequestComponents {
+    public func parameters(dto: Request) throws -> HTTPComponents {
         let helper = EncodingHelper(dto, keyMapping: self.keyMapping)
-        return RawRequestComponents(
-            method: self.method,
+        var components = HTTPComponents(
+            method: method,
             headers: helper.getHeaders(),
-            basePath: self.path,
+            basePath: path,
             query: helper.queryString(),
-            fullPath: try helper.getFullPath(self.path),
+            fullPath: try helper.getFullPath(path),
             body: helper.getBody(),
             bodyEncoding: Request.bodyEncoding
         )
+        
+        interceptor?(&components)
+        return components
     }
 }
 
 /// Represents the components needed to make an HTTP request.
-public struct RawRequestComponents {
-    /// The method of this request.
-    public let method: EndpointMethod
+public struct HTTPComponents {
+    /// The HTTP method of this request.
+    public var method: String
     
     /// Any headers that may be on this request.
-    public let headers: [String: String]
+    public var headers: [String: String]
     
     /// The base path of this request, without any path parameters
     /// replaced.
-    public let basePath: String
+    public var basePath: String
     
     /// The query string of this request.
-    public let query: String
+    public var query: String
     
     /// The full path of this request, including any path parameters
     /// _and_ the query string.
-    public let fullPath: String
+    public var fullPath: String
     
     /// The body of this request.
-    public let body: AnyEncodable?
+    public var body: AnyEncodable?
     
     /// Body encoding.
-    public let bodyEncoding: BodyEncoding
+    public var bodyEncoding: BodyEncoding
     
     /// Creates a simple `RequestComponents` with just a url and an
     /// endpoint method.
@@ -56,8 +59,8 @@ public struct RawRequestComponents {
     ///   - method: The method of the request.
     /// - Returns: The `RequestComponents` representing a request with
     ///   the given `url` and `method`.
-    public static func just(url: String, method: EndpointMethod) -> RawRequestComponents {
-        RawRequestComponents(
+    public static func just(url: String, method: String) -> HTTPComponents {
+        HTTPComponents(
             method: method,
             headers: [:],
             basePath: url,

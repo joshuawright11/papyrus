@@ -15,7 +15,7 @@ import Foundation
 /// validating endpoints on client or server platforms.
 public struct Endpoint<Request: RequestConvertible, Response: Codable> {
     /// The method, or verb, of this endpoint.
-    public let method: EndpointMethod
+    public let method: String
     
     /// The path of this endpoint, relative to `self.baseURL`
     public var path: String
@@ -32,17 +32,22 @@ public struct Endpoint<Request: RequestConvertible, Response: Codable> {
     /// Used for decoding and JSON body of this endpoint's response.
     public var jsonDecoder: JSONDecoder = JSONDecoder()
     
+    /// Any `EndpointGroup` level changes to make to the request.
+    public var interceptor: ((inout HTTPComponents) -> Void)?
+    
     /// Creates a copy of this `Endpoint` with the provided `baseURL`.
     ///
-    /// - Parameter baseURL: The base URL for the `Endpoint`.
-    /// - Parameter keyMapping: The `KeyMapping` for the `Endpoint`.
-    /// - Returns: A copy of this `Endpoint` with the `baseURL`.
-    public func with(baseURL: String, keyMapping: KeyMapping, jsonEncoder: JSONEncoder, jsonDecoder: JSONDecoder) -> Self {
+    /// - Parameter group: The EndpointGroup this `Endpoint` is apart
+    ///   of.
+    /// - Returns: A copy of this `Endpoint` configured for the
+    ///   `EndpointGroup`.
+    public func with(group: EndpointGroup) -> Self {
         var copy = self
-        copy.baseURL = baseURL
-        copy.keyMapping = keyMapping
-        copy.jsonEncoder = jsonEncoder
-        copy.jsonDecoder = jsonDecoder
+        copy.baseURL = group.baseURL
+        copy.keyMapping = group.keyMapping
+        copy.jsonEncoder = group.jsonEncoder
+        copy.jsonDecoder = group.jsonDecoder
+        copy.interceptor = group.intercept
         return copy
     }
 }

@@ -10,7 +10,7 @@ public class CUSTOM<Req: RequestConvertible, Res: Codable> {
     ///   - method: The string of the HTTP method of the endpoint.
     ///   - path: The path of the endpoint.
     public init(method: String, _ path: String) {
-        self.wrappedValue = Endpoint<Req, Res>(method: EndpointMethod(method), path: path)
+        self.wrappedValue = Endpoint<Req, Res>(method: method, path: path)
     }
     
     /// Wraps access of the `wrappedValue` when this propery is on a
@@ -21,7 +21,7 @@ public class CUSTOM<Req: RequestConvertible, Res: Codable> {
         wrapped wrappedKeyPath: ReferenceWritableKeyPath<EnclosingSelf, Endpoint<Req, Res>>,
         storage storageKeyPath: ReferenceWritableKeyPath<EnclosingSelf, CUSTOM<Req, Res>>
     ) -> Endpoint<Req, Res> {
-        get { object[keyPath: storageKeyPath].wrappedValue.with(baseURL: object.baseURL, keyMapping: object.keyMapping, jsonEncoder: object.jsonEncoder, jsonDecoder: object.jsonDecoder) }
+        get { object[keyPath: storageKeyPath].wrappedValue.with(group: object) }
         // This setter is needed so that the propert wrapper will have
         // a `WritableKeyPath` for using this subscript.
         set { fatalError("Endpoints should not be set.") }

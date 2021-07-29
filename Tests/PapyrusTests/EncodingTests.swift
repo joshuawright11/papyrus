@@ -23,10 +23,9 @@ final class EncodingTests: XCTestCase {
                 body: SomeJSON(string: "foo", int: 1)
             )
         )
-        XCTAssertEqual(params.method, .post)
+        XCTAssertEqual(params.method, "POST")
         XCTAssert(params.fullPath.hasPrefix("/foo/one/bar"))
         XCTAssertEqual(params.headers, ["header1": "header_value"])
-        print("suffix: \(params.fullPath)")
         XCTAssert(
             params.fullPath.hasSuffix([
                 "?query1=0",
@@ -47,7 +46,7 @@ final class EncodingTests: XCTestCase {
     func testEncodeURLBody() throws {
         let params = try self.testAPI.urlBody
             .parameters(dto: TestURLBody(body: SomeJSON(string: "test", int: 0)))
-        XCTAssertEqual(params.method, .put)
+        XCTAssertEqual(params.method, "PUT")
         XCTAssert(params.fullPath.hasPrefix("/body"))
         XCTAssertEqual(params.bodyEncoding, .urlEncoded)
     }

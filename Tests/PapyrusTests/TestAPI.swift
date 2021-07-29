@@ -1,6 +1,19 @@
+import Foundation
 @testable import Papyrus
 
 final class TestAPI: EndpointGroup {
+    var jsonEncoder: JSONEncoder {
+        let enc = JSONEncoder()
+        enc.dateEncodingStrategy = .iso8601
+        return enc
+    }
+    
+    var jsonDecoder: JSONDecoder {
+        let dec = JSONDecoder()
+        dec.dateDecodingStrategy = .iso8601
+        return dec
+    }
+    
     var baseURL: String { "http://localhost" }
     
     @POST("/foo/:path1/bar")
@@ -23,6 +36,8 @@ final class TestAPI: EndpointGroup {
     
     @CUSTOM(method: "CONNECT", "/connect")
     var custom: Endpoint<Empty, Empty>
+    
+    func intercept(_ components: inout HTTPComponents) {}
 }
 
 struct TestRequest: RequestComponents {

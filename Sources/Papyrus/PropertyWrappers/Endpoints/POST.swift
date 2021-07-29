@@ -8,7 +8,7 @@ public class POST<Req: RequestConvertible, Res: Codable> {
     ///
     /// - Parameter path: The path of the endpoint.
     public init(_ path: String) {
-        self.wrappedValue = Endpoint<Req, Res>(method: .post, path: path)
+        self.wrappedValue = Endpoint<Req, Res>(method: "POST", path: path)
     }
     
     /// Wraps access of the `wrappedValue` when this propery is on a
@@ -19,7 +19,7 @@ public class POST<Req: RequestConvertible, Res: Codable> {
         wrapped wrappedKeyPath: ReferenceWritableKeyPath<EnclosingSelf, Endpoint<Req, Res>>,
         storage storageKeyPath: ReferenceWritableKeyPath<EnclosingSelf, POST<Req, Res>>
     ) -> Endpoint<Req, Res> {
-        get { object[keyPath: storageKeyPath].wrappedValue.with(baseURL: object.baseURL, keyMapping: object.keyMapping, jsonEncoder: object.jsonEncoder, jsonDecoder: object.jsonDecoder) }
+        get { object[keyPath: storageKeyPath].wrappedValue.with(group: object) }
         // This setter is needed so that the propert wrapper will have
         // a `WritableKeyPath` for using this subscript.
         set { fatalError("Endpoints should not be set.") }

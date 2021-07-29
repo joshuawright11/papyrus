@@ -241,9 +241,9 @@ private func error<T>() throws -> T {
                         "supported on an `RequestComponents`")
 }
 
-extension String {
+private extension String {
     /// Converts a `String` to a `Bool`.
-    fileprivate var bool: Bool? {
+    var bool: Bool? {
         switch self.lowercased() {
         case "true", "t", "yes", "y", "1":
             return true
@@ -252,5 +252,20 @@ extension String {
         default:
             return nil
         }
+    }
+}
+
+private extension Optional {
+    /// Unwraps an optional or throws the provided error.
+    ///
+    /// - Parameter error: An error to be thrown if `self == nil`.
+    /// - Throws: The provided error if `self` is `nil`.
+    /// - Returns: The unwrapped value of `self`.
+    func unwrap(or error: Error) throws -> Wrapped {
+        guard let wrapped = self else {
+            throw error
+        }
+        
+        return wrapped
     }
 }

@@ -30,7 +30,7 @@ import Foundation
 /// ```
 ///
 /// In this example, all the endpoints above will be requested from
-/// the baseURL of the `UsersService` isntance, in this case
+/// the baseURL of the `UsersService` instance, in this case
 /// `https://api.my-app.com`.
 ///
 /// Ensure that all defined `Endpoint`s are properties of an
@@ -53,6 +53,8 @@ public protocol EndpointGroup: AnyObject {
     /// be modified after access to apply the given `keyMapping`.
     /// Defaults to `JSONDecoder()`.
     var jsonDecoder: JSONDecoder { get }
+    
+    func intercept(_ components: inout HTTPComponents)
 }
 
 // Default values.
@@ -60,8 +62,9 @@ extension EndpointGroup {
     public var keyMapping: KeyMapping { .useDefaultKeys }
     public var jsonEncoder: JSONEncoder { JSONEncoder() }
     public var jsonDecoder: JSONDecoder { JSONDecoder() }
+    
+    public func intercept(_ components: inout HTTPComponents) {}
 }
-
 
 /// Represents the mapping between your type's property names and
 /// their corresponding database column.
