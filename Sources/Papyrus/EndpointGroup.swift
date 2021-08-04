@@ -100,7 +100,7 @@ public enum KeyMapping {
     case snakeCase
     
     /// A custom mapping of property name to database column name.
-    case custom((String) -> String)
+    case custom(to: (String) -> String, from: (String) -> String)
     
     /// Given the strategy, map from an input string to an output
     /// string.
@@ -109,14 +109,32 @@ public enum KeyMapping {
     ///   the swift type's property
     /// - Returns: The output string, representing the column of the
     ///   database's table.
-    public func map(input: String) -> String {
+    public func mapTo(input: String) -> String {
         switch self {
         case .snakeCase:
             return input.camelCaseToSnakeCase()
         case .useDefaultKeys:
             return input
-        case .custom(let mapper):
-            return mapper(input)
+        case .custom(let toMapper, _):
+            return toMapper(input)
+        }
+    }
+
+    /// Given the strategy, map from an input string to an output
+    /// string.
+    ///
+    /// - Parameter input: The input string, representing the name of
+    ///   the swift type's property
+    /// - Returns: The output string, representing the column of the
+    ///   database's table.
+    public func mapFrom(input: String) -> String {
+        switch self {
+        case .snakeCase:
+            return input.camelCaseToSnakeCase()
+        case .useDefaultKeys:
+            return input
+        case .custom(_, let fromMapper):
+            return fromMapper(input)
         }
     }
     
@@ -126,13 +144,13 @@ public enum KeyMapping {
             return .convertToSnakeCase
         case .useDefaultKeys:
             return .useDefaultKeys
-        case .custom(let closure):
+        case .custom(let toMapper, _):
             return .custom { keys in
                 guard let last = keys.last else {
                     return GenericCodingKey("")
                 }
                 
-                return GenericCodingKey(closure(last.stringValue))
+                return GenericCodingKey(toMapper(last.stringValue))
             }
         }
     }
@@ -143,13 +161,13 @@ public enum KeyMapping {
             return .convertFromSnakeCase
         case .useDefaultKeys:
             return .useDefaultKeys
-        case .custom(let closure):
+        case .custom(_, let fromMapper):
             return .custom { keys in
                 guard let last = keys.last else {
                     return GenericCodingKey("")
                 }
                 
-                return GenericCodingKey(closure(last.stringValue))
+                return GenericCodingKey(fromMapper(last.stringValue))
             }
         }
     }

@@ -122,7 +122,7 @@ private struct EncodingHelper {
                         return print("No label on a child")
                     }
 
-                    let sanitizedLabel = keyMapping.map(input: String(label.dropFirst()))
+                    let sanitizedLabel = keyMapping.mapTo(input: String(label.dropFirst()))
                     if let query = child.value as? AnyQuery {
                         self.queries[sanitizedLabel] = query
                     } else if let body = child.value as? AnyBody {
