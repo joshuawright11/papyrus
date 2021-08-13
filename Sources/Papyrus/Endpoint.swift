@@ -44,9 +44,17 @@ public struct Endpoint<Request: RequestConvertible, Response: Codable> {
     public func with(group: EndpointGroup) -> Self {
         var copy = self
         copy.baseURL = group.baseURL
-        copy.keyMapping = group.keyMapping
-        copy.jsonEncoder = group.jsonEncoder
-        copy.jsonDecoder = group.jsonDecoder
+        let keyMapping = group.keyMapping
+        copy.keyMapping = keyMapping
+        
+        let encoder = group.jsonEncoder
+        encoder.keyEncodingStrategy = keyMapping.jsonEncodingStrategy
+        copy.jsonEncoder = encoder
+        
+        let decoder = group.jsonDecoder
+        decoder.keyDecodingStrategy = keyMapping.jsonDecodingStrategy
+        copy.jsonDecoder = decoder
+        
         copy.interceptor = group.intercept
         return copy
     }
