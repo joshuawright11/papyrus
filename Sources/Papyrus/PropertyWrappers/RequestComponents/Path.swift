@@ -31,29 +31,29 @@ public struct Path<P: PathAllowed>: Codable, AnyPath {
     
     public init(from decoder: Decoder) throws {
         let string = try decoder.singleValueContainer().decode(String.self)
-        self.wrappedValue = try P(string)
+        self.wrappedValue = try P(pathParameter: string)
             .unwrap(or: PapyrusError("Unable to convert parameter \(string) to a \(P.self)"))
     }
 }
 
 public protocol PathAllowed: Codable {
     var pathString: String { get }
-    init?(_ string: String)
+    init?(pathParameter: String)
 }
 
 extension String: PathAllowed {
     public var pathString: String { self }
     
-    public init?(_ string: String) {
-        self = string
+    public init?(pathParameter: String) {
+        self = pathParameter
     }
 }
 
 extension UUID: PathAllowed {
     public var pathString: String { uuidString }
     
-    public init?(_ string: String) {
-        self.init(uuidString: string)
+    public init?(pathParameter: String) {
+        self.init(uuidString: pathParameter)
     }
 }
 
@@ -61,16 +61,28 @@ extension Bool: PathAllowed {
     public var pathString: String {
         "\(self)"
     }
+    
+    public init?(pathParameter: String) {
+        self.init(pathParameter)
+    }
 }
 
 extension Double: PathAllowed {
     public var pathString: String {
         "\(self)"
     }
+    
+    public init?(pathParameter: String) {
+        self.init(pathParameter)
+    }
 }
 
 extension Int: PathAllowed {
     public var pathString: String {
         "\(self)"
+    }
+    
+    public init?(pathParameter: String) {
+        self.init(pathParameter)
     }
 }
