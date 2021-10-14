@@ -3,10 +3,17 @@ import XCTest
 
 final class DecodingTests: XCTestCase {
     func testDecodeRequest() throws {
+        let pathUuid = UUID()
         let body = try JSONEncoder().encode(SomeJSON(string: "baz", int: 0))
         let mockRequest = MockRequest(
             headers: ["header1": "foo"],
-            paths: ["path1": "bar"],
+            paths: [
+                "path1": "bar",
+                "path2": "1234",
+                "path3": pathUuid.uuidString,
+                "path4": "true",
+                "path5": "0.123456",
+            ],
             queries: [
                 "query1": 1,
                 "query3": "three",
@@ -17,6 +24,10 @@ final class DecodingTests: XCTestCase {
         let decodedRequest = try DecodeTestRequest(from: mockRequest)
         XCTAssertEqual(decodedRequest.header1, "foo")
         XCTAssertEqual(decodedRequest.path1, "bar")
+        XCTAssertEqual(decodedRequest.path2, 1234)
+        XCTAssertEqual(decodedRequest.path3, pathUuid)
+        XCTAssertEqual(decodedRequest.path4, true)
+        XCTAssertEqual(decodedRequest.path5, 0.123456)
         XCTAssertEqual(decodedRequest.query1, 1)
         XCTAssertEqual(decodedRequest.query2, nil)
         XCTAssertEqual(decodedRequest.query3, "three")
@@ -84,30 +95,20 @@ struct MockRequest: DecodableRequest {
 }
 
 struct DecodeTestRequest: RequestComponents {
-    @Path
-    var path1: String
+    @Path var path1: String
+    @Path var path2: Int
+    @Path var path3: UUID
+    @Path var path4: Bool
+    @Path var path5: Double
+
+    @URLQuery var query1: Int
+    @URLQuery var query2: Int?
+    @URLQuery var query3: String?
+    @URLQuery var query4: String?
+    @URLQuery var query5: Bool?
+    @URLQuery var query6: Bool
     
-    @URLQuery
-    var query1: Int
+    @Header var header1: String
     
-    @URLQuery
-    var query2: Int?
-    
-    @URLQuery
-    var query3: String?
-    
-    @URLQuery
-    var query4: String?
-    
-    @URLQuery
-    var query5: Bool?
-    
-    @URLQuery
-    var query6: Bool
-    
-    @Header
-    var header1: String
-    
-    @Body
-    var body: SomeJSON
+    @Body var body: SomeJSON
 }

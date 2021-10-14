@@ -95,7 +95,7 @@ private struct KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
                     key: key.stringValue
                 )
             )
-        } else if type is Path.Type {
+        } else if type is AnyPath.Type {
             return try T(
                 from: RequestComponentDecoder(
                     request: self.request,
@@ -252,20 +252,5 @@ private extension String {
         default:
             return nil
         }
-    }
-}
-
-private extension Optional {
-    /// Unwraps an optional or throws the provided error.
-    ///
-    /// - Parameter error: An error to be thrown if `self == nil`.
-    /// - Throws: The provided error if `self` is `nil`.
-    /// - Returns: The unwrapped value of `self`.
-    func unwrap(or error: Error) throws -> Wrapped {
-        guard let wrapped = self else {
-            throw error
-        }
-        
-        return wrapped
     }
 }

@@ -9,9 +9,14 @@ final class EncodingTests: XCTestCase {
     }
     
     func testEncodePathQueryHeadersJSONBody() throws {
+        let uuid = UUID()
         let params = try self.testAPI.post.parameters(
             dto: TestRequest(
                 path1: "one",
+                path2: 1234,
+                path3: uuid,
+                path4: false,
+                path5: 0.123456,
                 query1: 0,
                 query2: "two",
                 query3: nil,
@@ -24,7 +29,7 @@ final class EncodingTests: XCTestCase {
             )
         )
         XCTAssertEqual(params.method, "POST")
-        XCTAssert(params.fullPath.hasPrefix("/foo/one/bar"))
+        XCTAssert(params.fullPath.hasPrefix("/foo/one/1234/\(uuid.uuidString)/false/0.123456/bar"))
         XCTAssertEqual(params.headers, ["header1": "header_value"])
         XCTAssert(
             params.fullPath.hasSuffix([

@@ -102,7 +102,7 @@ private struct EncodingHelper {
     private var queries: [String: AnyQuery] = [:]
     
     /// Erased storage of any `@Path`s on the request.
-    private var paths: [String: Path] = [:]
+    private var paths: [String: AnyPath] = [:]
     
     /// Initialize from a generic `RequestComponents`.
     ///
@@ -133,7 +133,7 @@ private struct EncodingHelper {
                         self.body = body
                     } else if let header = child.value as? Header {
                         self.headers[sanitizedLabel] = header
-                    } else if let path = child.value as? Path {
+                    } else if let path = child.value as? AnyPath {
                         self.paths[sanitizedLabel] = path
                     } else {
                         fatalError("RequestComponents's must have all properties wrapped by @URLQuery, @Body, @Path, or @Header. Property \(label) had type \(type(of: label)) which isn't allowed.")
@@ -198,13 +198,13 @@ private struct EncodingHelper {
     /// - Returns: The `basePath` with all path component placeholders
     ///   replaced with their respective values.
     private func replacedPath(_ basePath: String) throws -> String {
-        try self.paths.reduce(into: basePath) { basePath, component in
-            guard basePath.contains(":\(component.key)") else {
-                throw PapyrusError("Tried to encode path component '\(component.key)' but didn't find any instance of ':\(component.key)' in the path.")
+        try self.paths.reduce(into: basePath) { newPath, component in
+            guard newPath.contains(":\(component.key)") else {
+                throw PapyrusError("Tried to encode path component `\(component.key)` but did not find any instance of `:\(component.key)` in \(basePath).")
             }
-
-            basePath = basePath
-                .replacingOccurrences(of: ":\(component.key)", with: component.value.wrappedValue)
+            
+            newPath = newPath
+                .replacingOccurrences(of: ":\(component.key)", with: component.value.stringValue)
         }
     }
 }

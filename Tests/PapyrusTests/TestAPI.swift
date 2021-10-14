@@ -16,7 +16,7 @@ final class TestAPI: EndpointGroup {
     
     var baseURL: String { "http://localhost" }
     
-    @POST("/foo/:path1/bar")
+    @POST("/foo/:path1/:path2/:path3/:path4/:path5/bar")
     var post: Endpoint<TestRequest, Empty>
     
     @PUT("/body")
@@ -41,35 +41,23 @@ final class TestAPI: EndpointGroup {
 }
 
 struct TestRequest: RequestComponents {
-    @Path
-    var path1: String
+    @Path var path1: String
+    @Path var path2: Int
+    @Path var path3: UUID
+    @Path var path4: Bool
+    @Path var path5: Double
     
-    @URLQuery
-    var query1: Int
+    @URLQuery var query1: Int
+    @URLQuery var query2: String?
+    @URLQuery var query3: String?
+    @URLQuery var query4: [String]
+    @URLQuery var query5: [String]
+    @URLQuery var query6: Bool?
+    @URLQuery var query7: Bool
     
-    @URLQuery
-    var query2: String?
+    @Header var header1: String
     
-    @URLQuery
-    var query3: String?
-    
-    @URLQuery
-    var query4: [String]
-    
-    @URLQuery
-    var query5: [String]
-    
-    @URLQuery
-    var query6: Bool?
-    
-    @URLQuery
-    var query7: Bool
-    
-    @Header
-    var header1: String
-    
-    @Body
-    var body: SomeJSON
+    @Body var body: SomeJSON
 }
 
 struct TestURLBody: RequestComponents {
