@@ -10,13 +10,13 @@ private enum RequestComponent {
     case path
 }
 
-/// Decodes a `EndpointRequest` from a `DecodableRequest`.
+/// Decodes a `RequestConvertible` from a `DecodableRequest`.
 /// Technically, this can decode any `Decodable` type, but it will
 /// error out on any field that isn't `@Body`, `@Header`, `@Path` or
 /// `@Query`.
 struct RequestDecoder: Decoder {
     /// The `DecodableRequest` from which fields on the
-    /// `EndpointRequest` will be decoded.
+    /// `RequestConvertible` will be decoded.
     let request: DecodableRequest
     
     // MARK: Decoder
@@ -150,11 +150,11 @@ private struct RequestComponentContainer: SingleValueDecodingContainer {
         case .body:
             return try unsupported(type)
         case .header:
-            return try self.request.header(for: self.key).unwrap(or: self.nilError())
+            return try self.request.header(key).unwrap(or: self.nilError())
         case .path:
-            return try self.request.pathComponent(for: self.key).unwrap(or: self.nilError())
+            return try self.request.parameter(key).unwrap(or: self.nilError())
         case .query:
-            return try self.request.query(for: self.key).unwrap(or: self.nilError())
+            return try self.request.query(key).unwrap(or: self.nilError())
         }
     }
     
@@ -174,7 +174,7 @@ private struct RequestComponentContainer: SingleValueDecodingContainer {
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         switch self.parameter {
         case .body:
-            return try self.request.decodeBody(encoding: .json)
+            return try self.request.decodeContent(type: .json)
         case .header:
             return try self.unsupported(type)
         case .path:
@@ -182,7 +182,7 @@ private struct RequestComponentContainer: SingleValueDecodingContainer {
         case .query:
             // Messy. Not sure of another way than manually support
             // each type.
-            let queryString = self.request.query(for: self.key)
+            let queryString = self.request.query(self.key)
             if type is String.Type {
                 return try queryString.unwrap(or: self.nilError()) as! T
             } else if type is Optional<String>.Type {
@@ -190,22 +190,22 @@ private struct RequestComponentContainer: SingleValueDecodingContainer {
             } else if type is Int.Type {
                 let query = try queryString.unwrap(or: self.nilError())
                 let errorMessage = "`\(self.key)` was `\(query)`. It must be an `Int`."
-                let int = try Int(query).unwrap(or: PapyrusValidationError(errorMessage))
+                let int = try Int(query).unwrap(or: PapyrusError(errorMessage))
                 return int as! T
             } else if type is Optional<Int>.Type {
                 return try queryString.map { string -> Int in
                     let errorMessage = "`\(self.key)` was `\(string)`. It must be an `Int`."
-                    return try Int(string).unwrap(or: PapyrusValidationError(errorMessage))
+                    return try Int(string).unwrap(or: PapyrusError(errorMessage))
                 } as! T
             } else if type is Bool.Type {
                 let query = try queryString.unwrap(or: self.nilError())
                 let errorMessage = "`\(self.key)` was `\(query)`. It must be a `Bool`."
-                let bool = try query.bool.unwrap(or: PapyrusValidationError(errorMessage))
+                let bool = try query.bool.unwrap(or: PapyrusError(errorMessage))
                 return bool as! T
             } else if type is Optional<Bool>.Type {
                 return try queryString.map { string -> Bool in
                     let errorMessage = "`\(self.key)` was `\(string)`. It must be a `Bool`."
-                    return try string.bool.unwrap(or: PapyrusValidationError(errorMessage))
+                    return try string.bool.unwrap(or: PapyrusError(errorMessage))
                 } as! T
             } else {
                 return try self.unsupported(type)
@@ -226,13 +226,13 @@ private struct RequestComponentContainer: SingleValueDecodingContainer {
     /// value for a key that was expected.
     ///
     /// - Returns: The error to throw when a value is missing.
-    private func nilError() -> PapyrusValidationError {
-        PapyrusValidationError("Need a value for key `\(self.key)` in the `\(self.parameter)`.")
+    private func nilError() -> PapyrusError {
+        PapyrusError("Need a value for key `\(self.key)` in the `\(self.parameter)`.")
     }
 }
 
 /// Throws an error letting the user know of the acceptable properties
-/// on an `EndpointRequest`.
+/// on an `RequestConvertible`.
 ///
 /// - Throws: Guaranteed to throw a `PapyrusError`.
 /// - Returns: A generic type, though this never returns.

@@ -7,7 +7,7 @@ final class DecodingTests: XCTestCase {
         let body = try JSONEncoder().encode(SomeJSON(string: "baz", int: 0))
         let mockRequest = MockRequest(
             headers: ["header1": "foo"],
-            paths: [
+            parameters: [
                 "path1": "bar",
                 "path2": "1234",
                 "path3": pathUuid.uuidString,
@@ -61,35 +61,35 @@ struct Request: RequestBody {
 
 struct MockRequest: DecodableRequest {
     let headers: [String: String]
-    let paths: [String: String]
+    let parameters: [String: String]
     let queries: [String: Any]
     let bodyData: Data?
     
     init(
         headers: [String: String] = [:],
-        paths: [String: String] = [:],
+        parameters: [String: String] = [:],
         queries: [String: Any] = [:],
         bodyData: Data? = nil
     ) {
         self.headers = headers
-        self.paths = paths
+        self.parameters = parameters
         self.queries = queries
         self.bodyData = bodyData
     }
     
-    func header(for key: String) -> String? {
+    func header(_ key: String) -> String? {
         self.headers[key]
     }
     
-    func query(for key: String) -> String? {
+    func query(_ key: String) -> String? {
         self.queries[key].map { "\($0)" }
     }
     
-    func pathComponent(for key: String) -> String? {
-        self.paths[key]
+    func parameter(_ key: String) -> String? {
+        self.parameters[key]
     }
     
-    func decodeBody<T: Decodable>(encoding: BodyEncoding) throws -> T {
+    func decodeContent<T: Decodable>(type: ContentType) throws -> T {
         try JSONDecoder().decode(T.self, from: self.bodyData ?? Data())
     }
 }

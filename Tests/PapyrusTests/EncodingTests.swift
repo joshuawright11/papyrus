@@ -10,7 +10,7 @@ final class EncodingTests: XCTestCase {
     
     func testEncodePathQueryHeadersJSONBody() throws {
         let uuid = UUID()
-        let params = try self.testAPI.post.parameters(
+        let params = try self.testAPI.post.httpComponents(
             dto: TestRequest(
                 path1: "one",
                 path2: 1234,
@@ -50,7 +50,7 @@ final class EncodingTests: XCTestCase {
     
     func testEncodeURLBody() throws {
         let params = try self.testAPI.urlBody
-            .parameters(dto: TestURLBody(body: SomeJSON(string: "test", int: 0)))
+            .httpComponents(dto: TestURLBody(body: SomeJSON(string: "test", int: 0)))
         XCTAssertEqual(params.method, "PUT")
         XCTAssert(params.fullPath.hasPrefix("/body"))
         XCTAssertEqual(params.bodyEncoding, .urlEncoded)

@@ -61,7 +61,7 @@ struct TestRequest: RequestComponents {
 }
 
 struct TestURLBody: RequestComponents {
-    static var bodyEncoding: BodyEncoding = .urlEncoded
+    static var contentType: ContentType = .urlEncoded
     
     @Body
     var body: SomeJSON

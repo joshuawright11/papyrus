@@ -9,7 +9,7 @@ extension Endpoint {
     ///   the `Endpoint`.
     /// - Returns: A struct containing any information needed to
     ///   request this endpoint with the provided instance of `Request`.
-    public func parameters(dto: Request) throws -> HTTPComponents {
+    public func httpComponents(dto: Request) throws -> HTTPComponents {
         let helper = EncodingHelper(dto, keyMapping: self.keyMapping)
         var components = HTTPComponents(
             method: method,
@@ -18,7 +18,7 @@ extension Endpoint {
             query: helper.queryString(),
             fullPath: try helper.getFullPath(path),
             body: helper.getBody(),
-            bodyEncoding: Request.bodyEncoding
+            bodyEncoding: Request.contentType
         )
         
         interceptor?(&components)
@@ -49,7 +49,7 @@ public struct HTTPComponents {
     public var body: AnyEncodable?
     
     /// Body encoding.
-    public var bodyEncoding: BodyEncoding
+    public var bodyEncoding: ContentType
     
     /// Creates a simple `RequestComponents` with just a url and an
     /// endpoint method.
