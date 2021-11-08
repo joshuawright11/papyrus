@@ -41,7 +41,7 @@ final class EncodingTests: XCTestCase {
             ].joined())
         )
         XCTAssertNotNil(params.body)
-        XCTAssertEqual(params.bodyEncoding, .json)
+        XCTAssertEqual(params.contentEncoding, .json)
         
         let bodyData = try JSONEncoder().encode(params.body)
         let expectedData = try JSONEncoder().encode(SomeJSON(string: "foo", int: 1))
@@ -53,6 +53,6 @@ final class EncodingTests: XCTestCase {
             .httpComponents(dto: TestURLBody(body: SomeJSON(string: "test", int: 0)))
         XCTAssertEqual(params.method, "PUT")
         XCTAssert(params.fullPath.hasPrefix("/body"))
-        XCTAssertEqual(params.bodyEncoding, .urlEncoded)
+        XCTAssertEqual(params.contentEncoding, .url)
     }
 }

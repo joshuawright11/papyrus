@@ -62,18 +62,18 @@ public struct Endpoint<Request: RequestConvertible, Response: Codable> {
 
 /// Indicates the type of a request's body. The content type affects
 /// how and where the content is encoded.
-public enum ContentType {
+public enum ContentEncoding {
     /// The content of this request is encoded to its body as JSON.
     case json
     /// The content of this request is encoded to its URL.
-    case urlEncoded
+    case url
 }
 
 /// A type that can be the `Request` type of an `Endpoint`.
 public protocol RequestConvertible: Codable {
     /// The method of encoding for the request body. Defaults to
     /// `.json`.
-    static var contentType: ContentType { get }
+    static var contentEncoding: ContentEncoding { get }
     
     /// Initialize this request data from a `DecodableRequest`. Useful
     /// for loading expected request data from incoming requests on
@@ -86,7 +86,7 @@ public protocol RequestConvertible: Codable {
 }
 
 extension RequestConvertible {
-    public static var contentType: ContentType { .json }
+    public static var contentEncoding: ContentEncoding { .json }
 }
 
 public protocol RequestBody: RequestConvertible, AnyBody {}
@@ -95,7 +95,7 @@ extension RequestBody {
     public var content: AnyEncodable { .init(self) }
     
     public init(from request: DecodableRequest) throws {
-        self = try request.decodeContent(type: Self.contentType)
+        self = try request.decodeContent(type: Self.contentEncoding)
     }
 }
 

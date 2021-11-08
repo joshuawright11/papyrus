@@ -30,5 +30,5 @@ public protocol DecodableRequest {
     /// - Throws: Any error thrown decoding the request body to `T`.
     /// - Returns: An instance of `T`, decoded from this request's
     ///   body.
-    func decodeContent<T: Decodable>(type: ContentType) throws -> T
+    func decodeContent<T: Decodable>(type: ContentEncoding) throws -> T
 }

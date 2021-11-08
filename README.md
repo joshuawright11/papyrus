@@ -199,7 +199,7 @@ struct PathRequest: RequestComponents {
 
 ##### Body
 
-`@Body` can wrap any `Codable` type which will be encoded to the request. By default, the body is encoded as JSON, but you may override `RequestConvertible.contentType` to use another encoding type.
+`@Body` can wrap any `Codable` type which will be encoded to the request. By default, the body is encoded as JSON, but you may override `RequestConvertible.contentEncoding` to use another encoding type.
 
 ```swift
 class SomeAPI: EndpointGroup {
@@ -217,7 +217,7 @@ struct JSONBody: RequestComponents {
 
 /// Will encode `BodyData` in the request URL.
 struct URLEncodedBody: RequestComponents {
-    static let contentType = .urlEncoded
+    static let contentEncoding = .url
 
     @Body var body: BodyData
 }
@@ -314,7 +314,7 @@ If expected data is missing, a `400` is thrown describing the missing expected f
 }
 ```
 
-**Note**: Currently, only `ContentType.json` is supported for decoding request `@Body`s.
+**Note**: Currently, only `ContentEncoding.json` is supported for decoding request `@Body`s.
 
 _Next page: [Database: Basics](5a_DatabaseBasics.md)_
 

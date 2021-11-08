@@ -89,7 +89,7 @@ struct MockRequest: DecodableRequest {
         self.parameters[key]
     }
     
-    func decodeContent<T: Decodable>(type: ContentType) throws -> T {
+    func decodeContent<T: Decodable>(type: ContentEncoding) throws -> T {
         try JSONDecoder().decode(T.self, from: self.bodyData ?? Data())
     }
 }

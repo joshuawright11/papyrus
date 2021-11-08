@@ -18,7 +18,7 @@ extension Endpoint {
             query: helper.queryString(),
             fullPath: try helper.getFullPath(path),
             body: helper.getBody(),
-            bodyEncoding: Request.contentType
+            contentEncoding: Request.contentEncoding
         )
         
         interceptor?(&components)
@@ -49,7 +49,7 @@ public struct HTTPComponents {
     public var body: AnyEncodable?
     
     /// Body encoding.
-    public var bodyEncoding: ContentType
+    public var contentEncoding: ContentEncoding
     
     /// Creates a simple `RequestComponents` with just a url and an
     /// endpoint method.
@@ -67,7 +67,7 @@ public struct HTTPComponents {
             query: "",
             fullPath: url,
             body: nil,
-            bodyEncoding: .json
+            contentEncoding: .json
         )
     }
     
@@ -80,7 +80,7 @@ public struct HTTPComponents {
     /// - Returns: The url parameters string of this request, or nil
     ///   if it has none.
     public func urlParams() throws -> String? {
-        guard let body = self.body, self.bodyEncoding == .urlEncoded else {
+        guard let body = self.body, self.contentEncoding == .url else {
             return nil
         }
         
