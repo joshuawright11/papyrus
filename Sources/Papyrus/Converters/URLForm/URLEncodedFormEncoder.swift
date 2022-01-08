@@ -40,6 +40,9 @@ public struct URLEncodedFormEncoder {
 
     /// The strategy to use in Encoding dates. Defaults to `.deferredToDate`.
     public var dateEncodingStrategy: DateEncodingStrategy
+    
+    /// Custom mapping of key names
+    public var keyMapping: KeyMapping
 
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any]
@@ -47,6 +50,7 @@ public struct URLEncodedFormEncoder {
     /// Options set on the top-level encoder to pass down the encoding hierarchy.
     fileprivate struct _Options {
         let dateEncodingStrategy: DateEncodingStrategy
+        let keyMapping: KeyMapping
         let userInfo: [CodingUserInfoKey: Any]
     }
 
@@ -54,6 +58,7 @@ public struct URLEncodedFormEncoder {
     fileprivate var options: _Options {
         return _Options(
             dateEncodingStrategy: self.dateEncodingStrategy,
+            keyMapping: self.keyMapping,
             userInfo: self.userInfo
         )
     }
@@ -64,11 +69,12 @@ public struct URLEncodedFormEncoder {
     ///   - userInfo: user info to supply to encoder
     public init(
         dateEncodingStrategy: URLEncodedFormEncoder.DateEncodingStrategy = .deferredToDate,
-        userInfo: [CodingUserInfoKey: Any] = [:],
-        additionalKeys: [String: String] = [:]
+        keyMapping: KeyMapping = .useDefaultKeys,
+        userInfo: [CodingUserInfoKey: Any] = [:]
     ) {
         self.dateEncodingStrategy = dateEncodingStrategy
         self.userInfo = userInfo
+        self.keyMapping = keyMapping
     }
 
     /// Encode object into URL encoded form data
@@ -108,7 +114,7 @@ private class _URLEncodedFormEncoder: Encoder {
     ///   - options: options
     ///   - containerCodingMapType: Container encoding for the top level object
     init(options: URLEncodedFormEncoder._Options) {
-        self.storage = URLEncodedFormEncoderStorage()
+        self.storage = URLEncodedFormEncoderStorage(keyMapping: options.keyMapping)
         self.options = options
         self.codingPath = []
         self.result = nil
@@ -170,7 +176,7 @@ private class _URLEncodedFormEncoder: Encoder {
             self.encoder.codingPath.append(key)
             defer { self.encoder.codingPath.removeLast() }
 
-            let keyedContainer = URLEncodedFormNode.Map()
+            let keyedContainer = URLEncodedFormNode.Map(keyMapping: self.encoder.options.keyMapping)
             self.container.addChild(key: key.stringValue, value: .map(keyedContainer))
 
             let kec = KEC<NestedKey>(referencing: self.encoder, container: keyedContainer)
@@ -254,7 +260,7 @@ private class _URLEncodedFormEncoder: Encoder {
             self.encoder.codingPath.append(URLEncodedForm.Key(index: self.count))
             defer { self.encoder.codingPath.removeLast() }
 
-            let keyedContainer = URLEncodedFormNode.Map()
+            let keyedContainer = URLEncodedFormNode.Map(keyMapping: self.encoder.options.keyMapping)
             self.container.addChild(value: .map(keyedContainer))
 
             let kec = KEC<NestedKey>(referencing: self.encoder, container: keyedContainer)
@@ -358,15 +364,17 @@ extension _URLEncodedFormEncoder {
 private struct URLEncodedFormEncoderStorage {
     /// the container stack
     private var containers: [URLEncodedFormNode] = []
+    private let keyMapping: KeyMapping
 
     /// initializes self with no containers
-    init() {
+    init(keyMapping: KeyMapping) {
+        self.keyMapping = keyMapping
         // containers.append(.map(.init()))
     }
 
     /// push a new container onto the storage
     mutating func pushKeyedContainer() -> URLEncodedFormNode.Map {
-        let map = URLEncodedFormNode.Map()
+        let map = URLEncodedFormNode.Map(keyMapping: keyMapping)
         self.containers.append(.map(map))
         return map
     }

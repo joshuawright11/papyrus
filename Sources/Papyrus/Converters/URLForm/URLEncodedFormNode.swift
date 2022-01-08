@@ -14,8 +14,8 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
 
     /// Initialize node from URL encoded form data
     /// - Parameter string: URL encoded form data
-    init(from string: String) throws {
-        self = try Self.decode(string)
+    init(from string: String, keyMapping: KeyMapping) throws {
+        self = try Self.decode(string, keyMapping: keyMapping)
     }
 
     var description: String {
@@ -24,9 +24,9 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
 
     /// Create `URLEncodedFormNode` from URL encoded form data
     /// - Parameter string: URL encoded form data
-    private static func decode(_ string: String) throws -> URLEncodedFormNode {
+    private static func decode(_ string: String, keyMapping: KeyMapping) throws -> URLEncodedFormNode {
         let split = string.split(separator: "&")
-        let node = Self.map(.init())
+        let node = Self.map(.init(keyMapping: keyMapping))
         try split.forEach {
             if let equals = $0.firstIndex(of: "=") {
                 let before = $0[..<equals].removingPercentEncoding
@@ -37,7 +37,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
                 guard let keys = KeyParser.parse(key) else { throw Error.failedToDecode("Unexpected key value") }
                 guard let value = NodeValue(percentEncoded: after) else { throw Error.failedToDecode("Failed to percent decode \(after)") }
 
-                try node.addValue(keys: keys[...], value: value)
+                try node.addValue(keys: keys[...], value: value, keyMapping: keyMapping)
             }
         }
         return node
@@ -47,14 +47,14 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
     /// - Parameters:
     ///   - keys: Array of key parser types (array or map)
     ///   - value: value to add to leaf node
-    private func addValue(keys: ArraySlice<KeyParser.KeyType>, value: NodeValue) throws {
+    private func addValue(keys: ArraySlice<KeyParser.KeyType>, value: NodeValue, keyMapping: KeyMapping) throws {
         /// function for create `URLEncodedFormNode` from `KeyParser.Key.Type`
         func createNode(from key: KeyParser.KeyType) -> URLEncodedFormNode {
             switch key {
             case .array:
                 return .array(.init())
             case .map:
-                return .map(.init())
+                return .map(.init(keyMapping: keyMapping))
             }
         }
 
@@ -64,17 +64,17 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
 
         switch (self, keyType) {
         case (.map(let map), .map(let key)):
-            let key = String(key)
+            let key = keyMapping.mapFrom(input: String(key)) // Decoding, map from the desired output.
             if keys.count == 0 {
                 guard map.values[key] == nil else { throw Error.failedToDecode() }
                 map.values[key] = .leaf(value)
             } else {
                 if let node = map.values[key] {
-                    try node.addValue(keys: keys, value: value)
+                    try node.addValue(keys: keys, value: value, keyMapping: keyMapping)
                 } else {
                     let node = createNode(from: keys.first!)
                     map.values[key] = node
-                    try node.addValue(keys: keys, value: value)
+                    try node.addValue(keys: keys, value: value, keyMapping: keyMapping)
                 }
             }
         case (.array(let array), .array):
@@ -141,12 +141,16 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
 
     final class Map: Equatable {
         var values: [String: URLEncodedFormNode]
-        init(values: [String: URLEncodedFormNode] = [:]) {
-            self.values = values
+        let keyMapping: KeyMapping
+        
+        init(keyMapping: KeyMapping) {
+            self.values = [:]
+            self.keyMapping = keyMapping
         }
 
         func addChild(key: String, value: URLEncodedFormNode) {
-            self.values[key] = value
+            let mappedKey = keyMapping.mapTo(input: key) // Encoding here, map to the desired input.
+            self.values[mappedKey] = value
         }
 
         static func == (lhs: URLEncodedFormNode.Map, rhs: URLEncodedFormNode.Map) -> Bool {

@@ -83,9 +83,21 @@ public struct Endpoint<Request: EndpointRequest, Response: Codable>: AnyEndpoint
     public var body: EndpointContent?
     
     /// Converter for this endpoints data fields.
-    public var converter = EndpointContent.defaultConverter
+    public var converter: ContentConverter {
+        get { keyMapping.map { _converter.with(keyMapping: $0) } ?? _converter }
+        set { _converter = newValue }
+    }
+    
+    private var _converter: ContentConverter = EndpointContent.defaultConverter
+    
     /// Converter for this endpoints data fields.
-    public var queryConverter = URLFormConverter()
+    public var queryConverter: URLFormConverter {
+        get { keyMapping.map { _queryConverter.with(keyMapping: $0) } ?? _queryConverter }
+        set { _queryConverter = newValue }
+    }
+    
+    public var _queryConverter = URLFormConverter()
+    
     /// Any `KeyMapping` of this endpoint, applied to body and query fields.
     public var keyMapping: KeyMapping?
     

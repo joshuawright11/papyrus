@@ -40,6 +40,9 @@ public struct URLEncodedFormDecoder {
 
     /// The strategy to use in Encoding dates. Defaults to `.deferredToDate`.
     public var dateDecodingStrategy: DateDecodingStrategy
+    
+    /// Custom mapping of key names
+    public var keyMapping: KeyMapping
 
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any]
@@ -47,6 +50,7 @@ public struct URLEncodedFormDecoder {
     /// Options set on the top-level encoder to pass down the encoding hierarchy.
     fileprivate struct _Options {
         let dateDecodingStrategy: DateDecodingStrategy
+        let keyMapping: KeyMapping
         let userInfo: [CodingUserInfoKey: Any]
     }
 
@@ -54,6 +58,7 @@ public struct URLEncodedFormDecoder {
     fileprivate var options: _Options {
         return _Options(
             dateDecodingStrategy: self.dateDecodingStrategy,
+            keyMapping: self.keyMapping,
             userInfo: self.userInfo
         )
     }
@@ -64,9 +69,11 @@ public struct URLEncodedFormDecoder {
     ///   - userInfo: user info to supply to decoder
     public init(
         dateDecodingStrategy: URLEncodedFormDecoder.DateDecodingStrategy = .deferredToDate,
+        keyMapping: KeyMapping = .useDefaultKeys,
         userInfo: [CodingUserInfoKey: Any] = [:]
     ) {
         self.dateDecodingStrategy = dateDecodingStrategy
+        self.keyMapping = keyMapping
         self.userInfo = userInfo
     }
 
@@ -76,7 +83,7 @@ public struct URLEncodedFormDecoder {
     ///   - string: URL encoded form data
     public func decode<T: Decodable>(_ type: T.Type, from string: String) throws -> T {
         let decoder = _URLEncodedFormDecoder(options: self.options)
-        let node = try URLEncodedFormNode(from: string)
+        let node = try URLEncodedFormNode(from: string, keyMapping: self.options.keyMapping)
         let value = try decoder.unbox(node, as: type)
         return value
     }

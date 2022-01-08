@@ -66,8 +66,13 @@ final class EncodingTests: XCTestCase {
             XCTAssertEqual(payload.urlComponents.path, "/key/foo")
             XCTAssertEqual(payload.headers["headerString"], "baz")
             XCTAssertEqual(payload.urlComponents.queryItems?[0], URLQueryItem(name: "query_string", value: "bar"))
-            let dict = try endpoint.converter.decode([String: String].self, from: payload.body ?? Data())
-            XCTAssertEqual(dict, ["string_value": "tiz", "other_string_value": "taz"])
+            if converter is URLFormConverter {
+                let string = String(data: payload.body ?? Data(), encoding: .utf8)
+                XCTAssertTrue(string == "string_value=tiz&other_string_value=taz" || string == "other_string_value=taz&string_value=tiz")
+            } else {
+                let dict = try endpoint.converter.decode([String: String].self, from: payload.body ?? Data())
+                XCTAssertEqual(dict, ["string_value": "tiz", "other_string_value": "taz"])
+            }
         }
     }
 }

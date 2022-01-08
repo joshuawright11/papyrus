@@ -11,6 +11,14 @@ public struct URLFormConverter: ContentConverter {
         self.decoder = decoder
     }
     
+    public func with(keyMapping: KeyMapping) -> URLFormConverter {
+        var encoder = encoder
+        encoder.keyMapping = keyMapping
+        var decoder = decoder
+        decoder.keyMapping = keyMapping
+        return URLFormConverter(encoder: encoder, decoder: decoder)
+    }
+    
     public func decode<D: Decodable>(_ type: D.Type, from data: Data) throws -> D {
         guard let string = String(data: data, encoding: .utf8) else {
             throw PapyrusError("Body data wasn't utf8 encoded.")
