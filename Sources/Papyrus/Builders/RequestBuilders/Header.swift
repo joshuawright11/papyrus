@@ -1,19 +1,19 @@
 /// Represents an item in a request's headers.
 @propertyWrapper
-public struct Header<L: LosslessStringConvertible & Codable>: RequestModifier {
+public struct RequestHeader<L: LosslessStringConvertible & Codable>: RequestBuilder {
     /// The value of the this header.
     public var wrappedValue: L
     public init(wrappedValue: L) { self.wrappedValue = wrappedValue }
     
-    // MARK: RequestModifier
+    // MARK: RequestBuilder
     
-    public init(from request: RequestComponents, at key: String, endpoint: AnyEndpoint) throws {
+    public init(from request: RawRequest, at key: String) throws {
         guard let string = request.headers[key] else { throw PapyrusError("Missing header at \(key).") }
         guard let value = L(string) else { throw PapyrusError("Unable to create a \(L.self) from header string at \(key): \(string)") }
         wrappedValue = value
     }
     
-    public func modify<Req: EndpointRequest, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
-        endpoint.headers[label] = wrappedValue.description
+    public func build(components: inout PartialRequest, for label: String) {
+        components.headers[label] = wrappedValue.description
     }
 }

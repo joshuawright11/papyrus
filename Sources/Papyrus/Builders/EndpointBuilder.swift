@@ -1,7 +1,7 @@
 public protocol EndpointBuilder {
     associatedtype Wrapped: EndpointBuilder where Wrapped.Request == Request, Wrapped.Response == Response
     associatedtype Request: EndpointRequest
-    associatedtype Response: Codable
+    associatedtype Response: EndpointResponse
     
     var build: (inout Endpoint<Request, Response>) -> Void { get set }
 }

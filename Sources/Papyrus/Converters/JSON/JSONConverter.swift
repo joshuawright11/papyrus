@@ -1,8 +1,6 @@
 import Foundation
 
 public struct JSONConverter: ContentConverter {
-    public static var `default`: JSONConverter { JSONConverter(encoder: JSONEncoder(), decoder: JSONDecoder()) }
-
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -29,5 +27,5 @@ public struct JSONConverter: ContentConverter {
 }
 
 extension ContentConverter where Self == JSONConverter {
-    public static var json: JSONConverter { .default }
+    public static var json: JSONConverter { JSONConverter() }
 }

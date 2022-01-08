@@ -1,4 +1,4 @@
-struct DeferredDecoder: Decodable {
+struct KeyDecoder: Decodable {
     let keyed: KeyedDecodingContainer<GenericCodingKey>
     
     init(from decoder: Decoder) throws {

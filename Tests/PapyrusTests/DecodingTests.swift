@@ -9,11 +9,12 @@ final class DecodingTests: XCTestCase {
         let expectedBody = SomeJSON(string: "baz", int: 0)
         for converter in converters {
             var endpoint = Endpoint<DecodeTestRequest, Empty>()
-            endpoint.converter = converter
+            endpoint.setConverter(converter)
             let body = try converter.encode(expectedBody)
-            let url = "https://localhost.com/example?query1=1&query3=three&query6=true"
-            let components = RequestComponents(
-                url: url,
+            let decodedRequest = try endpoint.decodeRequest(
+                method: "GET",
+                path: "/example",
+                headers: ["header1": "foo"],
                 parameters: [
                     "path1": "bar",
                     "path2": "1234",
@@ -21,10 +22,8 @@ final class DecodingTests: XCTestCase {
                     "path4": "true",
                     "path5": "0.123456",
                 ],
-                headers: ["header1": "foo"],
-                body: body
-            )
-            let decodedRequest = try endpoint.decodeRequest(components: components)
+                query: "query1=1&query3=three&query6=true",
+                body: body)
             XCTAssertEqual(decodedRequest.header1, "foo")
             XCTAssertEqual(decodedRequest.path1, "bar")
             XCTAssertEqual(decodedRequest.path2, 1234)
@@ -46,11 +45,10 @@ final class DecodingTests: XCTestCase {
         for converter in converters {
             let body = try converter.encode(expectedOutput)
             var endpoint = Endpoint<FieldTestRequest, Empty>()
-            endpoint.converter = converter
-            let query = try endpoint.queryConverter.encoder.encode(["query": ComplexQuery(foo: "one", bar: 2)])
+            endpoint.setConverter(converter)
+            let query = try endpoint.baseRequest.queryConverter.encoder.encode(["query": ComplexQuery(foo: "one", bar: 2)])
             let percentEncodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-            let components = RequestComponents(url: "https://localhost.com/example?\(percentEncodedQuery)", body: body)
-            let decodedRequest = try endpoint.decodeRequest(components: components)
+            let decodedRequest = try endpoint.decodeRequest(method: "GET", path: "/example", headers: [:], parameters: [:], query: percentEncodedQuery, body: body)
             XCTAssertEqual(decodedRequest.query.foo, "one")
             XCTAssertEqual(decodedRequest.query.bar, 2)
             XCTAssertEqual(decodedRequest.field1, "bar")
@@ -64,7 +62,7 @@ final class DecodingTests: XCTestCase {
     /// Decoding `@Body` with content `urlEncoded` isn't supported yet.
     func testDecodeURLBodyThrows() throws {
         let endpoint = Endpoint<TestURLBody, Empty>()
-        XCTAssertThrowsError(try endpoint.decodeRequest(components: RequestComponents(url: "", parameters: [:], headers: [:], body: nil)))
+        XCTAssertThrowsError(try endpoint.decodeRequest(method: "GET", path: "/foo", headers: [:], parameters: [:], query: "", body: nil))
     }
 }
 
@@ -72,6 +70,8 @@ final class TestDecoderAPI {
     @POST("/test")
     var thing = Endpoint<Request, String>()
 }
+
+extension String: EndpointResponse {}
 
 struct Request: EndpointRequest {
     var thing: String = ""

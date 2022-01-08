@@ -1,8 +1,6 @@
 import Foundation
 
 public struct URLFormConverter: ContentConverter {
-    public static let `default` = URLFormConverter(encoder: URLEncodedFormEncoder(), decoder: URLEncodedFormDecoder())
-
     public let encoder: URLEncodedFormEncoder
     public let decoder: URLEncodedFormDecoder
     
@@ -19,23 +17,31 @@ public struct URLFormConverter: ContentConverter {
         return URLFormConverter(encoder: encoder, decoder: decoder)
     }
     
+    public func decode<D: Decodable>(_ type: D.Type, from string: String) throws -> D {
+        try decoder.decode(type, from: string)
+    }
+    
     public func decode<D: Decodable>(_ type: D.Type, from data: Data) throws -> D {
         guard let string = String(data: data, encoding: .utf8) else {
             throw PapyrusError("Body data wasn't utf8 encoded.")
         }
         
-        return try decoder.decode(type, from: string)
+        return try decode(type, from: string)
     }
     
-    public func encode<E>(_ value: E) throws -> Data where E : Encodable {
-        guard let data = try encoder.encode(value).data(using: .utf8) else {
+    public func encode<E: Encodable>(_ value: E) throws -> Data {
+        guard let data = try encode(value).data(using: .utf8) else {
             throw PapyrusError("URLEncoded string wasn't convertible to utf8 data.")
         }
         
         return data
     }
+    
+    public func encode<E: Encodable>(_ value: E) throws -> String {
+        try encoder.encode(value)
+    }
 }
 
 extension ContentConverter where Self == URLFormConverter {
-    public static var urlForm: URLFormConverter { .default }
+    public static var urlForm: URLFormConverter { URLFormConverter() }
 }

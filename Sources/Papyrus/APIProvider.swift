@@ -12,16 +12,16 @@ public protocol APIProvider {
     var keyMapping: KeyMapping { get }
     
     /// Any custom logic for each outgoing endpoint request.
-    func adapt<Req: EndpointRequest, Res: Codable>(endpoint: inout Endpoint<Req, Res>)
+    func adapt<Req: EndpointRequest, Res: EndpointResponse>(endpoint: inout Endpoint<Req, Res>)
 }
 
 extension APIProvider {
-    public func adapt<Req: EndpointRequest, Res: Codable>(endpoint: inout Endpoint<Req, Res>) {}
+    public func adapt<Req: EndpointRequest, Res: EndpointResponse>(endpoint: inout Endpoint<Req, Res>) {}
     
-    public subscript<Req: EndpointRequest, Res: Codable>(dynamicMember keyPath: KeyPath<Service, Endpoint<Req, Res>>) -> Endpoint<Req, Res> {
+    public subscript<Req: EndpointRequest, Res: EndpointResponse>(dynamicMember keyPath: KeyPath<Service, Endpoint<Req, Res>>) -> Endpoint<Req, Res> {
         var endpoint = Service()[keyPath: keyPath]
         endpoint.baseURL = baseURL
-        endpoint.keyMapping = keyMapping
+        endpoint.setKeyMapping(keyMapping)
         adapt(endpoint: &endpoint)
         return endpoint
     }

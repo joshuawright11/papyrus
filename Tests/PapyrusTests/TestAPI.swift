@@ -15,7 +15,7 @@ struct FOO<Wrapped: EndpointBuilder>: EndpointBuilder {
     
     public init(wrappedValue: Wrapped) {
         self._wrappedValue = wrappedValue
-        self.build = { $0.headers["foo"] = "bar" }
+        self.build = { $0.baseRequest.headers["foo"] = "bar" }
     }
 }
 
