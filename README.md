@@ -1,25 +1,5 @@
 # Papyrus
 
-- [Installation](#installation)
-  * [Server](#server)
-  * [Shared Library](#shared-library)
-  * [Client](#client)
-- [Usage](#usage)
-  * [Defining APIs](#defining-apis)
-    + [Basics](#basics)
-    + [Supported Methods](#supported-methods)
-    + [Empty Request or Reponse](#empty-request-or-reponse)
-    + [Custom Request Data](#custom-request-data)
-      - [URLQuery](#urlquery)
-      - [Header](#header)
-      - [Path Parameters](#path-parameters)
-      - [Body](#body)
-      - [Combinations](#combinations)
-  * [Requesting APIs](#requesting-apis)
-    + [Client, via Alamofire](#client-via-alamofire)
-    + [Server, via AsyncHTTPClient](#server-via-asynchttpclient)
-  * [Providing APIs](#providing-apis)
-
 Papyrus is a helper library for defining network APIs in Swift.
 
 It leverages `Codable` and Property Wrappers for creating network APIs that are easy to read, easy to consume (on Server or Client) and easy to provide (on Server). When shared between a Swift client and server, it enforces type safety when requesting and handling HTTP requests.
@@ -28,7 +8,7 @@ It leverages `Codable` and Property Wrappers for creating network APIs that are 
 
 ### Server
 
-Like [Fusion](2_Fusion.md), Papyrus is included when you `import Alchemy` on the server side.
+Papyrus is included when you `import Alchemy` on the server side.
 
 ### Shared Library
 
