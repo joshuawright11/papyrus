@@ -4,11 +4,3 @@ public protocol RequestModifier: Codable {
     // Modify an Endpoint.
     func modify<Req, Res>(endpoint: inout Endpoint<Req, Res>, for label: String)
 }
-
-/*
- Left
- - @Multipart
-    - @Part with headers & such
- - URLSession
- - `async/await`
- */

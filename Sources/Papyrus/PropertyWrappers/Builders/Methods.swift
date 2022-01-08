@@ -1,4 +1,11 @@
-/// Represents a DELETE `Endpoint`.
+typealias CUSTOM<Wrapped: EndpointBuilder> = Builder<Wrapped, CUSTOMAdaptor>
+final class CUSTOMAdaptor: MethodAdapter {}
+extension Builder where Adapter == CUSTOMAdaptor {
+    init(wrappedValue: Wrapped, method: String, _ path: String) {
+        self.init(wrappedValue: wrappedValue, Adapter(method: method, path: path))
+    }
+}
+
 typealias DELETE<Wrapped: EndpointBuilder> = Builder<Wrapped, DELETEAdapter>
 final class DELETEAdapter: MethodAdapter {
     override var method: String { "DELETE" }

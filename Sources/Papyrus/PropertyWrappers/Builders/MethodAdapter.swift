@@ -19,11 +19,3 @@ extension Builder where Adapter: MethodAdapter {
         self.init(wrappedValue: wrappedValue, Adapter(method: "CUSTOM", path: path))
     }
 }
-
-typealias CUSTOM<Wrapped: EndpointBuilder> = Builder<Wrapped, CUSTOMAdaptor>
-final class CUSTOMAdaptor: MethodAdapter {}
-extension Builder where Adapter == CUSTOMAdaptor {
-    init(wrappedValue: Wrapped, method: String, _ path: String) {
-        self.init(wrappedValue: wrappedValue, Adapter(method: method, path: path))
-    }
-}
