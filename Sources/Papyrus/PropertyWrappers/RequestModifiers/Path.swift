@@ -15,7 +15,7 @@ public struct Path<L: LosslessStringConvertible & Codable>: RequestModifier {
         wrappedValue = value
     }
     
-    public func modify<Req: RequestConvertible, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
+    public func modify<Req: EndpointRequest, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
         endpoint.parameters[label] = wrappedValue.description
     }
 }

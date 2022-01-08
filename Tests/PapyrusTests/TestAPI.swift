@@ -2,26 +2,20 @@ import Foundation
 @testable import Papyrus
 
 @propertyWrapper
-struct FOO<T: EndpointBuilder>: EndpointBuilder {
-    public var wrappedValue: T {
-        _wrappedValue.withBuilder {
-            builder?(&$0)
-            $0.headers["foo"] = "bar"
-        }
-    }
-    private let _wrappedValue: T
-    private var builder: ((inout AnyEndpoint) -> Void)?
-
-    init(wrappedValue: T) {
-        _wrappedValue = wrappedValue
+struct FOO<Wrapped: EndpointBuilder>: EndpointBuilder {
+    public typealias Request = Wrapped.Request
+    public typealias Response = Wrapped.Response
+    
+    public var wrappedValue: Wrapped {
+        _wrappedValue.withBuilder(build: build)
     }
     
-    // MARK: EndpointModifier
+    private let _wrappedValue: Wrapped
+    public var build: (inout Endpoint<Request, Response>) -> Void
     
-    public func withBuilder(_ action: @escaping (inout AnyEndpoint) -> Void) -> FOO<T> {
-        var copy = self
-        copy.builder = action
-        return copy
+    public init(wrappedValue: Wrapped) {
+        self._wrappedValue = wrappedValue
+        self.build = { $0.headers["foo"] = "bar" }
     }
 }
 
@@ -33,6 +27,9 @@ final class TestAPI: API {
     @FOO
     @PUT("/body")
     var urlBody = Endpoint<TestURLBody, Empty>()
+    
+    @POST("/key/:pathString")
+    var key = Endpoint<KeyMappingRequest, Empty>()
     
     @POST("/multiple")
     var multipleBodies = Endpoint<MultipleBodies, Empty>()
@@ -50,7 +47,19 @@ final class TestAPI: API {
     var custom = Endpoint<Empty, Empty>()
 }
 
-struct TestRequest: RequestConvertible {
+struct KeyMappingRequest: EndpointRequest {
+    struct Content: Codable {
+        var stringValue: String
+        var otherStringValue: String
+    }
+    
+    @Path   var pathString: String
+    @Query  var queryString: String
+    @Header var headerString: String
+    @Body   var body: Content
+}
+
+struct TestRequest: EndpointRequest {
     @Path var path1: String
     @Path var path2: Int
     @Path var path3: UUID
@@ -70,15 +79,15 @@ struct TestRequest: RequestConvertible {
     @Body var body: SomeJSON
 }
 
-struct TestURLBody: RequestConvertible {
+struct TestURLBody: EndpointRequest {
     @Body var body: SomeJSON
 }
 
-struct TestQueryCodable: RequestConvertible {
+struct TestQueryCodable: EndpointRequest {
     @Query var body: SomeJSON
 }
 
-struct MultipleBodies: RequestConvertible {
+struct MultipleBodies: EndpointRequest {
     @Body var body1 = SomeJSON(string: "foo", int: 0)
     @Body var body2 = SomeJSON(string: "bar", int: 1)
 }

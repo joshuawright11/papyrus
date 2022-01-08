@@ -12,7 +12,7 @@ public struct Body<Value: Codable>: RequestModifier {
         self.wrappedValue = try endpoint.converter.decode(Value.self, from: data)
     }
     
-    public func modify<Req: RequestConvertible, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
+    public func modify<Req: EndpointRequest, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
         endpoint.setBody(wrappedValue)
     }
 }

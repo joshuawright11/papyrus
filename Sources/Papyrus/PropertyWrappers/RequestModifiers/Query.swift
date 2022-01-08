@@ -12,7 +12,7 @@ public struct Query<Value: Codable>: RequestModifier {
         self.wrappedValue = try deferredDecoder.decode(at: key)
     }
     
-    public func modify<Req: RequestConvertible, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
+    public func modify<Req: EndpointRequest, Res: Codable>(endpoint: inout Endpoint<Req, Res>, for label: String) {
         endpoint.queries[label] = AnyEncodable(wrappedValue)
     }
 }

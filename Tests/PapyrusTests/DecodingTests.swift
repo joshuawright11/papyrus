@@ -73,7 +73,7 @@ final class TestDecoderAPI {
     var thing = Endpoint<Request, String>()
 }
 
-struct Request: RequestConvertible {
+struct Request: EndpointRequest {
     var thing: String = ""
 }
 
@@ -82,7 +82,7 @@ struct ComplexQuery: Codable {
     let bar: Int
 }
 
-struct FieldTestRequest: RequestConvertible {
+struct FieldTestRequest: EndpointRequest {
     struct Body: Codable {
         let field1: String
         let field2: Int
@@ -100,7 +100,7 @@ struct FieldTestRequest: RequestConvertible {
     @Query var query: ComplexQuery
 }
 
-struct DecodeTestRequest: RequestConvertible {
+struct DecodeTestRequest: EndpointRequest {
     @Path var path1: String
     @Path var path2: Int
     @Path var path3: UUID

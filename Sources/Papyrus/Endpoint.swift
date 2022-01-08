@@ -1,9 +1,5 @@
 import Foundation
 
-public protocol EndpointAdapter {
-    func adapt<Req: RequestConvertible, Res: Codable>(endpoint: inout Endpoint<Req, Res>)
-}
-
 public enum EndpointContent {
     public static var defaultConverter: ContentConverter = JSONConverter()
     
@@ -24,7 +20,6 @@ public protocol AnyEndpoint {
     var converter: ContentConverter { get set }
     var queryConverter: URLFormConverter { get set }
     var keyMapping: KeyMapping? { get set }
-    var adapters: [EndpointAdapter] { get set }
 }
 
 extension AnyEndpoint {
@@ -64,7 +59,7 @@ extension AnyEndpoint {
 /// validating endpoints. There are partner libraries
 /// (`PapyrusAlamofire` and `Alchemy`) for requesting or
 /// validating endpoints on client or server platforms.
-public struct Endpoint<Request: RequestConvertible, Response: Codable>: AnyEndpoint {
+public struct Endpoint<Request: EndpointRequest, Response: Codable>: AnyEndpoint {
     struct Payload {
         let method: String
         let url: String
@@ -93,14 +88,12 @@ public struct Endpoint<Request: RequestConvertible, Response: Codable>: AnyEndpo
     public var queryConverter = URLFormConverter()
     /// Any `KeyMapping` of this endpoint, applied to body and query fields.
     public var keyMapping: KeyMapping?
-    /// Any `EndpointGroup` level changes to make to the request.
-    public var adapters: [EndpointAdapter] = []
     
     func payload(with req: Request) throws -> Payload {
         try applying(req)._payload()
     }
     
-    private func applying<R: RequestConvertible>(_ value: R) -> Endpoint<Request, Response> {
+    private func applying<R: EndpointRequest>(_ value: R) -> Endpoint<Request, Response> {
         let properties: [(label: String, value: Any)] = Mirror(reflecting: value).children.compactMap {
             guard let label = $0.label else { return nil }
             return (label, $0.value)
