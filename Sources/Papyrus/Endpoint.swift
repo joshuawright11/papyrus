@@ -1,5 +1,51 @@
 import Foundation
 
+public enum EndpointContent {
+    public static var defaultConverter: ContentConverter = JSONConverter()
+    
+    case fields([String: AnyEncodable])
+    case codable(AnyEncodable)
+}
+
+/// Erased Endpoint
+public protocol AnyEndpoint {
+    var method: String { get set }
+    var baseURL: String { get set }
+    var path: String { get set }
+    var headers: [String: String] { get set }
+    var parameters: [String: String] { get set }
+    var queries: [String: AnyEncodable] { get set }
+    var body: EndpointContent? { get set }
+    
+    var converter: ContentConverter { get set }
+    var queryConverter: URLFormConverter { get set }
+    var keyMapping: KeyMapping? { get set }
+}
+
+extension AnyEndpoint {
+    mutating func setBody<E: Encodable>(_ value: E) {
+        if let body = body {
+            preconditionFailure("Tried to set an endpoint body to type \(E.self), but it already had one: \(body).")
+        }
+        
+        body = .codable(AnyEncodable(value))
+    }
+    
+    mutating func addField<E: Encodable>(_ key: String, value: E) {
+        var fields: [String: AnyEncodable] = [:]
+        if let body = body {
+            guard case .fields(let existingFields) = body else {
+                preconditionFailure("Tried to add a field, \(key): \(E.self), to an endpoint, but it already had a body, \(body). @Body and @Field are mutually exclusive.")
+            }
+            
+            fields = existingFields
+        }
+        
+        fields[key] = AnyEncodable(value)
+        body = .fields(fields)
+    }
+}
+
 /// `Endpoint` is an abstraction around making REST requests. It
 /// includes a `Request` type, representing the data needed to
 /// make the request, and a `Response` type, representing the
@@ -13,108 +59,132 @@ import Foundation
 /// validating endpoints. There are partner libraries
 /// (`PapyrusAlamofire` and `Alchemy`) for requesting or
 /// validating endpoints on client or server platforms.
-public struct Endpoint<Request: RequestConvertible, Response: Codable> {
+public struct Endpoint<Request: EndpointRequest, Response: Codable>: AnyEndpoint {
+    struct Payload {
+        let method: String
+        let url: String
+        let headers: [String: String]
+        let body: Data?
+    }
+    
     /// The method, or verb, of this endpoint.
-    public let method: String
-    
-    /// The path of this endpoint, relative to `self.baseURL`
-    public var path: String
-    
+    public var method: String = ""
     /// The `baseURL` of this endpoint.
     public var baseURL: String = ""
+    /// The path of this endpoint, relative to `self.baseURL`
+    public var path: String = ""
+    /// Endpoint headers
+    public var headers: [String: String] = [:]
+    /// Path parameters
+    public var parameters: [String: String] = [:]
+    /// Endpoint queries
+    public var queries: [String: AnyEncodable] = [:]
+    /// Body content
+    public var body: EndpointContent?
     
-    /// Any `KeyMapping` of this endpoint.
-    public var keyMapping: KeyMapping = .useDefaultKeys
+    /// Converter for this endpoints data fields.
+    public var converter: ContentConverter {
+        get { keyMapping.map { _converter.with(keyMapping: $0) } ?? _converter }
+        set { _converter = newValue }
+    }
     
-    /// Used for encoding any JSON body of this endpoint's request.
-    public var jsonEncoder: JSONEncoder = JSONEncoder()
+    private var _converter: ContentConverter = EndpointContent.defaultConverter
     
-    /// Used for decoding and JSON body of this endpoint's response.
-    public var jsonDecoder: JSONDecoder = JSONDecoder()
+    /// Converter for this endpoints data fields.
+    public var queryConverter: URLFormConverter {
+        get { keyMapping.map { _queryConverter.with(keyMapping: $0) } ?? _queryConverter }
+        set { _queryConverter = newValue }
+    }
     
-    /// Any `EndpointGroup` level changes to make to the request.
-    public var interceptor: ((inout HTTPComponents) -> Void)?
+    public var _queryConverter = URLFormConverter()
     
-    /// Creates a copy of this `Endpoint` with the provided `baseURL`.
-    ///
-    /// - Parameter group: The EndpointGroup this `Endpoint` is apart
-    ///   of.
-    /// - Returns: A copy of this `Endpoint` configured for the
-    ///   `EndpointGroup`.
-    public func with(group: EndpointGroup) -> Self {
-        var copy = self
-        copy.baseURL = group.baseURL
-        let keyMapping = group.keyMapping
-        copy.keyMapping = keyMapping
+    /// Any `KeyMapping` of this endpoint, applied to body and query fields.
+    public var keyMapping: KeyMapping?
+    
+    func payload(with req: Request) throws -> Payload {
+        try applying(req)._payload()
+    }
+    
+    private func applying<R: EndpointRequest>(_ value: R) -> Endpoint<Request, Response> {
+        let properties: [(label: String, value: Any)] = Mirror(reflecting: value).children.compactMap {
+            guard let label = $0.label else { return nil }
+            return (label, $0.value)
+        }
         
-        let encoder = group.jsonEncoder
-        encoder.keyEncodingStrategy = keyMapping.jsonEncodingStrategy
-        copy.jsonEncoder = encoder
+        let modifierProperties: [(String, RequestModifier)] = properties.compactMap { child in
+            guard let modifier = child.value as? RequestModifier else { return nil }
+            return (child.label, modifier)
+        }
         
-        let decoder = group.jsonDecoder
-        decoder.keyDecodingStrategy = keyMapping.jsonDecodingStrategy
-        copy.jsonDecoder = decoder
+        let otherProperties: [(String, Any)] = properties.compactMap { child in
+            guard !(child.value is RequestModifier) else { return nil }
+            return (child.label, child.value)
+        }
+
+        var result: Endpoint<Request, Response> = self
+        if !modifierProperties.isEmpty && otherProperties.isEmpty {
+            for (label, property) in modifierProperties {
+                // Remove _ from property wrappers.
+                let cleanedLabel = String(label.dropFirst())
+                property.modify(endpoint: &result, for: cleanedLabel)
+            }
+        } else if modifierProperties.isEmpty && !otherProperties.isEmpty {
+            result.setBody(value)
+        } else if !modifierProperties.isEmpty && !otherProperties.isEmpty {
+            preconditionFailure("For now, can't have both `RequestModifers` and other properties on RequestConvertible type \(R.self).")
+        }
         
-        copy.interceptor = group.intercept
-        return copy
+        return result
+    }
+    
+    private func _payload() throws -> Payload {
+        Payload(
+            method: method,
+            url: try baseURL + pathWithQueryString(),
+            headers: headers,
+            body: try bodyData())
+    }
+    
+    private func pathWithQueryString() throws -> String {
+        let replacedPath = try replacedPath(path)
+        var queryPrefix = replacedPath.contains("?") ? "&" : "?"
+        if replacedPath.last == "?" { queryPrefix = "" }
+        return try replacedPath + queryPrefix + queryString()
+    }
+    
+    private func replacedPath(_ basePath: String) throws -> String {
+        try parameters.reduce(into: basePath) { newPath, component in
+            guard newPath.contains(":\(component.key)") else {
+                throw PapyrusError("Tried to encode path component `\(component.key)` but did not find any instance of `:\(component.key)` in \(basePath).")
+            }
+            
+            newPath = newPath.replacingOccurrences(of: ":\(component.key)", with: component.value)
+        }
+    }
+    
+    private func queryString() throws -> String {
+        try queryConverter.encoder.encode(queries).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+    }
+    
+    private func bodyData() throws -> Data? {
+        guard let body = body else { return nil }
+        switch body {
+        case .codable(let value):
+            return try converter.encode(value)
+        case .fields(let fields):
+            return try converter.encode(fields)
+        }
     }
 }
 
-/// Indicates the type of a request's body. The content type affects
-/// how and where the content is encoded.
-public enum ContentEncoding {
-    /// The content of this request is encoded to its body as JSON.
-    case json
-    /// The content of this request is encoded to its URL.
-    case url
-}
-
-/// A type that can be the `Request` type of an `Endpoint`.
-public protocol RequestConvertible: Codable {
-    /// The method of encoding for the request body. Defaults to
-    /// `.json`.
-    static var contentEncoding: ContentEncoding { get }
-    
-    /// Initialize this request data from a `DecodableRequest`. Useful
-    /// for loading expected request data from incoming requests on
-    /// the provider of this `Endpoint`.
-    ///
-    /// - Parameter request: The request to initialize this type from.
-    /// - Throws: Any error encountered while decoding this type from
-    ///   the request.
-    init(from request: DecodableRequest) throws
-}
-
-extension RequestConvertible {
-    public static var contentEncoding: ContentEncoding { .json }
-}
-
-public protocol RequestBody: RequestConvertible, AnyBody {}
-
-extension RequestBody {
-    public var content: AnyEncodable { .init(self) }
-    
-    public init(from request: DecodableRequest) throws {
-        self = try request.decodeContent(type: Self.contentEncoding)
-    }
-}
-
-public protocol RequestComponents: RequestConvertible {}
-
-extension RequestComponents {
-    public init(from request: DecodableRequest) throws {
-        try self.init(from: RequestDecoder(request: request))
-    }
-}
-
-extension DecodableRequest {
+extension Endpoint {
     /// Decodes the given `RequestComponents` type from this request.
     ///
     /// - Parameter requestType: The type to decode. Defaults to
     ///   `E.self`.
     /// - Throws: An error encountered while decoding the type.
     /// - Returns: An instance of `E` decoded from this request.
-    public func decodeRequest<E: RequestConvertible>(_ requestType: E.Type = E.self) throws -> E {
-        try E(from: self)
+    public func decodeRequest(components: RequestComponents) throws -> Request {
+        try Request(from: components, to: self)
     }
 }
