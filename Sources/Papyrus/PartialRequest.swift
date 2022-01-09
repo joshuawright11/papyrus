@@ -2,19 +2,12 @@ import Foundation
 
 // Used for building a RawRequest.
 public struct PartialRequest {
+    public static var defaultContentConverter: ContentConverter = JSONConverter()
+    public static var defaultQueryConverter: URLFormConverter = URLFormConverter()
+    
     public enum BodyContent {
-        public static var defaultConverter: ContentConverter = JSONConverter()
-        
         case fields([String: AnyEncodable])
         case value(AnyEncodable)
-        case data(Data)
-    }
-    
-    public enum QueryContent {
-        public static var defaultConverter: URLFormConverter = URLFormConverter()
-        
-        case string(String)
-        case fields([String: AnyEncodable])
     }
     
     // Data
@@ -22,7 +15,7 @@ public struct PartialRequest {
     public var path: String
     public var parameters: [String: String]
     public var headers: [String: String]
-    public var query: QueryContent?
+    public var query: [String: AnyEncodable]
     public var body: BodyContent?
     
     // Converters
@@ -41,10 +34,10 @@ public struct PartialRequest {
     init() {
         self.method = "GET"
         self.path = "/"
-        self._contentConverter = BodyContent.defaultConverter
-        self._queryConverter = URLFormConverter()
+        self._contentConverter = PartialRequest.defaultContentConverter
+        self._queryConverter = PartialRequest.defaultQueryConverter
         self.body = nil
-        self.query = nil
+        self.query = [:]
         self.headers = [:]
         self.parameters = [:]
         self.keyMapping = .useDefaultKeys
@@ -61,13 +54,7 @@ public struct PartialRequest {
     }
     
     public mutating func addQuery<E: Encodable>(_ key: String, value: E) {
-        var fields: [String: AnyEncodable] = [:]
-        if case .fields(let existingFields) = query {
-            fields = existingFields
-        }
-        
-        fields[key] = AnyEncodable(value)
-        query = .fields(fields)
+        query[key] = AnyEncodable(value)
     }
     
     public mutating func addField<E: Encodable>(_ key: String, value: E) {
@@ -87,7 +74,8 @@ public struct PartialRequest {
     // MARK: Create
     
     public func create(baseURL: String) throws -> RawRequest {
-        RawRequest(method: method, baseURL: baseURL, path: try replacedPath(), headers: headers, parameters: parameters, query: try queryString(), body: try bodyData(), queryConverter: queryConverter, contentConverter: contentConverter)
+        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (keyMapping.mapTo(input: $0), $1) })
+        return RawRequest(method: method, baseURL: baseURL, path: try replacedPath(mappedParameters), headers: headers, parameters: mappedParameters, query: try queryString(), body: try bodyData(), queryConverter: queryConverter, contentConverter: contentConverter)
     }
     
     private func bodyData() throws -> Data? {
@@ -97,13 +85,11 @@ public struct PartialRequest {
             return try contentConverter.encode(value)
         case .fields(let fields):
             return try contentConverter.encode(fields)
-        case .data(let data):
-            return data
         }
     }
     
-    private func replacedPath() throws -> String {
-        try parameters.reduce(into: path) { newPath, component in
+    private func replacedPath(_ mappedParameters: [String: String]) throws -> String {
+        try mappedParameters.reduce(into: path) { newPath, component in
             guard newPath.contains(":\(component.key)") else {
                 throw PapyrusError("Tried to set path component `\(component.key)` but did not find `:\(component.key)` in \(path).")
             }
@@ -113,12 +99,9 @@ public struct PartialRequest {
     }
     
     private func queryString() throws -> String {
-        guard let query = query else { return "" }
-        switch query {
-        case .fields(let fields):
-            return try queryConverter.encode(fields).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        case .string(let string):
-            return string
-        }
+        guard !query.isEmpty else { return "" }
+        let queryString: String = try queryConverter.encode(query)
+        guard let percentEncoded = queryString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return "" }
+        return percentEncoded
     }
 }

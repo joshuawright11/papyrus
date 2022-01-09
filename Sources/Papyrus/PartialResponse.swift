@@ -17,7 +17,7 @@ public struct PartialResponse {
     public init(headers: [String : String] = [:], body: Data? = nil) {
         self.headers = [:]
         self.body = body
-        self._contentConverter = PartialRequest.BodyContent.defaultConverter
+        self._contentConverter = PartialRequest.defaultContentConverter
         self.keyMapping = .useDefaultKeys
     }
     

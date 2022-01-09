@@ -33,7 +33,8 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
     // MARK: Decoding
     
     public func decodeRequest(method: String, path: String, headers: [String: String], parameters: [String: String], query: String, body: Data?) throws -> Request {
-        let raw = RawRequest(method: method, baseURL: "", path: path, headers: headers, parameters: parameters, query: query, body: body, queryConverter: baseRequest.queryConverter, contentConverter: baseRequest.contentConverter)
+        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (baseRequest.keyMapping.mapFrom(input: $0), $1) })
+        let raw = RawRequest(method: method, baseURL: "", path: path, headers: headers, parameters: mappedParameters, query: query, body: body, queryConverter: baseRequest.queryConverter, contentConverter: baseRequest.contentConverter)
         return try Request(from: raw)
     }
     
@@ -67,10 +68,10 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
                 let cleanedLabel = String(label.dropFirst())
                 property.build(components: &result, for: cleanedLabel)
             }
-        } else if modifierProperties.isEmpty && !otherProperties.isEmpty {
-            result.setBody(request)
         } else if !modifierProperties.isEmpty && !otherProperties.isEmpty {
-            preconditionFailure("For now, can't have both `RequestModifers` and other properties on RequestConvertible type \(Request.self).")
+            preconditionFailure("For now, can't have both `RequestBuilder`s and other properties on RequestConvertible type \(Request.self).")
+        } else {
+            result.setBody(request)
         }
         
         return try result.create(baseURL: baseURL)

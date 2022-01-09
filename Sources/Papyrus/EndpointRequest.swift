@@ -29,12 +29,12 @@ private struct EndpointRequestDecoder: Decoder {
         var allKeys: [Key] = []
         
         func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-            if let type = type as? RequestBuilder.Type {
-                return try type.init(from: request, at: key.stringValue) as! T
-            } else {
+            guard let type = type as? RequestBuilder.Type else {
                 // Assume everything else is a field.
                 return try request.decodeContent(KeyDecoder.self).decode(at: key.stringValue)
             }
+            
+            return try type.init(from: request, at: key.stringValue) as! T
         }
         
         func contains(_ key: Key) -> Bool { true }
