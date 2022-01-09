@@ -1,31 +1,31 @@
 import XCTest
 @testable import Papyrus
 
-final class DecodingTests: XCTestCase {
+final class RequestTests: XCTestCase {
     private let converters: [ContentConverter] = [JSONConverter.json, .urlForm]
     
-    func testDecodeRequest() throws {
+    func testBody() throws {
         for converter in converters {
             try BodyRequest.testDecode(converter: converter)
             try BodyRequest.testEncode(converter: converter)
         }
     }
     
-    func testDecodingComplexQuery() throws {
+    func testComplexQuery() throws {
         for converter in converters {
             try ComplexQueryRequest.testDecode(converter: converter)
             try ComplexQueryRequest.testEncode(converter: converter)
         }
     }
     
-    func testDecodingField() throws {
+    func testField() throws {
         for converter in converters {
             try FieldRequest.testDecode(converter: converter)
             try FieldRequest.testEncode(converter: converter)
         }
     }
     
-    func testCodableRequest() throws {
+    func testCodable() throws {
         for converter in converters {
             try CodableRequest.testDecode(converter: converter)
             try CodableRequest.testEncode(converter: converter)
