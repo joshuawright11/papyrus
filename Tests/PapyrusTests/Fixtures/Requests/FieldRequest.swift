@@ -1,7 +1,7 @@
 import Foundation
 import Papyrus
 
-struct FieldRequest: DecodeTestable {
+struct FieldRequest: TestableRequest {
     struct Body: Codable {
         let field1: String
         let field2: Int

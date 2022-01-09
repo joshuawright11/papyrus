@@ -12,6 +12,35 @@ final class TestAPI: API {
     @PUT("/body")
     var stacked = Endpoint<Empty, Empty>()
     
+    @URLForm
+    @JSON
+    @PUT("/body")
+    var override = Endpoint<Empty, Empty>()
+    
     @CUSTOM(method: "FOO", "/foo")
     var custom = Endpoint<Empty, Empty>()
+    
+    @DELETE("/delete")
+    var delete = Endpoint<Empty, Empty>()
+    
+    @GET("/get")
+    var get = Endpoint<Empty, Empty>()
+    
+    @PATCH("/patch")
+    var patch = Endpoint<Empty, Empty>()
+    
+    @POST("/post")
+    var post = Endpoint<Empty, Empty>()
+    
+    @OPTIONS("/options")
+    var options = Endpoint<Empty, Empty>()
+    
+    @TRACE("/trace")
+    var trace = Endpoint<Empty, Empty>()
+    
+    @CONNECT("/connect")
+    var connect = Endpoint<Empty, Empty>()
+    
+    @HEAD("/head")
+    var head = Endpoint<Empty, Empty>()
 }

@@ -1,6 +1,6 @@
 import Papyrus
 
-struct ComplexQueryRequest: DecodeTestable {
+struct ComplexQueryRequest: TestableRequest {
     struct ComplexQuery: Codable, Equatable {
         let foo: String
         let bar: Int

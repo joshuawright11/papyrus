@@ -1,7 +1,7 @@
 import Foundation
 import Papyrus
 
-struct BodyRequest: DecodeTestable {
+struct BodyRequest: TestableRequest {
     struct BodyContent: Codable, Equatable {
         var string: String
         var int: Int

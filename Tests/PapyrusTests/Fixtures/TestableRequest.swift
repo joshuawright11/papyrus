@@ -2,20 +2,20 @@ import Papyrus
 import XCTest
 
 /// Helper for running tests.
-protocol DecodeTestable: Equatable, EndpointRequest {
+protocol TestableRequest: Equatable, EndpointRequest {
     static var expected: Self { get }
     static var basePath: String { get }
     static func input(contentConverter: ContentConverter) throws -> RawTestRequest
 }
 
-extension DecodeTestable {
+extension TestableRequest {
     static var basePath: String { "/" }
     static func input(contentConverter: ContentConverter, keyMapping: KeyMapping) throws -> RawTestRequest {
         try input(contentConverter: contentConverter.with(keyMapping: keyMapping))
     }
 }
 
-extension DecodeTestable {
+extension TestableRequest {
     /// Test that the endpoint is decodable from the expected request.
     static func testDecode(converter: ContentConverter, keyMapping: KeyMapping = .useDefaultKeys, file: StaticString = #filePath, line: UInt = #line) throws {
         var endpoint = Endpoint<Self, Empty>()

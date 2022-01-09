@@ -1,6 +1,6 @@
 import Papyrus
 
-struct KeyMappingRequest: DecodeTestable {
+struct KeyMappingRequest: TestableRequest {
     struct Content: Codable, Equatable {
         var stringValue: String
         var otherStringValue: String
