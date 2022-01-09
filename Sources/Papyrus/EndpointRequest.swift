@@ -46,6 +46,19 @@ private struct EndpointRequestDecoder: Decoder {
         func superDecoder(forKey key: Key) throws -> Decoder { try error() }
     }
     
+    private struct Single: SingleValueDecodingContainer {
+        let request: RawRequest
+        var codingPath: [CodingKey] = []
+        
+        func decodeNil() -> Bool {
+            request.body == nil
+        }
+        
+        func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+            try request.decodeContent(T.self)
+        }
+    }
+    
     let request: RawRequest
     
     // MARK: Decoder
@@ -57,8 +70,11 @@ private struct EndpointRequestDecoder: Decoder {
         KeyedDecodingContainer(Keyed(request: request))
     }
     
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
+        Single(request: request)
+    }
+    
     func unkeyedContainer() throws -> UnkeyedDecodingContainer { try error() }
-    func singleValueContainer() throws -> SingleValueDecodingContainer { try error() }
 }
 
 private func error<T>() throws -> T {

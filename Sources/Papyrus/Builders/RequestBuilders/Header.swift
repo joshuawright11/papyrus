@@ -17,3 +17,5 @@ public struct RequestHeader<L: LosslessStringConvertible & Codable>: RequestBuil
         components.headers[label] = wrappedValue.description
     }
 }
+
+extension RequestHeader: Equatable where L: Equatable {}

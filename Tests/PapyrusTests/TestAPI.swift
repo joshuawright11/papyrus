@@ -1,41 +1,22 @@
 import Foundation
 @testable import Papyrus
 
-@propertyWrapper
-struct FOO<Wrapped: EndpointBuilder>: EndpointBuilder {
-    public typealias Request = Wrapped.Request
-    public typealias Response = Wrapped.Response
-    
-    public var wrappedValue: Wrapped {
-        _wrappedValue.withBuilder(build: build)
-    }
-    
-    private let _wrappedValue: Wrapped
-    public var build: (inout Endpoint<Request, Response>) -> Void
-    
-    public init(wrappedValue: Wrapped) {
-        self._wrappedValue = wrappedValue
-        self.build = { $0.baseRequest.headers["foo"] = "bar" }
-    }
-}
-
 final class TestAPI: API {
     @POST("/foo/:path1/:path2/:path3/:path4/:path5/bar")
     var post = Endpoint<TestRequest, Empty>()
     
-    @JSON
-    @FOO
+    @URLForm
+    @HeaderWrapper
+    @HeaderWrapper(name: "one", value: "1")
+    @HeaderWrapper(name: "two", value: "2")
+    @HeaderWrapper(name: "three", value: "3")
+    @HeaderWrapper(name: "four", value: "4")
+    @HeaderWrapper(name: "five", value: "5")
     @PUT("/body")
     var urlBody = Endpoint<TestURLBody, Empty>()
     
     @POST("/key/:pathString")
     var key = Endpoint<KeyMappingRequest, Empty>()
-    
-    @POST("/multiple")
-    var multipleBodies = Endpoint<MultipleBodies, Empty>()
-    
-    @GET("/query")
-    var queryCodable = Endpoint<TestQueryCodable, Empty>()
     
     @DELETE("/delete")
     var delete = Endpoint<Empty, Empty>()
@@ -70,29 +51,24 @@ struct TestRequest: EndpointRequest {
     @Query var query2: String?
     @Query var query3: String?
     @Query var query4: [String]
-    @Query var query5: [String]
+    @Query var query5: [String]?
     @Query var query6: Bool?
     @Query var query7: Bool
     
     @Header var header1: String
+    @Header var header2: Int
+    @Header var header3: UUID
+    @Header var header4: Bool
+    @Header var header5: Double
     
-    @Body var body: SomeJSON
+    @Body var body: SomeContent
 }
 
 struct TestURLBody: EndpointRequest {
-    @Body var body: SomeJSON
+    @Body var body: SomeContent
 }
 
-struct TestQueryCodable: EndpointRequest {
-    @Query var body: SomeJSON
-}
-
-struct MultipleBodies: EndpointRequest {
-    @Body var body1 = SomeJSON(string: "foo", int: 0)
-    @Body var body2 = SomeJSON(string: "bar", int: 1)
-}
-
-struct SomeJSON: Codable {
+struct SomeContent: Codable, Equatable {
     var string: String
     var int: Int
 }

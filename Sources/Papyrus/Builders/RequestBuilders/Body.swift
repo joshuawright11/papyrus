@@ -15,3 +15,5 @@ public struct RequestBody<Value: Codable>: RequestBuilder {
         components.setBody(wrappedValue)
     }
 }
+
+extension RequestBody: Equatable where Value: Equatable {}

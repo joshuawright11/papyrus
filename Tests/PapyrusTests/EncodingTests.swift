@@ -7,12 +7,12 @@ struct Provider<Service: API>: APIProvider {
 }
 
 final class EncodingTests: XCTestCase {
-    private let testAPI = Provider<TestAPI>(baseURL: "http://localhost")
-    private let snakeCaseAPI = Provider<TestAPI>(baseURL: "http://localhost", keyMapping: .snakeCase)
+    private let api = Provider<TestAPI>(baseURL: "http://localhost")
+    private let apiSnake = Provider<TestAPI>(baseURL: "http://localhost", keyMapping: .snakeCase)
     private let converters: [ContentConverter] = [JSONConverter.json, .urlForm]
     
     func testBaseURL() {
-        XCTAssertEqual(testAPI.post.baseURL, "http://localhost")
+        XCTAssertEqual(api.post.baseURL, "http://localhost")
     }
     
     func testEncodePathQueryHeadersJSONBody() throws {
@@ -31,13 +31,23 @@ final class EncodingTests: XCTestCase {
             query6: nil,
             query7: true,
             header1: "header_value",
-            body: SomeJSON(string: "foo", int: 1)
+            header2: 1,
+            header3: UUID(uuidString: "99739f05-3096-4cbd-a35d-c6482f51a3cc")!,
+            header4: true,
+            header5: 0.123456,
+            body: SomeContent(string: "foo", int: 1)
         )
         
-        let payload = try testAPI.post.rawRequest(with: request)
+        let payload = try api.post.rawRequest(with: request)
         XCTAssertEqual(payload.method, "POST")
         XCTAssertEqual(payload.path, "/foo/one/1234/\(uuid.uuidString)/false/0.123456/bar")
-        XCTAssertEqual(payload.headers, ["header1": "header_value"])
+        XCTAssertEqual(payload.headers, [
+            "header1": "header_value",
+            "header2": "1",
+            "header3": "99739f05-3096-4cbd-a35d-c6482f51a3cc".uppercased(),
+            "header4": "true",
+            "header5": "0.123456",
+        ])
         XCTAssertEqual(payload.queryItems?.sorted { $0.name < $1.name }, [
             "query1": "0",
             "query2": "two",
@@ -48,23 +58,28 @@ final class EncodingTests: XCTestCase {
             "query7": "true",
         ])
         
-        let expectedData = try JSONEncoder().encode(SomeJSON(string: "foo", int: 1))
+        let expectedData = try JSONEncoder().encode(SomeContent(string: "foo", int: 1))
         XCTAssertNotNil(payload.body)
         XCTAssertEqual(payload.body, expectedData)
     }
     
     func testEncodeURLBody() throws {
-        let req = TestURLBody(body: SomeJSON(string: "test", int: 0))
-        let payload = try testAPI.urlBody.rawRequest(with: req)
+        let req = TestURLBody(body: SomeContent(string: "test", int: 0))
+        let payload = try api.urlBody.rawRequest(with: req)
         XCTAssertEqual(payload.method, "PUT")
         XCTAssertEqual(payload.headers["foo"], "bar")
+        XCTAssertEqual(payload.headers["one"], "1")
+        XCTAssertEqual(payload.headers["two"], "2")
+        XCTAssertEqual(payload.headers["three"], "3")
+        XCTAssertEqual(payload.headers["four"], "4")
+        XCTAssertEqual(payload.headers["five"], "5")
         XCTAssertTrue(payload.path.hasPrefix("/body"))
     }
     
     func testKeyMapping() throws {
         let req = KeyMappingRequest(pathString: "foo", queryString: "bar", headerString: "baz", body: .init(stringValue: "tiz", otherStringValue: "taz"))
         for converter in converters {
-            var endpoint = snakeCaseAPI.key
+            var endpoint = apiSnake.key
             endpoint.setConverter(converter)
             let payload = try endpoint.rawRequest(with: req)
             XCTAssertEqual(payload.method, "POST")

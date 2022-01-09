@@ -18,6 +18,8 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
     public var baseRequest = PartialRequest()
     public var baseResponse = PartialResponse()
     
+    public init() {}
+    
     public mutating func setKeyMapping(_ keyMapping: KeyMapping) {
         baseRequest.keyMapping = keyMapping
         baseResponse.keyMapping = keyMapping

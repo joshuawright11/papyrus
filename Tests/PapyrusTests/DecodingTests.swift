@@ -5,84 +5,71 @@ final class DecodingTests: XCTestCase {
     private let converters: [ContentConverter] = [JSONConverter.json, .urlForm]
     
     func testDecodeRequest() throws {
-        let pathUuid = UUID()
-        let expectedBody = SomeJSON(string: "baz", int: 0)
         for converter in converters {
-            var endpoint = Endpoint<DecodeTestRequest, Empty>()
-            endpoint.setConverter(converter)
-            let body = try converter.encode(expectedBody)
-            let decodedRequest = try endpoint.decodeRequest(
-                method: "GET",
-                path: "/example",
-                headers: ["header1": "foo"],
-                parameters: [
-                    "path1": "bar",
-                    "path2": "1234",
-                    "path3": pathUuid.uuidString,
-                    "path4": "true",
-                    "path5": "0.123456",
-                ],
-                query: "query1=1&query3=three&query6=true",
-                body: body)
-            XCTAssertEqual(decodedRequest.header1, "foo")
-            XCTAssertEqual(decodedRequest.path1, "bar")
-            XCTAssertEqual(decodedRequest.path2, 1234)
-            XCTAssertEqual(decodedRequest.path3, pathUuid)
-            XCTAssertEqual(decodedRequest.path4, true)
-            XCTAssertEqual(decodedRequest.path5, 0.123456)
-            XCTAssertEqual(decodedRequest.query1, 1)
-            XCTAssertEqual(decodedRequest.query2, nil)
-            XCTAssertEqual(decodedRequest.query3, "three")
-            XCTAssertEqual(decodedRequest.query4, nil)
-            XCTAssertEqual(decodedRequest.body.string, "baz")
-            XCTAssertEqual(decodedRequest.body.int, 0)
+            try BodyRequest.test(converter: converter)
+        }
+    }
+    
+    func testDecodingComplexQuery() throws {
+        for converter in converters {
+            try ComplexQueryRequest.test(converter: converter)
         }
     }
     
     func testDecodingField() throws {
-        let fieldUuid = UUID()
-        let expectedOutput = FieldTestRequest.Body(field1: "bar", field2: 1234, field3: fieldUuid, field4: true, field5: 0.123456)
         for converter in converters {
-            let body = try converter.encode(expectedOutput)
-            var endpoint = Endpoint<FieldTestRequest, Empty>()
-            endpoint.setConverter(converter)
-            let query = try endpoint.baseRequest.queryConverter.encoder.encode(["query": ComplexQuery(foo: "one", bar: 2)])
-            let percentEncodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-            let decodedRequest = try endpoint.decodeRequest(method: "GET", path: "/example", headers: [:], parameters: [:], query: percentEncodedQuery, body: body)
-            XCTAssertEqual(decodedRequest.query.foo, "one")
-            XCTAssertEqual(decodedRequest.query.bar, 2)
-            XCTAssertEqual(decodedRequest.field1, "bar")
-            XCTAssertEqual(decodedRequest.field2, 1234)
-            XCTAssertEqual(decodedRequest.field3, fieldUuid)
-            XCTAssertEqual(decodedRequest.field4, true)
-            XCTAssertEqual(decodedRequest.field5, 0.123456)
+            try FieldRequest.test(converter: converter)
         }
     }
     
-    /// Decoding `@Body` with content `urlEncoded` isn't supported yet.
-    func testDecodeURLBodyThrows() throws {
-        let endpoint = Endpoint<TestURLBody, Empty>()
-        XCTAssertThrowsError(try endpoint.decodeRequest(method: "GET", path: "/foo", headers: [:], parameters: [:], query: "", body: nil))
+    func testCodableRequest() throws {
+        for converter in converters {
+            try CodableRequest.test(converter: converter)
+        }
+    }
+    
+    func testTopLevelRequest() {
+        XCTAssertNotNil(try String.test(converter: .json))
+        // No top level allowed for URL form
+        XCTAssertThrowsError(try String.test(converter: .urlForm))
     }
 }
 
-final class TestDecoderAPI {
-    @POST("/test")
-    var thing = Endpoint<Request, String>()
+extension String: DecodeTestable {
+    static var expected: String = "foo"
+    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+        RawTestRequest(body: try contentConverter.encode(expected))
+    }
 }
 
-extension String: EndpointResponse {}
-
-struct Request: EndpointRequest {
-    var thing: String = ""
+struct CodableRequest: DecodeTestable {
+    static var expected = CodableRequest(string: "foo", int: 0, bool: false, double: 0.123456)
+    
+    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+        RawTestRequest(body: try contentConverter.encode(expected))
+    }
+    
+    var string: String
+    var int: Int
+    var bool: Bool
+    var double: Double
 }
 
-struct ComplexQuery: Codable {
-    let foo: String
-    let bar: Int
+struct ComplexQueryRequest: DecodeTestable {
+    struct ComplexQuery: Codable, Equatable {
+        let foo: String
+        let bar: Int
+    }
+    
+    @Query var query: ComplexQuery
+    
+    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+        RawTestRequest(query: "query[foo]=foo&query[bar]=1".addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "")
+    }
+    static var expected: ComplexQueryRequest = .init(query: .init(foo: "foo", bar: 1))
 }
 
-struct FieldTestRequest: EndpointRequest {
+struct FieldRequest: DecodeTestable {
     struct Body: Codable {
         let field1: String
         let field2: Int
@@ -96,11 +83,22 @@ struct FieldTestRequest: EndpointRequest {
     @Field var field3: UUID
     @Field var field4: Bool
     @Field var field5: Double
-
-    @Query var query: ComplexQuery
+    
+    static let expected: FieldRequest = FieldRequest(field1: "bar", field2: 1234, field3: uuid, field4: true, field5: 0.123456)
+    private static let uuid = UUID(uuidString: "99739f05-3096-4cbd-a35d-c6482f51a3cc")!
+    
+    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+        let body = try contentConverter.encode(Body(field1: "bar", field2: 1234, field3: uuid, field4: true, field5: 0.123456))
+        return RawTestRequest(body: body)
+    }
 }
 
-struct DecodeTestRequest: EndpointRequest {
+struct BodyRequest: DecodeTestable {
+    struct BodyContent: Codable, Equatable {
+        var string: String
+        var int: Int
+    }
+    
     @Path var path1: String
     @Path var path2: Int
     @Path var path3: UUID
@@ -116,5 +114,36 @@ struct DecodeTestRequest: EndpointRequest {
     
     @Header var header1: String
     
-    @Body var body: SomeJSON
+    @Body var body: BodyContent
+    
+    private static let uuid = UUID(uuidString: "99739f05-3096-4cbd-a35d-c6482f51a3cc")!
+    
+    static let expected = BodyRequest(
+        path1: "bar",
+        path2: 1234,
+        path3: uuid,
+        path4: true,
+        path5: 0.123456,
+        query1: 1,
+        query3: "three",
+        query6: true,
+        header1: "foo",
+        body: BodyContent(string: "baz", int: 0))
+    
+    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+        let expectedBody = BodyContent(string: "baz", int: 0)
+        let body = try contentConverter.encode(expectedBody)
+        return RawTestRequest(
+            headers: ["header1": "foo"],
+            parameters: [
+                "path1": "bar",
+                "path2": "1234",
+                "path3": uuid.uuidString,
+                "path4": "true",
+                "path5": "0.123456",
+            ],
+            query: "query1=1&query3=three&query6=true",
+            body: body
+        )
+    }
 }

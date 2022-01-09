@@ -18,3 +18,5 @@ public struct RequestPath<L: LosslessStringConvertible & Codable>: RequestBuilde
         components.parameters[label] = wrappedValue.description
     }
 }
+
+extension RequestPath: Equatable where L: Equatable {}

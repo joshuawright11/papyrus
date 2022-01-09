@@ -15,3 +15,5 @@ public struct RequestField<Value: Codable>: RequestBuilder {
         components.addField(label, value: wrappedValue)
     }
 }
+
+extension RequestField: Equatable where Value: Equatable {}

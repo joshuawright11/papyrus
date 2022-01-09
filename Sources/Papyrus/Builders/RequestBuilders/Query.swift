@@ -15,3 +15,5 @@ public struct RequestQuery<Value: Codable>: RequestBuilder {
         components.addQuery(label, value: wrappedValue)
     }
 }
+
+extension RequestQuery: Equatable where Value: Equatable {}
