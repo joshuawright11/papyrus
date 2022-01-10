@@ -73,7 +73,9 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
         } else if !modifierProperties.isEmpty && !otherProperties.isEmpty {
             preconditionFailure("For now, can't have both `RequestBuilder`s and other properties on RequestConvertible type \(Request.self).")
         } else {
-            result.setBody(request)
+            if !(request is Empty) {
+                result.setBody(request)
+            }
         }
         
         return try result.create(baseURL: baseURL)
@@ -81,7 +83,10 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
     
     public func rawResponse(with response: Response) throws -> RawResponse {
         var components = baseResponse
-        try components.setBody(value: response)
+        if !(response is Empty) {
+            try components.setBody(value: response)
+        }
+        
         return components.create()
     }
 }
