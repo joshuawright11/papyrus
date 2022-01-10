@@ -17,6 +17,8 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
     public var baseURL: String = ""
     public var baseRequest = PartialRequest()
     public var baseResponse = PartialResponse()
+    public var path: String { baseRequest.path }
+    public var method: String { baseRequest.method }
     
     public init() {}
     
