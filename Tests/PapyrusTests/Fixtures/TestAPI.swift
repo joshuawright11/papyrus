@@ -1,7 +1,10 @@
 import Foundation
 import Papyrus
 
-final class TestAPI: API {
+struct TestAPI: API {
+    let baseURL: String = "http://localhost"
+    var keyMapping: KeyMapping = .useDefaultKeys
+    
     @URLForm
     @HeaderWrapper
     @HeaderWrapper(name: "one", value: "1")

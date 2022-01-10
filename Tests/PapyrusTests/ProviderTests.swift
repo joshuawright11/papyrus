@@ -2,8 +2,8 @@ import XCTest
 @testable import Papyrus
 
 final class ProviderTests: XCTestCase {
-    private let api = Provider<TestAPI>(baseURL: "http://localhost")
-    private let apiSnake = Provider<TestAPI>(baseURL: "http://localhost", keyMapping: .snakeCase)
+    private let api = Provider(api: TestAPI())
+    private let apiSnake = Provider(api: TestAPI(keyMapping: .snakeCase))
     
     func testBaseURL() throws {
         let request = try api.custom.rawRequest()
