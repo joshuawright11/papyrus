@@ -21,6 +21,11 @@ struct FieldRequest: TestableRequest {
     
     static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
         let body = try contentConverter.encode(Body(field1: "bar", field2: 1234, field3: uuid, field4: true, field5: 0.123456))
-        return RawTestRequest(body: body)
+        return RawTestRequest(
+            headers:[
+                "Content-Type": contentConverter.contentType,
+                "Content-Length": String(body.count)
+            ],
+            body: body)
     }
 }

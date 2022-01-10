@@ -1,8 +1,9 @@
 import Foundation
 
 public struct URLFormConverter: ContentConverter {
-    public let encoder: URLEncodedFormEncoder
-    public let decoder: URLEncodedFormDecoder
+    public let contentType: String = "application/x-www-form-urlencoded"
+    private let encoder: URLEncodedFormEncoder
+    private let decoder: URLEncodedFormDecoder
     
     public init(encoder: URLEncodedFormEncoder = URLEncodedFormEncoder(), decoder: URLEncodedFormDecoder = URLEncodedFormDecoder()) {
         self.encoder = encoder

@@ -30,6 +30,9 @@ public struct PartialResponse {
     // MARK: Create
     
     public func create() -> RawResponse {
-        RawResponse(headers: headers, body: body, contentConverter: contentConverter)
+        var headers = headers
+        headers["Content-Type"] = contentConverter.contentType
+        headers["Content-Length"] = "\(body?.count ?? 0)"
+        return RawResponse(headers: headers, body: body, contentConverter: contentConverter)
     }
 }

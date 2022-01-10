@@ -24,7 +24,11 @@ struct KeyMappingRequest: TestableRequest {
         let body = try contentConverter.encode(Content(stringValue: "tiz", otherStringValue: "taz"))
         return RawTestRequest(
             path: "/foo/foo/bar",
-            headers: ["headerString": "baz"],
+            headers: [
+                "headerString": "baz",
+                "Content-Type": contentConverter.contentType,
+                "Content-Length": String(body.count)
+            ],
             parameters: ["path_string": "foo"],
             query: "query_string=bar",
             body: body

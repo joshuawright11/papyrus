@@ -9,8 +9,12 @@ final class ResponseTests: XCTestCase {
             var endpoint = Endpoint<Empty, TestResponse>()
             endpoint.setConverter(converter)
             let testResponse = TestResponse(foo: "foo", bar: 0, baz: false, content: .init(foo: "foo", bar: 1))
+            let expectedSize = try converter.encode(testResponse).count
             let rawResponse = try endpoint.rawResponse(with: testResponse)
-            XCTAssertTrue(rawResponse.headers.isEmpty)
+            XCTAssertEqual(rawResponse.headers, [
+                "Content-Type": converter.contentType,
+                "Content-Length": String(expectedSize),
+            ])
             guard let body = rawResponse.body else {
                 XCTFail("There should be a response body.")
                 return

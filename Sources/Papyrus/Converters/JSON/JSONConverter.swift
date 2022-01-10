@@ -1,6 +1,7 @@
 import Foundation
 
 public struct JSONConverter: ContentConverter {
+    public let contentType: String = "application/json"
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     

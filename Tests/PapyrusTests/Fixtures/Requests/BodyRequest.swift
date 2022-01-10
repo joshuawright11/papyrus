@@ -47,7 +47,11 @@ struct BodyRequest: TestableRequest {
         let body = try contentConverter.encode(expectedBody)
         return RawTestRequest(
             path: "/bar/1234/\(uuid.uuidString)/true/0.123456",
-            headers: ["header1": "foo"],
+            headers: [
+                "header1": "foo",
+                "Content-Type": contentConverter.contentType,
+                "Content-Length": String(body.count)
+            ],
             parameters: [
                 "path1": "bar",
                 "path2": "1234",

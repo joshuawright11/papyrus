@@ -75,7 +75,11 @@ public struct PartialRequest {
     
     public func create(baseURL: String) throws -> RawRequest {
         let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (keyMapping.mapTo(input: $0), $1) })
-        return RawRequest(method: method, baseURL: baseURL, path: try replacedPath(mappedParameters), headers: headers, parameters: mappedParameters, query: try queryString(), body: try bodyData(), queryConverter: queryConverter, contentConverter: contentConverter)
+        let body = try bodyData()
+        var headers = headers
+        headers["Content-Type"] = contentConverter.contentType
+        headers["Content-Length"] = "\(body?.count ?? 0)"
+        return RawRequest(method: method, baseURL: baseURL, path: try replacedPath(mappedParameters), headers: headers, parameters: mappedParameters, query: try queryString(), body: body, queryConverter: queryConverter, contentConverter: contentConverter)
     }
     
     private func bodyData() throws -> Data? {
