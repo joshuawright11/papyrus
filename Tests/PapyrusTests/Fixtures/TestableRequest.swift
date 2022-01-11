@@ -44,7 +44,6 @@ extension TestableRequest {
             if converter is URLFormConverter {
                 let inputString = String(data: body, encoding: .utf8) ?? ""
                 let encodedString = encoded.body.map { String(data: $0, encoding: .utf8) ?? "" } ?? ""
-                print("\(inputString) \(encodedString)")
                 XCTAssertEqual(Set(inputString.split(separator: "&")), Set(encodedString.split(separator: "&")), file: file, line: line)
             } else {
                 XCTAssertEqual(input.body, encoded.body, file: file, line: line)

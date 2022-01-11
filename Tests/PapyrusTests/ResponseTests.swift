@@ -35,16 +35,39 @@ final class ResponseTests: XCTestCase {
             XCTAssertEqual(rawResponse, testResponse)
         }
     }
-}
-
-struct TestResponse: EndpointResponse, Equatable {
-    struct Content: Codable, Equatable {
-        let foo: String
-        let bar: Int
+    
+    func testDecodeSingleValueJSON() throws {
+        let converter: ContentConverter = .json
+        var endpoint = Endpoint<Empty, String>()
+        endpoint.setConverter(converter)
+        let testResponse = "foo/bar/baz"
+        let rawData = try converter.encode(testResponse)
+        let rawResponse = try endpoint.decodeResponse(headers: [:], body: rawData)
+        XCTAssertEqual(rawResponse, testResponse)
     }
     
+    func testDecodeArrayJSON() throws {
+        let converter: ContentConverter = .json
+        var endpoint = Endpoint<Empty, [TestContent]>()
+        endpoint.setConverter(converter)
+        let testResponse = [TestContent(foo: "foo", bar: 0), TestContent(foo: "bar", bar: 1), TestContent(foo: "baz", bar: 2)]
+        let rawData = try converter.encode(testResponse)
+        let rawResponse = try endpoint.decodeResponse(headers: [:], body: rawData)
+        XCTAssertEqual(rawResponse, testResponse)
+    }
+}
+
+extension String: EndpointResponse {}
+extension Array: EndpointResponse where Element == TestContent {}
+
+private struct TestContent: Codable, Equatable {
+    let foo: String
+    let bar: Int
+}
+
+private struct TestResponse: EndpointResponse, Equatable {
     let foo: String
     let bar: Int
     let baz: Bool
-    let content: Content
+    let content: TestContent
 }

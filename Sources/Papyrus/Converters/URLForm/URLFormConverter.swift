@@ -31,7 +31,8 @@ public struct URLFormConverter: ContentConverter {
     }
     
     public func encode<E: Encodable>(_ value: E) throws -> Data {
-        guard let data = try encode(value).data(using: .utf8) else {
+        let string: String = try encode(value)
+        guard let data = string.data(using: .utf8) else {
             throw PapyrusError("URLEncoded string wasn't convertible to utf8 data.")
         }
         

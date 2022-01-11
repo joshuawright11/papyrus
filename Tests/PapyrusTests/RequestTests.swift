@@ -39,10 +39,18 @@ final class RequestTests: XCTestCase {
         }
     }
     
+    func testArrayRequest() throws {
+        try ArrayRequest.testDecode(converter: .json)
+        try ArrayRequest.testEncode(converter: .json)
+        
+        // No top level array allowed for URL form
+        XCTAssertThrowsError(try ArrayRequest.testDecode(converter: .urlForm))
+    }
+    
     func testTopLevelRequest() {
         XCTAssertNoThrow(try String.testDecode(converter: .json))
         XCTAssertNoThrow(try String.testEncode(converter: .json))
-        // No top level allowed for URL form
+        // No top level single value allowed for URL form
         XCTAssertThrowsError(try String.testDecode(converter: .urlForm))
         XCTAssertThrowsError(try String.testEncode(converter: .urlForm))
     }

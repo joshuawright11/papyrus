@@ -15,6 +15,13 @@ extension EndpointRequest {
     }
 }
 
+// Decode arrays as raw types.
+extension Array where Element: Codable {
+    public init(from request: RawRequest) throws {
+        self = try request.decodeContent()
+    }
+}
+
 /// Decodes a `RequestConvertible` from `RequestComponents` and an `Endpoint`.
 private struct EndpointRequestDecoder: Decoder {
     /// A keyed container for routing which request component a value
