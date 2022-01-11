@@ -32,6 +32,13 @@ final class RequestTests: XCTestCase {
         }
     }
     
+    func testNilFields() throws {
+        for converter in converters {
+            try NilRequest.testDecode(converter: converter)
+            try NilRequest.testEncode(converter: converter)
+        }
+    }
+    
     func testKeyMapping() throws {
         for converter in converters {
             try KeyMappingRequest.testDecode(converter: converter, keyMapping: .snakeCase)

@@ -44,8 +44,15 @@ private struct EndpointRequestDecoder: Decoder {
             return try type.init(from: request, at: key.stringValue) as! T
         }
         
-        func contains(_ key: Key) -> Bool { true }
-        func decodeNil(forKey key: Key) throws -> Bool { try error() }
+        func decodeNil(forKey key: Key) throws -> Bool {
+            try request.decodeContent(KeyDecoder.self).decodeNil(at: key.stringValue)
+        }
+        
+        func contains(_ key: Key) -> Bool {
+            guard let decoder = try? request.decodeContent(KeyDecoder.self) else { return false }
+            return decoder.contains(at: key.stringValue)
+        }
+        
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws
             -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey { try error() }
         func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer { try error() }
@@ -85,5 +92,5 @@ private struct EndpointRequestDecoder: Decoder {
 }
 
 private func error<T>() throws -> T {
-    throw PapyrusError("Only top level, codable values are supported.")
+    throw PapyrusError("Can't decode \(T.self) from a request; only top level, codable values are supported.")
 }
