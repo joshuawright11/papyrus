@@ -12,14 +12,19 @@ final class ProviderTests: XCTestCase {
     }
     
     func testKeyMappingSet() {
-        switch apiSnake.custom.baseRequest.keyMapping {
+        switch apiSnake.get.baseRequest.preferredKeyMapping {
         case .snakeCase: break
         default: XCTFail("request keyMapping should be snake case")
         }
         
-        switch apiSnake.custom.baseResponse.keyMapping {
+        switch apiSnake.get.baseResponse.preferredKeyMapping {
         case .snakeCase: break
         default: XCTFail("response keyMapping should be snake case")
         }
+    }
+    
+    func testPrecedence() {
+        XCTAssertTrue(api.url.baseRequest.contentConverter is URLFormConverter)
+        XCTAssertTrue(api.url.baseResponse.contentConverter is URLFormConverter)
     }
 }

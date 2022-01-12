@@ -1,10 +1,12 @@
 import Foundation
 
+public struct ConverterDefaults {
+    public static var content: ContentConverter = JSONConverter()
+    public static var query: URLFormConverter = URLFormConverter()
+}
+
 // Used for building a RawRequest.
 public struct PartialRequest {
-    public static var defaultContentConverter: ContentConverter = JSONConverter()
-    public static var defaultQueryConverter: URLFormConverter = URLFormConverter()
-    
     public enum BodyContent {
         case fields([String: AnyEncodable])
         case value(AnyEncodable)
@@ -19,28 +21,26 @@ public struct PartialRequest {
     public var body: BodyContent?
     
     // Converters
-    private var _contentConverter: ContentConverter
-    public var contentConverter: ContentConverter {
-        get { _contentConverter.with(keyMapping: keyMapping) }
-        set { _contentConverter = newValue }
-    }
-    private var _queryConverter: URLFormConverter
-    public var queryConverter: URLFormConverter {
-        get { _queryConverter.with(keyMapping: keyMapping) }
-        set { _queryConverter = newValue }
-    }
-    public var keyMapping: KeyMapping
+    public var preferredContentConverter: ContentConverter?
+    private var _contentConverter: ContentConverter { preferredContentConverter ?? ConverterDefaults.content }
+    public var contentConverter: ContentConverter { preferredKeyMapping.map { _contentConverter.with(keyMapping: $0) } ?? _contentConverter }
+    
+    public var preferredQueryConverter: URLFormConverter?
+    private var _queryConverter: URLFormConverter { preferredQueryConverter ?? ConverterDefaults.query }
+    public var queryConverter: URLFormConverter { preferredKeyMapping.map { _queryConverter.with(keyMapping: $0) } ?? _queryConverter }
+    
+    public var preferredKeyMapping: KeyMapping?
     
     init() {
         self.method = "GET"
         self.path = "/"
-        self._contentConverter = PartialRequest.defaultContentConverter
-        self._queryConverter = PartialRequest.defaultQueryConverter
         self.body = nil
         self.query = [:]
         self.headers = [:]
         self.parameters = [:]
-        self.keyMapping = .useDefaultKeys
+        self.preferredContentConverter = nil
+        self.preferredQueryConverter = nil
+        self.preferredKeyMapping = nil
     }
     
     // MARK: Building
@@ -74,7 +74,7 @@ public struct PartialRequest {
     // MARK: Create
     
     public func create(baseURL: String) throws -> RawRequest {
-        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (keyMapping.mapTo(input: $0), $1) })
+        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (preferredKeyMapping?.mapTo(input: $0) ?? $0, $1) })
         let body = try bodyData()
         var headers = headers
         headers["Content-Type"] = contentConverter.contentType

@@ -6,6 +6,10 @@ struct TestAPI: API {
     var keyMapping: KeyMapping = .useDefaultKeys
     
     @URLForm
+    @POST("/url")
+    var url = Endpoint<Empty, Empty>()
+    
+    @URLForm
     @HeaderWrapper
     @HeaderWrapper(name: "one", value: "1")
     @HeaderWrapper(name: "two", value: "2")
@@ -20,14 +24,11 @@ struct TestAPI: API {
     @PUT("/body")
     var override = Endpoint<Empty, Empty>()
     
-    @CUSTOM(method: "FOO", "/foo")
-    var custom = Endpoint<Empty, Empty>()
+    @GET("/get")
+    var get = Endpoint<Empty, Empty>()
     
     @DELETE("/delete")
     var delete = Endpoint<Empty, Empty>()
-    
-    @GET("/get")
-    var get = Endpoint<Empty, Empty>()
     
     @PATCH("/patch")
     var patch = Endpoint<Empty, Empty>()
@@ -46,4 +47,7 @@ struct TestAPI: API {
     
     @HEAD("/head")
     var head = Endpoint<Empty, Empty>()
+    
+    @CUSTOM(method: "FOO", "/foo")
+    var custom = Endpoint<Empty, Empty>()
 }

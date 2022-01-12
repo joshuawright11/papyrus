@@ -3,8 +3,10 @@ public protocol API {
     var baseURL: String { get }
     /// The key mapping strategy for the endpoint.
     var keyMapping: KeyMapping { get }
-    /// The preferred converter
+    /// The preferred converter for all requests to this API.
     var converter: ContentConverter { get }
+    /// The preferred query converter for all requests to this API.
+    var queryConverter: URLFormConverter { get }
     
     /// Any custom logic for each outgoing endpoint request.
     func adapt<Req: EndpointRequest, Res: EndpointResponse>(endpoint: inout Endpoint<Req, Res>)
@@ -12,7 +14,8 @@ public protocol API {
 
 extension API {
     public var keyMapping: KeyMapping { .useDefaultKeys }
-    public var converter: ContentConverter { JSONConverter() }
+    public var converter: ContentConverter { ConverterDefaults.content }
+    public var queryConverter: URLFormConverter { ConverterDefaults.query }
     public func adapt<Req: EndpointRequest, Res: EndpointResponse>(endpoint: inout Endpoint<Req, Res>) {}
 }
 
@@ -23,9 +26,7 @@ public struct Provider<Service: API> {
     
     public subscript<Req: EndpointRequest, Res: EndpointResponse>(dynamicMember keyPath: KeyPath<Service, Endpoint<Req, Res>>) -> Endpoint<Req, Res> {
         var endpoint = api[keyPath: keyPath]
-        endpoint.baseURL = api.baseURL
-        endpoint.setConverter(api.converter)
-        endpoint.setKeyMapping(api.keyMapping)
+        endpoint.setAPI(api)
         api.adapt(endpoint: &endpoint)
         return endpoint
     }

@@ -23,19 +23,27 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
     public init() {}
     
     public mutating func setKeyMapping(_ keyMapping: KeyMapping) {
-        baseRequest.keyMapping = keyMapping
-        baseResponse.keyMapping = keyMapping
+        baseRequest.preferredKeyMapping = keyMapping
+        baseResponse.preferredKeyMapping = keyMapping
     }
     
     public mutating func setConverter(_ converter: ContentConverter) {
-        baseRequest.contentConverter = converter
-        baseResponse.contentConverter = converter
+        baseRequest.preferredContentConverter = converter
+        baseResponse.preferredContentConverter = converter
+    }
+    
+    mutating func setAPI(_ api: API) {
+        baseURL = api.baseURL
+        if baseRequest.preferredKeyMapping == nil { baseRequest.preferredKeyMapping = api.keyMapping }
+        if baseRequest.preferredContentConverter == nil { baseRequest.preferredContentConverter = api.converter }
+        if baseResponse.preferredKeyMapping == nil { baseResponse.preferredKeyMapping = api.keyMapping }
+        if baseResponse.preferredContentConverter == nil { baseResponse.preferredContentConverter = api.converter }
     }
     
     // MARK: Decoding
     
     public func decodeRequest(method: String, path: String, headers: [String: String], parameters: [String: String], query: String, body: Data?) throws -> Request {
-        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (baseRequest.keyMapping.mapFrom(input: $0), $1) })
+        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (baseRequest.preferredKeyMapping?.mapFrom(input: $0) ?? $0, $1) })
         let raw = RawRequest(method: method, baseURL: "", path: path, headers: headers, parameters: mappedParameters, query: query, body: body, queryConverter: baseRequest.queryConverter, contentConverter: baseRequest.contentConverter)
         return try Request(from: raw)
     }
