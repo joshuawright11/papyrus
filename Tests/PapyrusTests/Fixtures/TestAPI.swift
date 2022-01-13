@@ -5,6 +5,12 @@ struct TestAPI: API {
     let baseURL: String = "http://localhost"
     var keyMapping: KeyMapping = .useDefaultKeys
     
+    @POST("/query")
+    var query = Endpoint<QueryRequest, Empty>()
+    
+    @POST("/queryInPath?key2=value2")
+    var queryInPath = Endpoint<QueryRequest, Empty>()
+    
     @URLForm
     @POST("/url")
     var url = Endpoint<Empty, Empty>()
@@ -50,4 +56,8 @@ struct TestAPI: API {
     
     @CUSTOM(method: "FOO", "/foo")
     var custom = Endpoint<Empty, Empty>()
+}
+
+struct QueryRequest: EndpointRequest {
+    @Query var key = "value"
 }

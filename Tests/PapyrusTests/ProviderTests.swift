@@ -11,6 +11,13 @@ final class ProviderTests: XCTestCase {
         XCTAssertEqual(request.method, "FOO")
     }
     
+    func testFullURL() throws {
+        XCTAssertEqual(try api.custom.rawRequest().fullURL(), "http://localhost/foo")
+        XCTAssertEqual(try api.custom.rawRequest().fullURL(override: "https://example.com"), "https://example.com/foo")
+        XCTAssertEqual(try api.query.rawRequest(with: QueryRequest()).fullURL(), "http://localhost/query?key=value")
+        XCTAssertEqual(try api.queryInPath.rawRequest(with: QueryRequest()).fullURL(), "http://localhost/queryInPath?key2=value2&key=value")
+    }
+    
     func testKeyMappingSet() {
         switch apiSnake.get.baseRequest.preferredKeyMapping {
         case .snakeCase: break

@@ -26,10 +26,12 @@ public struct RawRequest {
     
     // MARK: URL
     
-    public func fullURL(base baseURL: String) throws -> String {
+    public func fullURL(override baseURLOverride: String? = nil) throws -> String {
+        let full = (baseURLOverride ?? baseURL) + path
+        guard !query.isEmpty else { return full }
         var queryPrefix = path.contains("?") ? "&" : "?"
         if path.last == "?" { queryPrefix = "" }
-        return baseURL + path + queryPrefix + query
+        return full + queryPrefix + query
     }
     
     // MARK: Decoding
