@@ -88,7 +88,15 @@ public struct PartialRequest {
         case .value(let value):
             return try contentConverter.encode(value)
         case .fields(let fields):
-            return try contentConverter.encode(fields)
+            if contentConverter is JSONConverter, let mapping = preferredKeyMapping {
+                // For some reason, JSONEncoder doesn't map dict keys with the
+                // preferred keymapping when encoding. We'll need to manually
+                // do it.
+                let mappedFields = Dictionary(uniqueKeysWithValues: fields.map { (mapping.mapTo(input: $0), $1) })
+                return try contentConverter.encode(mappedFields)
+            } else {
+                return try contentConverter.encode(fields)
+            }
         }
     }
     

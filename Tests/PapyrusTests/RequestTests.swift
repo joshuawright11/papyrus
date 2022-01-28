@@ -46,6 +46,13 @@ final class RequestTests: XCTestCase {
         }
     }
     
+    func testFieldKeyMapping() throws {
+        for converter in converters {
+            try KeyMappingFieldRequest.testDecode(converter: converter, keyMapping: .snakeCase)
+            try KeyMappingFieldRequest.testEncode(converter: converter, keyMapping: .snakeCase)
+        }
+    }
+    
     func testArrayRequest() throws {
         try ArrayRequest.testDecode(converter: .json)
         try ArrayRequest.testEncode(converter: .json)
