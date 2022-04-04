@@ -1,14 +1,16 @@
 # Papyrus
 
-Papyrus is a helper library for defining network APIs in Swift.
+A type-safe HTTP interface for Swift.
 
-It leverages `Codable` and Property Wrappers for creating network APIs that are easy to read, easy to consume (on Server or Client) and easy to provide (on Server). When shared between a Swift client and server, it enforces type safety when requesting and handling HTTP requests.
+It leverages `Codable` and Property Wrappers for creating network APIs that are easy to read, easy to consume and even easy to provide. When shared between a Swift client and server, it enforces type safety when requesting and handling HTTP requests.
 
 ## Installation
 
-### Server
+You may add Papyrus via the Swift Package Manager.
 
-Papyrus is included when you `import Alchemy` on the server side.
+```swift
+.package(url: "https://github.com/alchemy-swift/alchemy", .upToNextMinor(from: "0.1.0"))
+```
 
 ### Shared Library
 
@@ -293,9 +295,3 @@ If expected data is missing, a `400` is thrown describing the missing expected f
     "message": "expected query value `limit`"
 }
 ```
-
-**Note**: Currently, only `ContentEncoding.json` is supported for decoding request `@Body`s.
-
-_Next page: [Database: Basics](5a_DatabaseBasics.md)_
-
-_[Table of Contents](/Docs#docs)_

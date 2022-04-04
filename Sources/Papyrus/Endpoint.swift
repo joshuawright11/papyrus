@@ -32,7 +32,7 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
         baseResponse.preferredContentConverter = converter
     }
     
-    mutating func setAPI(_ api: API) {
+    public mutating func setAPI(_ api: API) {
         baseURL = api.baseURL
         if baseRequest.preferredKeyMapping == nil { baseRequest.preferredKeyMapping = api.keyMapping }
         if baseRequest.preferredContentConverter == nil { baseRequest.preferredContentConverter = api.converter }
