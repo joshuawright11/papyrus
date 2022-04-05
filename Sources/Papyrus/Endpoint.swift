@@ -19,7 +19,7 @@ public struct Endpoint<Request: EndpointRequest, Response: EndpointResponse> {
     public var baseResponse = PartialResponse()
     public var path: String { baseRequest.path }
     public var method: String { baseRequest.method }
-    public var mockedResponse: Response?
+    public var mockedResponse: ((Request) -> Response)?
     
     public init() {}
     
