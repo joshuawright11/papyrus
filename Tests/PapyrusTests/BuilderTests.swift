@@ -26,6 +26,7 @@ final class BuilderTests: XCTestCase {
         XCTAssertEqual(try api.get.rawRequest().method, "GET")
         XCTAssertEqual(try api.patch.rawRequest().method, "PATCH")
         XCTAssertEqual(try api.post.rawRequest().method, "POST")
+        XCTAssertEqual(try api.put.rawRequest().method, "PUT")
         XCTAssertEqual(try api.options.rawRequest().method, "OPTIONS")
         XCTAssertEqual(try api.trace.rawRequest().method, "TRACE")
         XCTAssertEqual(try api.connect.rawRequest().method, "CONNECT")

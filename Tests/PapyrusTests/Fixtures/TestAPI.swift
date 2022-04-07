@@ -30,32 +30,16 @@ struct TestAPI: API {
     @PUT("/body")
     var override = Endpoint<Empty, Empty>()
     
-    @GET("/get")
-    var get = Endpoint<Empty, Empty>()
-    
-    @DELETE("/delete")
-    var delete = Endpoint<Empty, Empty>()
-    
-    @PATCH("/patch")
-    var patch = Endpoint<Empty, Empty>()
-    
-    @POST("/post")
-    var post = Endpoint<Empty, Empty>()
-    
-    @OPTIONS("/options")
-    var options = Endpoint<Empty, Empty>()
-    
-    @TRACE("/trace")
-    var trace = Endpoint<Empty, Empty>()
-    
-    @CONNECT("/connect")
-    var connect = Endpoint<Empty, Empty>()
-    
-    @HEAD("/head")
-    var head = Endpoint<Empty, Empty>()
-    
-    @CUSTOM(method: "FOO", "/foo")
-    var custom = Endpoint<Empty, Empty>()
+    @GET    <Empty, Empty>("/get")                var get
+    @DELETE <Empty, Empty>("/delete")             var delete
+    @PATCH  <Empty, Empty>("/patch")              var patch
+    @POST   <Empty, Empty>("/post")               var post
+    @PUT    <Empty, Empty>("/put")                var put
+    @OPTIONS<Empty, Empty>("/options")            var options
+    @TRACE  <Empty, Empty>("/trace")              var trace
+    @CONNECT<Empty, Empty>("/connect")            var connect
+    @HEAD   <Empty, Empty>("/head")               var head
+    @CUSTOM <Empty, Empty>(method: "FOO", "/foo") var custom
 }
 
 struct QueryRequest: EndpointRequest {
