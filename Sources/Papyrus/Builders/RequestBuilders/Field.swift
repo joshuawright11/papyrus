@@ -8,11 +8,26 @@ public struct RequestField<Value: Codable>: RequestBuilder {
     // MARK: RequestBuilder
     
     public init(from request: RawRequest, at key: String) throws {
-        self.wrappedValue = try request.decodeContent(KeyDecoder.self).decode(at: key)
+        let decoder = try request.decodeContent(KeyDecoder.self)
+        if let t = Value.self as? AnyOptional.Type {
+            if decoder.contains(at: key) {
+                self.wrappedValue = try decoder.decode(at: key)
+            } else {
+                self.wrappedValue = t.nil as! Value
+            }
+        } else {
+            self.wrappedValue = try decoder.decode(at: key)
+        }
     }
     
     public func build(components: inout PartialRequest, for label: String) {
-        components.addField(label, value: wrappedValue)
+        if let value = wrappedValue as? AnyOptional {
+            if !value.isNil {
+                components.addField(label, value: wrappedValue)
+            }
+        } else {
+            components.addField(label, value: wrappedValue)
+        }
     }
 }
 
