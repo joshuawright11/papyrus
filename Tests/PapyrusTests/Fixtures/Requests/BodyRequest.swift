@@ -29,7 +29,7 @@ struct BodyRequest: TestableRequest {
     private static let uuid = UUID(uuidString: "99739f05-3096-4cbd-a35d-c6482f51a3cc")!
 
     static let basePath: String = "/:path1/:path2/:path3/:path4/:path5"
-    static let expected = BodyRequest(
+    static let decodedRequest = BodyRequest(
         path1: "bar",
         path2: 1234,
         path3: uuid,
@@ -42,7 +42,7 @@ struct BodyRequest: TestableRequest {
         header1: "foo",
         body: BodyContent(string: "baz", int: 0))
     
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest {
         let expectedBody = BodyContent(string: "baz", int: 0)
         let body = try contentConverter.encode(expectedBody)
         return RawTestRequest(
@@ -59,7 +59,7 @@ struct BodyRequest: TestableRequest {
                 "path4": "true",
                 "path5": "0.123456",
             ],
-            query: "query1=1&query2&query3=three&query4&query5&query6=true&query7[]=foo&query7[]=bar&query8".addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "",
+            query: "query1=1&query2&query3=three&query4&query5&query6=true&query7[]=foo&query7[]=bar&query8",
             body: body
         )
     }

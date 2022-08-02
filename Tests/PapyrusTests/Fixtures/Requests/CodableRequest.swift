@@ -1,10 +1,10 @@
 import Papyrus
 
 struct CodableRequest: TestableRequest {
-    static var expected = CodableRequest(string: "foo", int: 0, bool: false, double: 0.123456)
+    static var decodedRequest = CodableRequest(string: "foo", int: 0, bool: false, double: 0.123456)
     
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
-        let body = try contentConverter.encode(expected)
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest {
+        let body = try contentConverter.encode(decodedRequest)
         return RawTestRequest(
             headers: [
                 "Content-Type": contentConverter.contentType,

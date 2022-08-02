@@ -17,6 +17,13 @@ final class RequestTests: XCTestCase {
             try ComplexQueryRequest.testEncode(converter: converter)
         }
     }
+
+    func testSpacesQuery() throws {
+        for converter in converters {
+            try SpacesQueryRequest.testDecode(converter: converter)
+            try SpacesQueryRequest.testEncode(converter: converter)
+        }
+    }
     
     func testField() throws {
         for converter in converters {

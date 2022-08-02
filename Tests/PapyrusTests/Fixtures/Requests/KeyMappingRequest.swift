@@ -12,7 +12,7 @@ struct KeyMappingRequest: TestableRequest {
     @Body   var body: Content
     
     static var basePath: String = "/foo/:path_string/bar"
-    static var expected = KeyMappingRequest(
+    static var decodedRequest = KeyMappingRequest(
         pathString: "foo",
         queryString: "bar",
         headerString: "baz",
@@ -20,7 +20,7 @@ struct KeyMappingRequest: TestableRequest {
             stringValue: "tiz",
             otherStringValue: "taz"))
     
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest {
         let body = try contentConverter.encode(Content(stringValue: "tiz", otherStringValue: "taz"))
         return RawTestRequest(
             path: "/foo/foo/bar",

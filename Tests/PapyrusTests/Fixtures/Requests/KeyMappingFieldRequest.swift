@@ -8,12 +8,12 @@ struct KeyMappingFieldRequest: TestableRequest {
     
     @Field var someField: Content
     
-    static var expected = KeyMappingFieldRequest(
+    static var decodedRequest = KeyMappingFieldRequest(
         someField: Content(
             stringValue: "tiz",
             otherStringValue: "taz"))
     
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest {
         let body = try contentConverter.encode(["some_field": Content(stringValue: "tiz", otherStringValue: "taz")])
         return RawTestRequest(
             headers: [

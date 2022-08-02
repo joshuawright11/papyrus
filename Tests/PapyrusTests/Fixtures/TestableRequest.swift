@@ -3,15 +3,15 @@ import XCTest
 
 /// Helper for running tests.
 protocol TestableRequest: Equatable, EndpointRequest {
-    static var expected: Self { get }
     static var basePath: String { get }
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest
+    static var decodedRequest: Self { get }
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest
 }
 
 extension TestableRequest {
     static var basePath: String { "/" }
-    static func input(contentConverter: ContentConverter, keyMapping: KeyMapping) throws -> RawTestRequest {
-        try input(contentConverter: contentConverter.with(keyMapping: keyMapping))
+    static func encodedRequest(contentConverter: ContentConverter, keyMapping: KeyMapping) throws -> RawTestRequest {
+        try encodedRequest(contentConverter: contentConverter.with(keyMapping: keyMapping))
     }
 }
 
@@ -21,35 +21,35 @@ extension TestableRequest {
         var endpoint = Endpoint<Self, Empty>()
         endpoint.setConverter(converter)
         endpoint.setKeyMapping(keyMapping)
-        let input = try Self.input(contentConverter: converter)
+        let input = try Self.encodedRequest(contentConverter: converter)
         let decoded = try endpoint.decodeRequest(test: input)
-        XCTAssertEqual(decoded, Self.expected, file: file, line: line)
+        XCTAssertEqual(decoded, Self.decodedRequest, file: file, line: line)
     }
     
     /// Test that the endpoint is encodable to the expected raw request.
     static func testEncode(converter: ContentConverter, keyMapping: KeyMapping = .useDefaultKeys, file: StaticString = #filePath, line: UInt = #line) throws {
         var endpoint = Endpoint<Self, Empty>()
         endpoint.setConverter(converter)
-        let input = try Self.input(contentConverter: converter, keyMapping: keyMapping)
+        let expected = try Self.encodedRequest(contentConverter: converter, keyMapping: keyMapping)
         endpoint.baseRequest.path = Self.basePath
         endpoint.setKeyMapping(keyMapping)
-        let encoded = try endpoint.rawRequest(with: Self.expected)
-        XCTAssertEqual(input.path, encoded.path, file: file, line: line)
-        XCTAssertEqual(input.headers, encoded.headers, file: file, line: line)
-        XCTAssertEqual(input.parameters, encoded.parameters, file: file, line: line)
-        let inputQuerySet = Set(input.query.split(separator: "&"))
-        let encodedQuerySet = Set(encoded.query.split(separator: "&"))
+        let actual = try endpoint.rawRequest(with: Self.decodedRequest)
+        XCTAssertEqual(expected.path, actual.path, file: file, line: line)
+        XCTAssertEqual(expected.headers, actual.headers, file: file, line: line)
+        XCTAssertEqual(expected.parameters, actual.parameters, file: file, line: line)
+        let inputQuerySet = Set(expected.query.split(separator: "&"))
+        let encodedQuerySet = Set(actual.query.split(separator: "&"))
         XCTAssertEqual(inputQuerySet, encodedQuerySet, file: file, line: line)
-        if let body = input.body {
+        if let body = expected.body {
             if converter is URLFormConverter {
                 let inputString = String(data: body, encoding: .utf8) ?? ""
-                let encodedString = encoded.body.map { String(data: $0, encoding: .utf8) ?? "" } ?? ""
+                let encodedString = actual.body.map { String(data: $0, encoding: .utf8) ?? "" } ?? ""
                 XCTAssertEqual(Set(inputString.split(separator: "&")), Set(encodedString.split(separator: "&")), file: file, line: line)
             } else {
-                XCTAssertEqual(input.body, encoded.body, file: file, line: line)
+                XCTAssertEqual(expected.body, actual.body, file: file, line: line)
             }
         } else {
-            XCTAssertNil(encoded.body, file: file, line: line)
+            XCTAssertNil(actual.body, file: file, line: line)
         }
     }
 }

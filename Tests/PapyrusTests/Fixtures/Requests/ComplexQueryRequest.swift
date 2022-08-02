@@ -8,13 +8,13 @@ struct ComplexQueryRequest: TestableRequest {
     
     @Query var query: ComplexQuery
     
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest {
         RawTestRequest(
             headers: [
                 "Content-Type": contentConverter.contentType,
                 "Content-Length": "0"
             ],
-            query: "query[foo]=foo&query[bar]=1".addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "")
+            query: "query[foo]=foo&query[bar]=1")
     }
-    static var expected: ComplexQueryRequest = .init(query: .init(foo: "foo", bar: 1))
+    static var decodedRequest: ComplexQueryRequest = .init(query: .init(foo: "foo", bar: 1))
 }

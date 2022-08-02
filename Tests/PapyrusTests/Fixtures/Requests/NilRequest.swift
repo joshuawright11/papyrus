@@ -1,10 +1,10 @@
 import Papyrus
 
 struct NilRequest: TestableRequest {
-    static var expected = NilRequest(string: "foo", int: 0, bool: nil, double: nil)
+    static var decodedRequest = NilRequest(string: "foo", int: 0, bool: nil, double: nil)
     
-    static func input(contentConverter: ContentConverter) throws -> RawTestRequest {
-        let body = try contentConverter.encode(expected)
+    static func encodedRequest(contentConverter: ContentConverter) throws -> RawTestRequest {
+        let body = try contentConverter.encode(decodedRequest)
         return RawTestRequest(
             headers: [
                 "Content-Type": contentConverter.contentType,

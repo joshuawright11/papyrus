@@ -112,8 +112,6 @@ public struct PartialRequest {
     
     private func queryString() throws -> String {
         guard !query.isEmpty else { return "" }
-        let queryString: String = try queryConverter.encode(query)
-        guard let percentEncoded = queryString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return "" }
-        return percentEncoded
+        return try queryConverter.encode(query)
     }
 }
