@@ -2,8 +2,8 @@ import Foundation
 
 public struct JSONConverter: ContentConverter {
     public let contentType: String = "application/json"
-    private let encoder: JSONEncoder
-    private let decoder: JSONDecoder
+    internal let encoder: JSONEncoder
+    internal let decoder: JSONDecoder
     
     public init(encoder: JSONEncoder = JSONEncoder(), decoder: JSONDecoder = JSONDecoder()) {
         self.encoder = encoder
@@ -11,9 +11,9 @@ public struct JSONConverter: ContentConverter {
     }
 
     public func with(keyMapping: KeyMapping) -> JSONConverter {
-        let encoder = encoder
+        let encoder = encoder.copy()
         encoder.keyEncodingStrategy = keyMapping.jsonEncodingStrategy
-        let decoder = decoder
+        let decoder = decoder.copy()
         decoder.keyDecodingStrategy = keyMapping.jsonDecodingStrategy
         return JSONConverter(encoder: encoder, decoder: decoder)
     }
@@ -24,6 +24,35 @@ public struct JSONConverter: ContentConverter {
     
     public func encode<E>(_ value: E) throws -> Data where E : Encodable {
         try encoder.encode(value)
+    }
+}
+
+extension JSONEncoder {
+    fileprivate func copy() -> JSONEncoder {
+        let new = JSONEncoder()
+        new.keyEncodingStrategy = keyEncodingStrategy
+        new.userInfo = userInfo
+        new.dataEncodingStrategy = dataEncodingStrategy
+        new.dateEncodingStrategy = dateEncodingStrategy
+        new.nonConformingFloatEncodingStrategy = nonConformingFloatEncodingStrategy
+        new.outputFormatting = outputFormatting
+        return new
+    }
+}
+
+extension JSONDecoder {
+    fileprivate func copy() -> JSONDecoder {
+        let new = JSONDecoder()
+        new.keyDecodingStrategy = keyDecodingStrategy
+        new.userInfo = userInfo
+        new.dataDecodingStrategy = dataDecodingStrategy
+        new.dateDecodingStrategy = dateDecodingStrategy
+        new.nonConformingFloatDecodingStrategy = nonConformingFloatDecodingStrategy
+        if #available(iOS 15.0, macOS 12.0, *) {
+            new.assumesTopLevelDictionary = assumesTopLevelDictionary
+        }
+
+        return new
     }
 }
 
