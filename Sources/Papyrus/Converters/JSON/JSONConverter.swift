@@ -48,10 +48,6 @@ extension JSONDecoder {
         new.dataDecodingStrategy = dataDecodingStrategy
         new.dateDecodingStrategy = dateDecodingStrategy
         new.nonConformingFloatDecodingStrategy = nonConformingFloatDecodingStrategy
-        if #available(iOS 15.0, macOS 12.0, *) {
-            new.assumesTopLevelDictionary = assumesTopLevelDictionary
-        }
-
         return new
     }
 }
