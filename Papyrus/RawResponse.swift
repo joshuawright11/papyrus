@@ -15,7 +15,10 @@ public struct RawResponse {
     // MARK: Decoding
     
     public func decodeContent<D: Decodable>(_ type: D.Type = D.self) throws -> D {
-        guard let body = body else { throw PapyrusError("Tried to decode content from a response but the body was empty.") }
+        guard let body = body else {
+            throw PapyrusError("Tried to decode content from a response but the body was empty.")
+        }
+        
         return try contentConverter.decode(type, from: body)
     }
 }

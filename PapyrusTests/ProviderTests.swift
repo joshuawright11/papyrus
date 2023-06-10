@@ -4,7 +4,7 @@ import XCTest
 final class ProviderTests: XCTestCase {
     private let api = Provider(api: TestAPI())
     private let apiSnake = Provider(api: TestAPI(keyMapping: .snakeCase))
-    
+
     func testBaseURL() throws {
         let request = try api.custom.rawRequest()
         XCTAssertEqual(request.baseURL, "http://localhost")
