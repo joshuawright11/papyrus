@@ -30,7 +30,13 @@ public struct PartialRequest {
     public var queryConverter: URLFormConverter { preferredKeyMapping.map { _queryConverter.with(keyMapping: $0) } ?? _queryConverter }
     
     public var preferredKeyMapping: KeyMapping?
-    
+
+    public init(method: String, path: String) {
+        self.init()
+        self.method = method
+        self.path = path
+    }
+
     init() {
         self.method = "GET"
         self.path = "/"

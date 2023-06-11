@@ -67,11 +67,7 @@ import Papyrus
 @API
 protocol Todos {
     @GET2("/todos")
-    func todos(
-        @Query2 query: String,
-        @Header2 header1: String,
-        @Header2 header2: String
-    ) async throws -> [Todo]
+    func todos(@Query2 query: String, @Header2 header1 headerOne: String, @Header2 header2: String) async throws -> [Todo]
 
     @GET2("/todos/tags")
     func tags(query: String) async throws -> [Todo]
@@ -116,5 +112,5 @@ struct Provider {
     }
 }
 
-let provider = Provider(baseUrl: "", session: .shared)
+let provider = Provider(baseUrl: "https://github.com", session: .shared)
 let api = TodosAPI(provider: provider)
