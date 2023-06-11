@@ -130,6 +130,7 @@ struct APIMacro: PeerMacro {
 
         // TODO: Custom names
         // TODO: Custom compiler errors
+        // TODO: Custom converters
 
         return """
                func \(nameString)(\(parametersString)) async throws \(returnString) {

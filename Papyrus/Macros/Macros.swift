@@ -7,15 +7,42 @@
 
 import Foundation
 
-/*
- MARK: - TESTING
- */
-
-@attached(member, names: arbitrary)
-public macro GET2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "GETMacro")
+// MARK: Top Level
 
 @attached(peer, names: arbitrary)
 public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
+
+// MARK: Methods
+
+@attached(member, names: arbitrary)
+public macro CUSTOM2(_ method: String, _ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro DELETE2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro GET2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro PATCH2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro POST2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro PUT2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro OPTIONS2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro HEAD2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro TRACE2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(member, names: arbitrary)
+public macro CONNECT2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
 
 // MARK: Parameters
 
