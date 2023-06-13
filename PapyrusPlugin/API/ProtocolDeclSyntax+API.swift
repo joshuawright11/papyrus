@@ -46,7 +46,7 @@ extension ProtocolDeclSyntax {
     }
 
     func createApiFunctions() -> [String] {
-        let newRequestFunction = globalStatements.isEmpty ? "PartialRequest" : "newRequest"
+        let newRequestFunction = globalStatements.isEmpty ? "Request" : "newRequest"
         return functions.map { $0.apiFunction(newRequestFunction: newRequestFunction) }
     }
 
@@ -68,8 +68,8 @@ extension ProtocolDeclSyntax {
         }
 
         return """
-        private func newRequest(method: String, path: String) -> PartialRequest {
-            var req = PartialRequest(method: method, path: path)
+        private func newRequest(method: String, path: String) -> Request {
+            var req = Request(method: method, path: path)
             \(globalStatements.joined(separator: "\n") )
             return req
         }

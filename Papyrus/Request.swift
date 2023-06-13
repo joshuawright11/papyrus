@@ -5,8 +5,8 @@ public struct ConverterDefaults {
     public static var query: URLFormConverter = URLFormConverter()
 }
 
-// Used for building a RawRequest.
-public struct PartialRequest {
+// Used for building a Request. Add Request Modifier?
+public struct Request {
     public enum BodyContent {
         case fields([String: AnyEncodable])
         case value(AnyEncodable)
@@ -91,15 +91,23 @@ public struct PartialRequest {
     
     // MARK: Create
     
-    public func create(baseURL: String) throws -> RawRequest {
-        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (preferredKeyMapping?.mapTo(input: $0) ?? $0, $1) })
+    public func bodyAndHeaders() throws -> (Data?, [String: String]) {
         let body = try bodyData()
         var headers = headers
         headers["Content-Type"] = contentConverter.contentType
         headers["Content-Length"] = "\(body?.count ?? 0)"
-        return RawRequest(method: method, baseURL: baseURL, path: try replacedPath(mappedParameters), headers: headers, parameters: mappedParameters, query: try queryString(), body: body, queryConverter: queryConverter, contentConverter: contentConverter)
+        return (body, headers)
     }
-    
+
+    public func fullURL(baseURL: String) throws -> String {
+        try baseURL + fullPath() + queryString()
+    }
+
+    public func fullPath() throws -> String {
+        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (preferredKeyMapping?.mapTo(input: $0) ?? $0, $1) })
+        return try replacedPath(mappedParameters)
+    }
+
     private func bodyData() throws -> Data? {
         guard let body = body else { return nil }
         switch body {
@@ -129,7 +137,15 @@ public struct PartialRequest {
     }
     
     private func queryString() throws -> String {
-        guard !query.isEmpty else { return "" }
-        return try queryConverter.encode(query)
+        guard !query.isEmpty else {
+            return ""
+        }
+
+        var prefix = path.contains("?") ? "&" : "?"
+        if path.last == "?" {
+            prefix = ""
+        }
+
+        return try prefix + queryConverter.encode(query)
     }
 }

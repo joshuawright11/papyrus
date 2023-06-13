@@ -48,11 +48,12 @@ extension FunctionDeclSyntax {
         }
     }
 
-    private var returnStatement: String? {
+    private var returnStatements: [String] {
+        let converterDeclaration = "let converter: ContentConverter = .json" // TODO: MAKE ACTUAL
         switch returnType {
         case .tuple(let array):
             let elements = array.map { element in
-                let decodeElement = element.type == "RawResponse" ? "res" : "try res.decodeContent(\(element.type).self)"
+                let decodeElement = element.type == "Response" ? "res" : "try converter.decode(\(element.type).self, from: res.body)"
                 return [
                     element.label,
                     decodeElement
@@ -60,15 +61,21 @@ extension FunctionDeclSyntax {
                 .compactMap { $0 }
                 .joined(separator: ": ")
             }
-            return """
-            return (
-                \(elements.joined(separator: ",\n"))
-            )
-            """
+            return [
+                converterDeclaration,
+                """
+                return (
+                    \(elements.joined(separator: ",\n"))
+                )
+                """
+            ]
         case .type(let string):
-            return "return try res.decodeContent(\(string).self)"
+            return [
+                converterDeclaration,
+                "return try converter.decode(\(string).self, from: res.body)"
+            ]
         case nil:
-            return nil
+            return []
         }
     }
 
@@ -157,11 +164,11 @@ extension FunctionDeclSyntax {
 
         let lines: [String?] = [
             "\(concreteSignature) {",
-           requestStatement,
-           buildStatements.joined(separator: "\n"),
-           responseStatement,
-           returnStatement,
-           "}"
+            requestStatement,
+            buildStatements.joined(separator: "\n"),
+            responseStatement,
+            returnStatements.joined(separator: "\n"),
+            "}"
         ]
 
         return lines

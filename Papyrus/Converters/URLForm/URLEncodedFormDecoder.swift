@@ -662,3 +662,13 @@ private struct URLEncodedFormDecodingStorage {
     /// pop a container from the storage
     @discardableResult mutating func popContainer() -> URLEncodedFormNode { self.containers.removeLast() }
 }
+
+protocol AnyOptional {
+    static var `nil`: Self { get }
+    var isNil: Bool { get }
+}
+
+extension Optional: AnyOptional {
+    static var `nil`: Optional<Wrapped> { nil }
+    var isNil: Bool { self == nil }
+}
