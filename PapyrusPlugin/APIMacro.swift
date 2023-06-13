@@ -6,7 +6,6 @@ import SwiftSyntaxMacros
 // TODO: Static Headers
 // TODO: KeyMapping
 // TODO: Return a tuple with the Raw Response
-// TODO: @CUSTOM method
 // TODO: Alamofire
 // TODO: Interceptor
 // TODO: Tests
@@ -296,8 +295,8 @@ enum Attribute {
         var firstArgument: String?
         var secondArgument: String?
         if case let .argumentList(list) = syntax.argument {
-            firstArgument = list.first?.trimmedDescription
-            secondArgument = list.dropFirst().first?.trimmedDescription
+            firstArgument = list.first?.expression.description
+            secondArgument = list.dropFirst().first?.expression.description
         }
 
         let name = syntax.attributeName.trimmedDescription
@@ -313,7 +312,7 @@ enum Attribute {
                 return nil
             }
 
-            self = .http(method: firstArgument, path: secondArgument)
+            self = .http(method: secondArgument, path: firstArgument)
         case "Body2":
             self = .body(key: firstArgument?.withoutQuotes)
         case "Field2":

@@ -15,7 +15,7 @@ public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
 // MARK: Methods
 
 @attached(member, names: arbitrary)
-public macro CUSTOM2(_ method: String, _ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+public macro Http(_ path: String, method: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
 
 @attached(member, names: arbitrary)
 public macro DELETE2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
