@@ -67,7 +67,7 @@ import Papyrus
 @API
 protocol Todos {
     @GET2("/todos")
-    func todos(@Query2 query: String, @Header2 header1: String, @Header2 header2: String) async throws -> [Todo]
+    func todos(@Default("bar") @Query2("foo") query: String, @Header2 header1 headerOne: String, @Header2 header2: String) async throws -> [Todo]
 
     @GET2("/todos/tags")
     func tags(query: String) async throws -> [Todo]
@@ -81,6 +81,8 @@ protocol Users {
 
 @API
 protocol Accounts {
+    @GET2("/accounts")
+    func getAccounts() async throws
 
 }
 
@@ -96,18 +98,8 @@ struct Provider {
         self.interceptors = interceptors
     }
 
+    @discardableResult
     func request(_ request: PartialRequest) async throws -> RawResponse {
-        fatalError()
-    }
-
-    func request(
-        method: String,
-        path: String,
-        parameters: [String: String] = [:],
-        queries: [String: String] = [:],
-        headers: [String: String] = [:],
-        body: Data? = nil
-    ) async throws -> RawResponse {
         fatalError()
     }
 }

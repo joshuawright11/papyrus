@@ -47,16 +47,19 @@ public macro CONNECT2(_ path: String) = #externalMacro(module: "PapyrusPlugin", 
 // MARK: Parameters
 
 @attached(peer, names: arbitrary)
-public macro Header2() = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+public macro Header2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
 
 @attached(peer, names: arbitrary)
-public macro Query2() = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+public macro Query2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
 
 @attached(peer, names: arbitrary)
-public macro Path2() = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+public macro Path2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
 
 @attached(peer, names: arbitrary)
-public macro Field2() = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+public macro Field2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
 
 @attached(peer, names: arbitrary)
-public macro Body2() = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+public macro Body2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
+
+@attached(peer, names: arbitrary)
+public macro Default(_ value: Any? = nil) = #externalMacro(module: "PapyrusPlugin", type: "HeaderMacro")
