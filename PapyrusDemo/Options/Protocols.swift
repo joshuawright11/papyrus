@@ -76,17 +76,22 @@ protocol Todos {
     func tags(query: String) async throws -> [Todo]
 }
 
+struct CustomResponseDecodable: ResponseDecodable {
+    init(res: RawResponse) throws {
+        fatalError()
+    }
+}
+
 @API
 protocol Users {
     @GET2("/users")
-    func getUsers() async throws -> String
+    func getUsers() async throws -> (first: String, second: RawResponse, third: CustomResponseDecodable)
 }
 
 @API
 protocol Accounts {
     @GET2("/accounts")
     func getAccounts() async throws
-
 }
 
 /// Makes URL requests.

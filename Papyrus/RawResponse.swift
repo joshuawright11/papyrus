@@ -21,4 +21,12 @@ public struct RawResponse {
         
         return try contentConverter.decode(type, from: body)
     }
+
+    public func decodeContent<R: ResponseDecodable>(_ type: R.Type = R.self) throws -> R {
+        try R(res: self)
+    }
+}
+
+public protocol ResponseDecodable {
+    init(res: RawResponse) throws
 }
