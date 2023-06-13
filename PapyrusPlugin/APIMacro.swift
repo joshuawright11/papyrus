@@ -1,16 +1,15 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-// TODO: Custom compiler errors
-// TODO: Custom converters
-// TODO: Static Headers
-// TODO: KeyMapping
 // TODO: Return a tuple with the Raw Response
+// TODO: Mocking (@Mock)
+
+// TODO: Finish provider
 // TODO: Alamofire
 // TODO: Interceptor
+
 // TODO: Tests
-// TODO: Mocking (@Mock)
-// TODO: Finish provider
+// TODO: Custom compiler errors
 // TODO: Final cleanup
 // TODO: README.md
 
@@ -35,18 +34,29 @@ struct APIMacro: PeerMacro {
 
     private static func createAPI(for protocol: ProtocolDeclSyntax) -> DeclSyntax {
         let protocolName = `protocol`.identifier.trimmed
-        let functions = `protocol`.functions.map(\.apiFunction)
-        return """
-            struct \(protocolName)API: \(protocolName) {
-            let provider: Provider
+        let newRequestFunction = `protocol`.papyrusAttributes.isEmpty ? "PartialRequest" : "newRequest"
+        let functions = `protocol`.functions.map { $0.apiFunction(newRequestFunction: newRequestFunction) }
+        return DeclSyntax(
+            stringLiteral: [
+                """
+                struct \(protocolName)API: \(protocolName) {
+                let provider: Provider
 
-            init(provider: Provider) {
-                self.provider = provider
-            }
+                init(provider: Provider) {
+                    self.provider = provider
+                }
 
-            \(raw: functions.joined(separator: "\n\n"))
-            }
-            """
+                """,
+                [
+                    functions.joined(separator: "\n\n"),
+                    `protocol`.createRequestFunction,
+                ]
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n\n"),
+                "}"
+            ]
+            .joined(separator: "\n")
+        )
     }
 }
 
@@ -61,6 +71,26 @@ extension ProtocolDeclSyntax {
         memberBlock
             .members
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
+    }
+
+    var papyrusAttributes: [Attribute] {
+        attributes?
+            .compactMap { $0.as(AttributeSyntax.self) }
+            .compactMap(Attribute.init) ?? []
+    }
+
+    var createRequestFunction: String {
+        guard !papyrusAttributes.isEmpty else {
+            return ""
+        }
+
+        return """
+        private func newRequest(method: String, path: String) -> PartialRequest {
+            var req = PartialRequest(method: method, path: path)
+            \(papyrusAttributes.map { $0.requestStatement(input: nil) }.joined(separator: "\n") )
+            return req
+        }
+        """
     }
 }
 
@@ -83,10 +113,12 @@ extension FunctionDeclSyntax {
         signature.output?.returnType.description
     }
 
-    var apiFunction: String {
+    func apiFunction(newRequestFunction: String) -> String {
         guard isAsync, isThrows else {
             return "Not async throws!"
         }
+
+        var topLevelStatements: [String] = []
 
         var method: String?
         var path: String?
@@ -99,15 +131,20 @@ extension FunctionDeclSyntax {
 
                 method = _method.withoutQuotes
                 path = _path.withoutQuotes
-            case .json:
-                break
-            case .formUrlEncoded:
-                break
-            case .headers:
-                break
+            case .json(let value), .urlForm(let value), .converter(let value):
+                topLevelStatements.append("""
+                req.preferredContentConverter = \(value)
+                """)
+            case .headers(let value):
+                topLevelStatements.append("""
+                req.addHeaders(\(value))
+                """)
+            case .keyMapping(let value):
+                topLevelStatements.append("""
+                req.preferredKeyMapping = \(value)
+                """)
             default:
-                // TODO: Move this to actual macros, to throw an error.
-                return "\(attribute) isn't allowed on a function!"
+                topLevelStatements.append(attribute.requestStatement(input: nil))
             }
         }
 
@@ -140,7 +177,7 @@ extension FunctionDeclSyntax {
         // Request Initialization
         let decl = parameters.isEmpty ? "let" : "var"
         let requestStatement = """
-            \(decl) req = PartialRequest(method: "\(method)", path: "\(path)")
+            \(decl) req = \(newRequestFunction)(method: "\(method)", path: "\(path)")
             """
 
         // Request Construction
@@ -164,6 +201,7 @@ extension FunctionDeclSyntax {
 
         return lines
             .compactMap { $0 }
+            .filter { !$0.isEmpty }
             .joined(separator: "\n")
     }
 
@@ -225,49 +263,22 @@ extension FunctionParameterSyntax {
     }
 
     var apiFunctionStatement: String {
-        var statement: Attribute? = nil
-        let name = (secondName ?? firstName).text
+        var parameterAttribute: Attribute? = nil
         for attribute in papyrusAttributes {
             switch attribute {
             case .body, .query, .header, .path, .field:
-                guard statement == nil else {
-                    return "Only one statement modifier per parameter!"
+                guard parameterAttribute == nil else {
+                    return "Only one attribute per parameter!"
                 }
 
-                statement = attribute
+                parameterAttribute = attribute
             default:
                 break
             }
         }
 
-        return switch statement {
-        case let .body(key):
-            """
-            req.addBody("\(key ?? name)", value: \(name))
-            """
-        case let .query(key):
-            """
-            req.addQuery("\(key ?? name)", value: \(name))
-            """
-        case let .header(key):
-            """
-            req.headers["\(key ?? name)"] = \(name)
-            """
-        case let .path(key):
-            """
-            req.parameters["\(key ?? name)"] = \(name)
-            """
-        case let .field(key):
-            """
-            req.addField("\(key ?? name)", value: \(name))
-            """
-        case .none:
-            """
-            req.addField("\(name)", value: \(name))
-            """
-        default:
-            fatalError("Invalid statement type.")
-        }
+        let variable = (secondName ?? firstName).text
+        return (parameterAttribute ?? .field(key: nil)).requestStatement(input: variable)
     }
 }
 
@@ -276,9 +287,11 @@ enum Attribute {
     case mock
 
     /// Type or Function attributes
-    case json
-    case formUrlEncoded
-    case headers
+    case json(value: String)
+    case urlForm(value: String)
+    case converter(value: String)
+    case keyMapping(value: String)
+    case headers(value: String)
 
     /// Function attributes
     case http(method: String, path: String)
@@ -302,16 +315,10 @@ enum Attribute {
         let name = syntax.attributeName.trimmedDescription
         switch name {
         case "GET2", "DELETE2", "PATCH2", "POST2", "PUT2", "OPTIONS2", "HEAD2", "TRACE2", "CONNECT2":
-            guard let firstArgument else {
-                return nil
-            }
-
+            guard let firstArgument else { return nil }
             self = .http(method: name, path: firstArgument)
         case "Http":
-            guard let firstArgument, let secondArgument else {
-                return nil
-            }
-
+            guard let firstArgument, let secondArgument else { return nil }
             self = .http(method: secondArgument, path: firstArgument)
         case "Body2":
             self = .body(key: firstArgument?.withoutQuotes)
@@ -324,13 +331,67 @@ enum Attribute {
         case "Path2":
             self = .path(key: firstArgument?.withoutQuotes)
         case "Default":
-            guard let firstArgument else {
-                return nil
-            }
-
+            guard let firstArgument else { return nil }
             self = .`default`(value: firstArgument)
+        case "Headers":
+            guard let firstArgument else { return nil }
+            self = .headers(value: firstArgument)
+        case "JSON2":
+            self = .json(value: firstArgument ?? ".json")
+        case "URLForm2":
+            self = .urlForm(value: firstArgument ?? ".urlForm")
+        case "Converter":
+            guard let firstArgument else { return nil }
+            self = .converter(value: firstArgument)
+        case "KeyMapping":
+            guard let firstArgument else { return nil }
+            self = .keyMapping(value: firstArgument)
         default:
             return nil
+        }
+    }
+
+    func requestStatement(input: String?) -> String {
+        switch self {
+        case let .body(key):
+            guard let input else { return "Input Required!" }
+            return """
+            req.addBody("\(key ?? input)", value: \(input))
+            """
+        case let .query(key):
+            guard let input else { return "Input Required!" }
+            return """
+            req.addQuery("\(key ?? input)", value: \(input))
+            """
+        case let .header(key):
+            guard let input else { return "Input Required!" }
+            return """
+            req.addHeader("\(key ?? input)", value: \(input))
+            """
+        case let .path(key):
+            guard let input else { return "Input Required!" }
+            return """
+            req.addParameter("\(key ?? input)", value: \(input))
+            """
+        case let .field(key):
+            guard let input else { return "Input Required!" }
+            return """
+            req.addField("\(key ?? input)", value: \(input))
+            """
+        case .json(let value), .urlForm(let value), .converter(let value):
+            return """
+            req.preferredContentConverter = \(value)
+            """
+        case .headers(let value):
+            return """
+            req.addHeaders(\(value))
+            """
+        case .keyMapping(let value):
+            return """
+            req.preferredKeyMapping = \(value)
+            """
+        default:
+            fatalError("Invalid statement type.")
         }
     }
 }

@@ -50,7 +50,19 @@ public struct PartialRequest {
     }
     
     // MARK: Building
-    
+
+    public mutating func addHeaders(_ headers: [String: String]) {
+        self.headers.merge(headers, uniquingKeysWith: { _, b in b })
+    }
+
+    public mutating func addHeader(_ key: String, value: String) {
+        self.headers[key] = value
+    }
+
+    public mutating func addParameter(_ key: String, value: String) {
+        self.parameters[key] = value
+    }
+
     public mutating func setBody<E: Encodable>(_ value: E) {
         if let body = body {
             preconditionFailure("Tried to set an endpoint body to type \(E.self), but it already had one: \(body).")

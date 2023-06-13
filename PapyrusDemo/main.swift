@@ -22,6 +22,6 @@ struct Todo: Codable {
     let name: String
 }
 
-//let todos = TodoAPIProvider(baseUrl: "localhost:8080")
-//let user = UserAPIProvider(baseUrl: "localhost:8080")
-//let accounts = AccountsAPIProvider(baseUrl: "localhost:8080")
+//let todos = TodoAPIProvider(baseURL: "localhost:8080")
+//let user = UserAPIProvider(baseURL: "localhost:8080")
+//let accounts = AccountsAPIProvider(baseURL: "localhost:8080")

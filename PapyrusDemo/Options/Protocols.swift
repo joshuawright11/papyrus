@@ -65,6 +65,9 @@ import Papyrus
 // MARK: Definition
 
 @API
+@Converter(.urlForm)
+@KeyMapping(.snakeCase)
+@Headers(["Foo": "Bar"])
 protocol Todos {
     @GET2("/todos")
     func todos(@Default("bar") @Query2("foo") query: String, @Header2 header1 headerOne: String, @Header2 header2: String) async throws -> [Todo]
@@ -88,12 +91,12 @@ protocol Accounts {
 
 /// Makes URL requests.
 struct Provider {
-    let baseUrl: String
+    let baseURL: String
     let session: URLSession
     let interceptors: [() -> Void]
 
-    init(baseUrl: String, session: URLSession = .shared, interceptors: [() -> Void] = []) {
-        self.baseUrl = baseUrl
+    init(baseURL: String, session: URLSession = .shared, interceptors: [() -> Void] = []) {
+        self.baseURL = baseURL
         self.session = session
         self.interceptors = interceptors
     }
@@ -104,5 +107,5 @@ struct Provider {
     }
 }
 
-let provider = Provider(baseUrl: "https://github.com", session: .shared)
-let api = TodosAPI(provider: provider)
+let provider = Provider(baseURL: "https://github.com", session: .shared)
+//let api = TodosAPI(provider: provider)
