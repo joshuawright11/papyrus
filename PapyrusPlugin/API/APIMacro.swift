@@ -1,9 +1,9 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-// TODO: Finish provider
-// TODO: Alamofire
 // TODO: Interceptor
+// TODO: Alamofire or Generic?
+// TODO: Finish provider
 
 // TODO: Tests
 // TODO: Custom compiler errors
@@ -13,6 +13,8 @@ import SwiftSyntaxMacros
 // TODO: Launch Twitter, HN, Swift Forums, r/swift, r/iOSProgramming Tuesday morning 9am
 
 // TODO: Multipart
+// TODO: Provider Requests on Server
+// TODO: Custom RequestEncodable Protocol (for functions with lots of arguments)
 
 struct APIMacro: PeerMacro {
     static func expansion(
