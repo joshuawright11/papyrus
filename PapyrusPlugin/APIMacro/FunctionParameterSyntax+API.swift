@@ -26,6 +26,10 @@ extension FunctionParameterSyntax {
         return true
     }
 
+    var closureSignatureString: String {
+        trimmed.type.description
+    }
+
     var signatureString: String {
         let defaultArgument = defaultArgumentString.map { " = \($0)" } ?? ""
         let secondName = trimmed.secondName.map { "\($0)" } ?? ""
@@ -48,7 +52,7 @@ extension FunctionParameterSyntax {
             .compactMap(Attribute.init) ?? []
     }
 
-    var apiBuilderStatement: String {
+    var apiBuilderStatement: String? {
         var parameterAttribute: Attribute? = nil
         for attribute in papyrusAttributes {
             switch attribute {
@@ -63,7 +67,8 @@ extension FunctionParameterSyntax {
             }
         }
 
-        let variable = (secondName ?? firstName).text
-        return (parameterAttribute ?? .field(key: nil)).requestStatement(input: variable)
+        let input = (secondName ?? firstName).text
+        let attribute = parameterAttribute ?? .field(key: nil)
+        return attribute.requestStatement(input: input)
     }
 }

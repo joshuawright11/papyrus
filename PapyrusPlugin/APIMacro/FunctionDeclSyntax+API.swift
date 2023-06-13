@@ -1,3 +1,4 @@
+import Foundation
 import SwiftSyntax
 
 extension FunctionDeclSyntax {
@@ -71,6 +72,37 @@ extension FunctionDeclSyntax {
         }
     }
 
+    var mockFunctions: [String] {
+        [mockFunction, mockerFunction]
+    }
+
+    private var mockFunction: String {
+        guard isAsync, isThrows else {
+            return "Not async throws!"
+        }
+
+        let input = parameters.map { $0.secondName ?? $0.firstName }.map(\.text).joined(separator: ", ")
+        return """
+        \(concreteSignature) {
+            guard let mocker = mocks["\(identifier.text)"] as? \(closureSignature) else {
+                throw defaultError
+            }
+
+            return try await mocker(\(input))
+        }
+        """
+    }
+
+    private var mockerFunction: String {
+        let name = identifier.text
+        let nameCapitalized = name.prefix(1).capitalized + name.dropFirst()
+        return """
+        func mock\(nameCapitalized)(result: @escaping \(closureSignature)) {
+            self.mocks["\(name)"] = result
+        }
+        """
+    }
+
     func apiFunction(newRequestFunction: String) -> String {
         guard isAsync, isThrows else {
             return "Not async throws!"
@@ -89,17 +121,15 @@ extension FunctionDeclSyntax {
                 method = _method
                 path = _path
             default:
-                topLevelStatements.append(attribute.requestStatement(input: nil))
+                if let statement = attribute.requestStatement(input: nil) {
+                    topLevelStatements.append(statement)
+                }
             }
         }
 
         guard let method, let path else {
             return "No method or path!"
         }
-
-        // Inputs
-        let parameters = signature.input.parameterList
-            .compactMap { $0.as(FunctionParameterSyntax.self) }
 
         // Request Parts
         let bodies = parameters.filter(\.isBody)
@@ -112,13 +142,6 @@ extension FunctionDeclSyntax {
             return "Can't have @Body and @Field!"
         }
 
-        // Function Signature
-        let nameString = identifier
-        let parametersString = parameters.map(\.signatureString).joined(separator: ", ")
-        let signatureStatement = """
-            func \(nameString)(\(parametersString)) async throws\(returnClause) {
-            """
-
         // Request Initialization
         let decl = parameters.isEmpty ? "let" : "var"
         let requestStatement = """
@@ -126,14 +149,14 @@ extension FunctionDeclSyntax {
             """
 
         // Request Construction
-        let buildStatements = parameters.map(\.apiBuilderStatement)
+        let buildStatements = parameters.compactMap(\.apiBuilderStatement)
 
         // Get Response
         let responseAssignment = returnType == nil ? "" : "let res = "
         let responseStatement = "\(responseAssignment)try await provider.request(req)"
 
         let lines: [String?] = [
-           signatureStatement,
+            "\(concreteSignature) {",
            requestStatement,
            buildStatements.joined(separator: "\n"),
            responseStatement,
@@ -145,6 +168,27 @@ extension FunctionDeclSyntax {
             .compactMap { $0 }
             .filter { !$0.isEmpty }
             .joined(separator: "\n")
+    }
+
+    private var parameters: [FunctionParameterSyntax] {
+        signature
+            .input
+            .parameterList
+            .compactMap { $0.as(FunctionParameterSyntax.self) }
+    }
+
+    private var closureSignature: String {
+        let parameters = parameters.map(\.closureSignatureString).joined(separator: ", ")
+        let closureReturn = returnClause.isEmpty ? " -> Void" : returnClause
+        return "(\(parameters)) async throws\(closureReturn)"
+    }
+
+    private var concreteSignature: String {
+        let nameString = identifier
+        let parametersString = parameters.map(\.signatureString).joined(separator: ", ")
+        return """
+            func \(nameString)(\(parametersString)) async throws\(returnClause)
+            """
     }
 
     private var isAsync: Bool {

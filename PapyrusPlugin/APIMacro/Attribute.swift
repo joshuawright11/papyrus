@@ -64,12 +64,14 @@ enum Attribute {
         case "KeyMapping":
             guard let firstArgument else { return nil }
             self = .keyMapping(value: firstArgument)
+        case "Mock":
+            self = .mock
         default:
             return nil
         }
     }
 
-    func requestStatement(input: String?) -> String {
+    func requestStatement(input: String?) -> String? {
         switch self {
         case let .body(key):
             guard let input else { return "Input Required!" }
@@ -109,7 +111,7 @@ enum Attribute {
             req.preferredKeyMapping = \(value)
             """
         default:
-            fatalError("Invalid statement type.")
+            return nil
         }
     }
 }

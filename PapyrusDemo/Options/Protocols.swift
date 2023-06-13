@@ -68,6 +68,7 @@ import Papyrus
 @Converter(.urlForm)
 @KeyMapping(.snakeCase)
 @Headers(["Foo": "Bar"])
+@Mock
 protocol Todos {
     @GET2("/todos")
     func todos(@Default("bar") @Query2("foo") query: String, @Header2 header1 headerOne: String, @Header2 header2: String) async throws -> [Todo]
@@ -83,12 +84,14 @@ struct CustomResponseDecodable: ResponseDecodable {
 }
 
 @API
+@Mock
 protocol Users {
     @GET2("/users")
     func getUsers() async throws -> (first: String, second: RawResponse, third: CustomResponseDecodable)
 }
 
 @API
+@Mock
 protocol Accounts {
     @GET2("/accounts")
     func getAccounts() async throws

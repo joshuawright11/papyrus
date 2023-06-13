@@ -1,6 +1,41 @@
 import SwiftSyntax
 
 extension ProtocolDeclSyntax {
+
+    func createMock() -> String? {
+        guard papyrusAttributes.contains(where: { attribute in
+            if case .mock = attribute {
+                return true
+            } else {
+                return false
+            }
+        }) else {
+            return nil
+        }
+
+        return [
+            """
+            final class \(identifier.trimmed)Mock: \(identifier.trimmed) {
+            let defaultError: Error
+            var mocks: [String: Any]
+
+            init(defaultError: Error = PapyrusError("Not mocked")) {
+                self.defaultError = defaultError
+                self.mocks = [:]
+            }
+
+            """,
+            createMockFunctions()
+                .joined(separator: "\n\n"),
+            "}"
+        ]
+        .joined(separator: "\n")
+    }
+
+    func createMockFunctions() -> [String] {
+        functions.flatMap(\.mockFunctions)
+    }
+
     func createAPI() -> String {
         [
             """
@@ -12,7 +47,7 @@ extension ProtocolDeclSyntax {
             }
 
             """,
-            (apiFunctions + [createRequestFunction])
+            (createApiFunctions() + [newRequestFunction])
                 .filter { !$0.isEmpty }
                 .joined(separator: "\n\n"),
             "}"
@@ -20,12 +55,15 @@ extension ProtocolDeclSyntax {
         .joined(separator: "\n")
     }
 
-    var apiFunctions: [String] {
-        let newRequestFunction = papyrusAttributes.isEmpty ? "PartialRequest" : "newRequest"
+    func createApiFunctions() -> [String] {
+        let newRequestFunction = globalStatements.isEmpty ? "PartialRequest" : "newRequest"
+        return functions.map { $0.apiFunction(newRequestFunction: newRequestFunction) }
+    }
+
+    private var functions: [FunctionDeclSyntax] {
         return memberBlock
             .members
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
-            .map { $0.apiFunction(newRequestFunction: newRequestFunction) }
     }
 
     private var papyrusAttributes: [Attribute] {
@@ -34,17 +72,21 @@ extension ProtocolDeclSyntax {
             .compactMap(Attribute.init) ?? []
     }
 
-    private var createRequestFunction: String {
-        guard !papyrusAttributes.isEmpty else {
+    private var newRequestFunction: String {
+        guard !globalStatements.isEmpty else {
             return ""
         }
 
         return """
         private func newRequest(method: String, path: String) -> PartialRequest {
             var req = PartialRequest(method: method, path: path)
-            \(papyrusAttributes.map { $0.requestStatement(input: nil) }.joined(separator: "\n") )
+            \(globalStatements.joined(separator: "\n") )
             return req
         }
         """
+    }
+
+    private var globalStatements: [String] {
+        papyrusAttributes.compactMap { $0.requestStatement(input: nil) }
     }
 }
