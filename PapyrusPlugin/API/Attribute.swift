@@ -1,9 +1,6 @@
 import SwiftSyntax
 
 enum Attribute {
-    /// Type attributes
-    case mock
-
     /// Type or Function attributes
     case json(value: String)
     case urlForm(value: String)
@@ -64,8 +61,6 @@ enum Attribute {
         case "KeyMapping":
             guard let firstArgument else { return nil }
             self = .keyMapping(value: firstArgument)
-        case "Mock":
-            self = .mock
         default:
             return nil
         }

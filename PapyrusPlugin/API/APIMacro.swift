@@ -1,12 +1,6 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-// TODO: Mocking (@Mock)
-// 1. Generate `mock\(function) { param -> Res }` functions for each function.
-// DONE 2. Add a separate `TodosMock` class.
-// 3. Default each function to throw an error (or custom response; inject closure instead of provider).
-// 4. Check to see if function has been mocked before hand.
-
 // TODO: Finish provider
 // TODO: Alamofire
 // TODO: Interceptor
@@ -31,10 +25,8 @@ struct APIMacro: PeerMacro {
         }
 
         return [
-            `protocol`.createAPI(),
-            `protocol`.createMock()
+            `protocol`.createAPI()
         ]
-        .compactMap { $0 }
         .map { DeclSyntax(stringLiteral: $0) }
     }
 }

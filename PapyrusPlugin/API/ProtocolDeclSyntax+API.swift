@@ -2,17 +2,7 @@ import SwiftSyntax
 
 extension ProtocolDeclSyntax {
 
-    func createMock() -> String? {
-        guard papyrusAttributes.contains(where: { attribute in
-            if case .mock = attribute {
-                return true
-            } else {
-                return false
-            }
-        }) else {
-            return nil
-        }
-
+    func createMock() -> String {
         return [
             """
             final class \(identifier.trimmed)Mock: \(identifier.trimmed) {

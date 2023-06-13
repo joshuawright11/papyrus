@@ -13,7 +13,7 @@ import Foundation
 public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
 
 @attached(peer, names: arbitrary)
-public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 
 // MARK: Modifiers
 
