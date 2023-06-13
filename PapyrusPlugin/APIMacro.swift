@@ -119,7 +119,6 @@ extension FunctionDeclSyntax {
         }
 
         var topLevelStatements: [String] = []
-
         var method: String?
         var path: String?
         for attribute in papyrusAttributes {
@@ -131,18 +130,6 @@ extension FunctionDeclSyntax {
 
                 method = _method.withoutQuotes
                 path = _path.withoutQuotes
-            case .json(let value), .urlForm(let value), .converter(let value):
-                topLevelStatements.append("""
-                req.preferredContentConverter = \(value)
-                """)
-            case .headers(let value):
-                topLevelStatements.append("""
-                req.addHeaders(\(value))
-                """)
-            case .keyMapping(let value):
-                topLevelStatements.append("""
-                req.preferredKeyMapping = \(value)
-                """)
             default:
                 topLevelStatements.append(attribute.requestStatement(input: nil))
             }
