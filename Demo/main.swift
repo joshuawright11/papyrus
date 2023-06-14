@@ -1,9 +1,7 @@
 import Foundation
 import Papyrus
 
-// TODO: First Class Alamofire, separate library for async-http-client provider
 // TODO: Interceptor
-// TODO: Finish provider
 
 // TODO: Tests
 // TODO: Custom compiler errors
@@ -15,6 +13,7 @@ import Papyrus
 // TODO: Multipart
 // TODO: Provider Requests on Server
 // TODO: Custom RequestEncodable Protocol (for functions with lots of arguments)
+// TODO: async-http-client provider (separate library)
 
 @API
 @Converter(.urlForm)

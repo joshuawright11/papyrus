@@ -6,7 +6,7 @@ public struct ConverterDefaults {
 }
 
 // Used for building a Request. Add Request Modifier?
-public struct Request {
+public struct RequestBuilder {
     public enum BodyContent {
         case fields([String: AnyEncodable])
         case value(AnyEncodable)
