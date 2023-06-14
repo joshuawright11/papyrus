@@ -1,24 +1,11 @@
 import Alamofire
 import Foundation
 
-/*
- GOALS
- 1. Escape hatches to underlying types
-    - alter underlying request
-    - inspect underlying response on success
-    - inspect underlying response on error
-    - cancel in flight request
- 2. Allow for usage on server.
-    - don't be tightly coupled to Alamofire or URLSession
-
- Escape hatch.
- */
-
 /// Makes URL requests.
 public final class Provider: HTTPProvider {
-    let baseURL: String
-    let session: Session
-    var interceptors: [Interceptor]
+    public let baseURL: String
+    public let session: Session
+    public var interceptors: [Interceptor]
 
     public init(baseURL: String, session: Session = .default, interceptors: [() -> Void] = []) {
         self.baseURL = baseURL
@@ -49,41 +36,7 @@ public final class Provider: HTTPProvider {
     }
 }
 
-public protocol Request {
-    var url: URL? { get set }
-    var method: String { get set }
-    var headers: [String: String] { get set }
-    var body: Data? { get set }
-}
-
-extension Request {
-    public var request: URLRequest {
-        self as! URLRequest
-    }
-}
-
-extension URLRequest: Request {
-    public var body: Data? {
-        get { httpBody }
-        set { httpBody = newValue }
-    }
-
-    public var method: String {
-        get { httpMethod ?? "" }
-        set { httpMethod = newValue }
-    }
-
-    public var headers: [String: String] {
-        get { allHTTPHeaderFields ?? [:] }
-        set { allHTTPHeaderFields = newValue }
-    }
-}
-
-protocol Interceptor {
-    func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response
-}
-
-struct AnonymousInterceptor: Interceptor {
+private struct AnonymousInterceptor: Interceptor {
     let action: (Request, (Request) async throws -> Response) async throws -> Response
 
     func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response {
@@ -97,7 +50,7 @@ public protocol HTTPProvider {
 }
 
 extension RequestBuilder {
-    func createURLRequest(baseURL: String) throws -> URLRequest {
+    fileprivate func createURLRequest(baseURL: String) throws -> URLRequest {
         let url = try fullURL(baseURL: baseURL).asURL()
         let (body, headers) = try bodyAndHeaders()
         var request = URLRequest(url: url)

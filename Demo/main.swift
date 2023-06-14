@@ -6,12 +6,13 @@ import Papyrus
 // TODO: Final cleanup
 // TODO: README.md
 
-// TODO: Launch Twitter, HN, Swift Forums, r/swift, r/iOSProgramming Tuesday morning 9am
+// TODO: Launch Twitter, HN, Swift Forums, r/swift, r/iOSProgramming Friday morning 9am
 
 // TODO: Multipart
 // TODO: Provider Requests on Server
 // TODO: Custom RequestEncodable Protocol (for functions with lots of arguments)
 // TODO: async-http-client provider (separate library)
+// TODO: Inspect underlying response on error
 
 @API
 @Converter(.urlForm)
