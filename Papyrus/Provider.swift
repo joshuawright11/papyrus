@@ -28,11 +28,17 @@ public final class Provider: HTTPProvider {
         }
 
         let req = try request.createURLRequest(baseURL: baseURL)
+        print("\(req.method) \(req.url!.absoluteString)")
         return try await next(req)
     }
 
     private func _request(_ request: Request) async throws -> Response {
-        await session.request(request.request).validate().serializingData().response
+        let response = await session.request(request.request).validate().serializingData().response
+        if let error = response.error {
+            throw error
+        }
+
+        return response
     }
 }
 

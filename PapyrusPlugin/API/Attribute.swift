@@ -29,21 +29,21 @@ enum Attribute {
 
         let name = syntax.attributeName.trimmedDescription
         switch name {
-        case "GET2", "DELETE2", "PATCH2", "POST2", "PUT2", "OPTIONS2", "HEAD2", "TRACE2", "CONNECT2":
+        case "GET", "DELETE", "PATCH", "POST", "PUT", "OPTIONS", "HEAD", "TRACE", "CONNECT":
             guard let firstArgument else { return nil }
             self = .http(method: name, path: firstArgument)
         case "Http":
             guard let firstArgument, let secondArgument else { return nil }
             self = .http(method: secondArgument.withoutQuotes, path: firstArgument)
-        case "Body2":
+        case "Body":
             self = .body(key: firstArgument?.withoutQuotes)
-        case "Field2":
+        case "Field":
             self = .field(key: firstArgument?.withoutQuotes)
-        case "Query2":
+        case "Query":
             self = .query(key: firstArgument?.withoutQuotes)
-        case "Header2":
+        case "Header":
             self = .header(key: firstArgument?.withoutQuotes)
-        case "Path2":
+        case "Path":
             self = .path(key: firstArgument?.withoutQuotes)
         case "Default":
             guard let firstArgument else { return nil }
@@ -51,9 +51,9 @@ enum Attribute {
         case "Headers":
             guard let firstArgument else { return nil }
             self = .headers(value: firstArgument)
-        case "JSON2":
+        case "JSON":
             self = .json(value: firstArgument ?? ".json")
-        case "URLForm2":
+        case "URLForm":
             self = .urlForm(value: firstArgument ?? ".urlForm")
         case "Converter":
             guard let firstArgument else { return nil }

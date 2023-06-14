@@ -21,10 +21,10 @@ public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 public macro Headers(_ headers: [String: String]) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro JSON2(_ converter: JSONConverter = .json) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro JSON(_ converter: JSONConverter = .json) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro URLForm2(_ converter: URLFormConverter = .urlForm) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro URLForm(_ converter: URLFormConverter = .urlForm) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
 public macro Converter<C: ContentConverter>(_ converter: C) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
@@ -38,48 +38,48 @@ public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "Papyrus
 public macro Http(_ path: String, method: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro DELETE2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro DELETE(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro GET2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro GET(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro PATCH2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro PATCH(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro POST2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro POST(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro PUT2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro PUT(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro OPTIONS2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro OPTIONS(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro HEAD2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro HEAD(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro TRACE2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro TRACE(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro CONNECT2(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro CONNECT(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 // MARK: Parameters
 
 @attached(accessor)
-public macro Header2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Header(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(accessor, names: arbitrary)
-public macro Query2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Query(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(accessor, names: arbitrary)
-public macro Path2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Path(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(accessor, names: arbitrary)
-public macro Field2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Field(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(accessor, names: arbitrary)
-public macro Body2(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Body(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(accessor, names: arbitrary)
 public macro Default(_ value: Any? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")

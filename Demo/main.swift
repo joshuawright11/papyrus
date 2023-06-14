@@ -20,24 +20,24 @@ import Papyrus
 @Headers(["Foo": "Bar"])
 @Mock
 protocol Todos {
-    @GET2("/todos")
-    func todos(@Default("bar") @Query2("foo") query: String, @Header2 header1 headerOne: String, @Header2 header2: String) async throws -> [Todo]
+    @GET("/todos")
+    func todos(@Default("bar") @Query("foo") query: String, @Header header1 headerOne: String, @Header header2: String) async throws -> [Todo]
 
-    @Http("/todos/tags", method: "WTF")
-    func tags(query: String) async throws -> [Todo]
+    @GET("/todos/tags")
+    func tags(@Query query: String) async throws
 }
 
 @API
 @Mock
 protocol Users {
-    @GET2("/users")
+    @GET("/users")
     func getUsers() async throws -> (first: String, second: Response)
 }
 
 @API
 @Mock
 protocol Accounts {
-    @GET2("/accounts")
+    @GET("/accounts")
     func getAccounts() async throws
 }
 
@@ -46,7 +46,10 @@ struct Todo: Codable {
     let name: String
 }
 
-let provider = Provider(baseURL: "localhost:8080")
+let provider = Provider(baseURL: "http://127.0.0.1:3000")
 let todos: Todos = TodosAPI(provider: provider)
 let user: Users = UsersAPI(provider: provider)
 let accounts: Accounts = AccountsAPI(provider: provider)
+
+try await todos.tags(query: "Foo")
+print("ALL DONE!")
