@@ -27,37 +27,66 @@ public final class Provider: HTTPProvider {
     }
 
     @discardableResult
-    public func request(_ request: RequestBuilder) async throws -> Response {
-
-//        var next: (RequestBuilder) async throws -> Response = { request in
-//
-//        }
-//
-//        for interceptor in interceptors.reversed() {
-//            next = { req in interceptor.intercept(req: req, next: next) }
-//        }
-
-        let req = try request.createURLRequest(baseURL: self.baseURL)
-        return await self.session.request(req).validate().serializingData().response
-
-        // TODO: How to access URL request in interceptor?
+    public func intercept(action: @escaping (Request, (Request) async throws -> Response) async throws -> Response) -> Self {
+        interceptors.append(AnonymousInterceptor(action: action))
+        return self
     }
 
     @discardableResult
-    public func intercept(action: @escaping (RequestBuilder, () async throws -> Response) async throws -> Void) -> Self {
-        interceptors.append(AnonymousInterceptor(action: action))
-        return self
+    public func request(_ request: RequestBuilder) async throws -> Response {
+        var next: (Request) async throws -> Response = _request
+        for interceptor in interceptors.reversed() {
+            let _next = next
+            next = { try await interceptor.intercept(req: $0, next: _next) }
+        }
+
+        let req = try request.createURLRequest(baseURL: baseURL)
+        return try await next(req)
+    }
+
+    private func _request(_ request: Request) async throws -> Response {
+        await session.request(request.request).validate().serializingData().response
+    }
+}
+
+public protocol Request {
+    var url: URL? { get set }
+    var method: String { get set }
+    var headers: [String: String] { get set }
+    var body: Data? { get set }
+}
+
+extension Request {
+    public var request: URLRequest {
+        self as! URLRequest
+    }
+}
+
+extension URLRequest: Request {
+    public var body: Data? {
+        get { httpBody }
+        set { httpBody = newValue }
+    }
+
+    public var method: String {
+        get { httpMethod ?? "" }
+        set { httpMethod = newValue }
+    }
+
+    public var headers: [String: String] {
+        get { allHTTPHeaderFields ?? [:] }
+        set { allHTTPHeaderFields = newValue }
     }
 }
 
 protocol Interceptor {
-    func intercept(req: RequestBuilder, next: () async throws -> Response) async throws
+    func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response
 }
 
 struct AnonymousInterceptor: Interceptor {
-    let action: (RequestBuilder, () async throws -> Response) async throws -> Void
+    let action: (Request, (Request) async throws -> Response) async throws -> Response
 
-    func intercept(req: RequestBuilder, next: () async throws -> Response) async throws {
+    func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response {
         try await action(req, next)
     }
 }

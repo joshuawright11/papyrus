@@ -1,8 +1,6 @@
 import Foundation
 import Papyrus
 
-// TODO: Interceptor
-
 // TODO: Tests
 // TODO: Custom compiler errors
 // TODO: Final cleanup
