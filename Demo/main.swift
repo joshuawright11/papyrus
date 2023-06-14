@@ -15,6 +15,8 @@ import Papyrus
 // TODO: Inspect underlying response on error
 
 @API
+@JSON
+@KeyMapping(.useDefaultKeys)
 @Headers(["FooBar": "BarFoo"])
 @Mock
 protocol Todos {
@@ -29,7 +31,9 @@ protocol Todos {
 
 @API
 @Mock
+@JSON
 protocol Users {
+    @URLForm
     @GET("/users")
     func getUsers() async throws -> (first: String, second: Response)
 }

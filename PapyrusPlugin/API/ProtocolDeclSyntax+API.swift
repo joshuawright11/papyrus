@@ -46,8 +46,7 @@ extension ProtocolDeclSyntax {
     }
 
     func createApiFunctions() -> [String] {
-        let newRequestFunction = globalStatements.isEmpty ? "RequestBuilder" : "newRequest"
-        return functions.map { $0.apiFunction(newRequestFunction: newRequestFunction) }
+        functions.map { $0.apiFunction(protocolAttributes: papyrusAttributes) }
     }
 
     private var functions: [FunctionDeclSyntax] {

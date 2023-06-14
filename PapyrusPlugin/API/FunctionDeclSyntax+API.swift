@@ -49,11 +49,10 @@ extension FunctionDeclSyntax {
     }
 
     private var returnStatements: [String] {
-        let converterDeclaration = "let converter: ContentConverter = .json" // TODO: MAKE ACTUAL
         switch returnType {
         case .tuple(let array):
             let elements = array.map { element in
-                let decodeElement = element.type == "Response" ? "res" : "try converter.decode(\(element.type).self, from: res.body)"
+                let decodeElement = element.type == "Response" ? "res" : "try req.contentConverter.decode(\(element.type).self, from: res.body)"
                 return [
                     element.label,
                     decodeElement
@@ -62,7 +61,6 @@ extension FunctionDeclSyntax {
                 .joined(separator: ": ")
             }
             return [
-                converterDeclaration,
                 """
                 return (
                     \(elements.joined(separator: ",\n"))
@@ -71,8 +69,7 @@ extension FunctionDeclSyntax {
             ]
         case .type(let string):
             return [
-                converterDeclaration,
-                "return try converter.decode(\(string).self, from: res.body)"
+                "return try req.contentConverter.decode(\(string).self, from: res.body)"
             ]
         case nil:
             return []
@@ -110,7 +107,7 @@ extension FunctionDeclSyntax {
         """
     }
 
-    func apiFunction(newRequestFunction: String) -> String {
+    func apiFunction(protocolAttributes: [Attribute]) -> String {
         guard isAsync, isThrows else {
             return "Not async throws!"
         }
@@ -150,7 +147,8 @@ extension FunctionDeclSyntax {
         }
 
         // Request Initialization
-        let decl = parameters.isEmpty ? "let" : "var"
+        let decl = parameters.isEmpty && papyrusAttributes.count <= 1 ? "let" : "var"
+        let newRequestFunction = protocolAttributes.isEmpty ? "RequestBuilder" : "newRequest"
         let requestStatement = """
             \(decl) req = \(newRequestFunction)(method: "\(method)", path: \(path))
             """
