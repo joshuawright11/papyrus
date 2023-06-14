@@ -24,7 +24,7 @@ protocol Todos {
     func todos(@Default("bar") @Query("foo") query: String, @Header header1 headerOne: String, @Header header2: String) async throws -> [Todo]
 
     @GET("/todos/tags")
-    func tags(@Query query: String) async throws
+    func tags(@Query query: String) async throws -> [Todo]
 }
 
 @API
@@ -47,9 +47,11 @@ struct Todo: Codable {
 }
 
 let provider = Provider(baseURL: "http://127.0.0.1:3000")
-let todos: Todos = TodosAPI(provider: provider)
-let user: Users = UsersAPI(provider: provider)
-let accounts: Accounts = AccountsAPI(provider: provider)
+let todos = TodosAPI(provider: provider)
+let user = UsersAPI(provider: provider)
+let accounts = AccountsAPI(provider: provider)
 
-try await todos.tags(query: "Foo")
-print("ALL DONE!")
+let _todos = try await todos.todos(header1: "Header1", header2: "Header2")
+for todo in _todos {
+    print("\(todo.id): \(todo.name)")
+}
