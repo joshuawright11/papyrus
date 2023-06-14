@@ -165,6 +165,7 @@ extension FunctionDeclSyntax {
         let lines: [String?] = [
             "\(concreteSignature) {",
             requestStatement,
+            topLevelStatements.joined(separator: "\n"),
             buildStatements.joined(separator: "\n"),
             responseStatement,
             returnStatements.joined(separator: "\n"),
