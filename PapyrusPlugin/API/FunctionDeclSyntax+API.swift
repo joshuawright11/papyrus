@@ -52,7 +52,7 @@ extension FunctionDeclSyntax {
         switch returnType {
         case .tuple(let array):
             let elements = array.map { element in
-                let decodeElement = element.type == "Response" ? "res" : "try req.contentConverter.decode(\(element.type).self, from: res.body)"
+                let decodeElement = element.type == "Response" ? "res" : "try req.contentConverter.decode(\(element.type).self, from: res)"
                 return [
                     element.label,
                     decodeElement
@@ -67,11 +67,11 @@ extension FunctionDeclSyntax {
                 )
                 """
             ]
-        case .type(let string):
+        case .type(let string) where string != "Response":
             return [
-                "return try req.contentConverter.decode(\(string).self, from: res.body)"
+                "return try req.contentConverter.decode(\(string).self, from: res)"
             ]
-        case nil:
+        default:
             return []
         }
     }
@@ -157,8 +157,17 @@ extension FunctionDeclSyntax {
         let buildStatements = parameters.compactMap(\.apiBuilderStatement)
 
         // Get Response
-        let responseAssignment = returnType == nil ? "" : "let res = "
-        let responseStatement = "\(responseAssignment)try await provider.request(req)"
+        let responseAssignment = switch returnType {
+        case .tuple:
+            "let res = "
+        case .type(let string):
+            if string == "Response" { "return " } else { "let res = " }
+        case .none:
+            ""
+        }
+
+        let validation = returnType == nil ? ".validate()" : ""
+        let responseStatement = "\(responseAssignment)try await provider.request(req)\(validation)"
 
         let lines: [String?] = [
             "\(concreteSignature) {",

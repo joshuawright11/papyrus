@@ -17,7 +17,6 @@ enum Attribute {
     case query(key: String?)
     case header(key: String?)
     case path(key: String?)
-    case `default`(value: String)
 
     init?(syntax: AttributeSyntax) {
         var firstArgument: String?
@@ -45,9 +44,6 @@ enum Attribute {
             self = .header(key: firstArgument?.withoutQuotes)
         case "Path":
             self = .path(key: firstArgument?.withoutQuotes)
-        case "Default":
-            guard let firstArgument else { return nil }
-            self = .`default`(value: firstArgument)
         case "Headers":
             guard let firstArgument else { return nil }
             self = .headers(value: firstArgument)

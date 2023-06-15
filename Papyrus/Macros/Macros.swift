@@ -80,6 +80,3 @@ public macro Field(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin
 
 @attached(accessor, names: arbitrary)
 public macro Body(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
-
-@attached(accessor, names: arbitrary)
-public macro Default(_ value: Any? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")

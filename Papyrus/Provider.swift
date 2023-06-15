@@ -1,6 +1,11 @@
 import Alamofire
 import Foundation
 
+/*
+ 1. one tuple parameter allowed?
+ 2.
+ */
+
 /// Makes URL requests.
 public final class Provider: HTTPProvider {
     public let baseURL: String
@@ -28,17 +33,11 @@ public final class Provider: HTTPProvider {
         }
 
         let req = try request.createURLRequest(baseURL: baseURL)
-        print("\(req.method) \(req.url!.absoluteString)")
         return try await next(req)
     }
 
-    private func _request(_ request: Request) async throws -> Response {
-        let response = await session.request(request.request).validate().serializingData().response
-        if let error = response.error {
-            throw error
-        }
-
-        return response
+    private func _request(_ request: Request) async -> Response {
+        await session.request(request.request).validate().serializingData().response
     }
 }
 
@@ -64,5 +63,31 @@ extension RequestBuilder {
         request.allHTTPHeaderFields = headers
         request.httpBody = body
         return request
+    }
+}
+
+extension Decodable {
+    public init(response: Response, converter: ContentConverter) throws {
+        try response.validate()
+
+        guard let data = response.body else {
+            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
+        }
+
+        self = try converter.decode(Self.self, from: data)
+    }
+}
+
+extension ContentConverter {
+    public func decode<D: Decodable>(_ type: D.Type = D.self, from response: Response) throws -> D {
+        if let error = response.error {
+            throw error
+        }
+
+        guard let data = response.body else {
+            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
+        }
+
+        return try decode(type, from: data)
     }
 }

@@ -31,19 +31,8 @@ extension FunctionParameterSyntax {
     }
 
     var signatureString: String {
-        let defaultArgument = defaultArgumentString.map { " = \($0)" } ?? ""
         let secondName = trimmed.secondName.map { "\($0)" } ?? ""
-        return "\(trimmed.firstName)\(secondName): \(trimmed.type)\(defaultArgument)"
-    }
-
-    var defaultArgumentString: String? {
-        for attribute in papyrusAttributes {
-            if case .default(let value) = attribute {
-                return value
-            }
-        }
-
-        return nil
+        return "\(trimmed.firstName)\(secondName): \(trimmed.type)"
     }
 
     var papyrusAttributes: [Attribute] {

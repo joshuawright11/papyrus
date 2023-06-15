@@ -9,10 +9,7 @@ import Papyrus
 // TODO: Launch Twitter, HN, Swift Forums, r/swift, r/iOSProgramming Friday morning 9am
 
 // TODO: Multipart
-// TODO: Provider Requests on Server
-// TODO: Custom RequestEncodable Protocol (for functions with lots of arguments)
-// TODO: async-http-client provider (separate library)
-// TODO: Inspect underlying response on error
+// TODO: Server Library: async-http-client requesting, provide endpoints
 
 @API
 @JSON
@@ -21,7 +18,7 @@ import Papyrus
 @Mock
 protocol Todos {
     @GET("/todos")
-    func todos(@Default("bar") @Query("foo") query: String, @Header header1 headerOne: String, @Header header2: String) async throws -> [Todo]
+    func todos(@Query("foo") query: String, @Header header1 headerOne: String, @Header header2: String) async throws -> [Todo]
 
     @POST("/todos/tags")
     @KeyMapping(.snakeCase)
@@ -56,10 +53,8 @@ let user: Users = UsersAPI(provider: provider)
 let accounts: Accounts = AccountsAPI(provider: provider)
 
 do {
-    let _todos = try await todos.tags(queryValue: "Header1", fieldOne: 1, fieldTwo: true)
-    for todo in _todos {
-        print("\(todo.id): \(todo.name)")
-    }
+    let todos = try await todos.tags(queryValue: "Hello", fieldOne: 1, fieldTwo: true)
+    print("NO ERROR \(todos.count)!")
 }
 catch {
     print("ERROR: \(error)")

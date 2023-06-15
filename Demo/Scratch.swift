@@ -6,7 +6,7 @@
  2. Consume API.
     • YES; via a new {protocolName}API struct. A generic `Provider<T>`, but a new type is clean, straightforward, and easy to mock.
  4. Indicate where parameters go in the request (i.e. body, query, headers, path).
-    • YES; use macros (property wrappers offer type safety but aren't available in protocols. Also note default args aren't available in protcols, have to add @Default(...) macro)
+    • YES; use macros (property wrappers offer type safety but aren't available in protocols.
  5. Allow for generic interceptors.
     • YES; at provider (function), protocol (macro), or function level (macro)
  6. Allow for custom parameter & output types (Request, Response).
