@@ -1,7 +1,5 @@
 # Papyrus
 
-## INTRODUCTION
-
 Papyrus turns your HTTP API into a Swift `protocol`.
 
 ```swift
@@ -37,9 +35,11 @@ protocol Users {
 }
 ```
 
-## Constructing a Request
+## Usage
 
-### Method & Path
+### Constructing a Request
+
+#### Method & Path
 
 Set the method and path of your request as an attribute on the function. Available annotations are `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS`, `HEAD`, `TRACE`, and `CONNECT`.
 
@@ -53,7 +53,7 @@ You may set queries directly in the path URL.
 @GET("/transactions?merchant=Apple")
 ```
 
-### URL
+#### URL
 
 The `@Path` attribute replaces a parameter in the path. Parameters are denoted with a leading `:`.
 
@@ -69,7 +69,7 @@ You may set url queries with the `@Query` parameter.
 func getTransactions(@Query merchant: String) async throws -> [Transaction]
 ```
 
-### Body
+#### Body
 
 The request body can be set using `@Body` on a `Codable` parameter. There can only be one `@Body` in the parameters of a function.
 
@@ -120,7 +120,7 @@ protocol Todos {
 }
 ```
 
-### Headers
+#### Headers
 
 You can set static headers on a request using `@Headers` at the function or protocol scope.
 
@@ -158,9 +158,9 @@ A variable header can be set with the `@Header` attribute.
 func getRepository(@Header customHeader: String) async throws
 ```
 
-## Handling the Response
+### Handling the Response
 
-## Misc
+### Misc
 
 By default, `@Path`, `@Header`, `@Field`, and `@Header` will be set using the label of their function parameter. If you'd like a custom key, you can add a parameter to the attribute.
 
@@ -169,6 +169,6 @@ By default, `@Path`, `@Header`, `@Field`, and `@Header` will be set using the la
 func getRepository(@Path("id") _ repositoryId: Int)
 ```
 
-## Provider
+### Provider
 
-## Testing
+### Testing
