@@ -1,20 +1,9 @@
 import Foundation
 import Papyrus
 
-// TODO: Tests
-// TODO: Custom compiler errors
-// TODO: Final cleanup
-// TODO: README.md
-
-// TODO: Launch Twitter, HN, Swift Forums, r/swift, r/iOSProgramming Friday morning 9am
-
-// TODO: Multipart
-// TODO: Server Library: async-http-client requesting, provide endpoints
-
 @API
 @JSON
 @KeyMapping(.useDefaultKeys)
-@Headers(["FooBar": "BarFoo"])
 @Mock
 protocol Todos {
     @GET("/todos")
@@ -37,6 +26,7 @@ protocol Users {
 
 @API
 @Mock
+@Authorization(.basic(username: "josh@withapollo.com", password: "P@ssword"))
 protocol Accounts {
     @GET("/accounts")
     func getAccounts() async throws

@@ -59,6 +59,10 @@ public struct RequestBuilder {
         self.headers[key] = value
     }
 
+    public mutating func addAuthorization(_ header: AuthorizationHeader) {
+        self.headers["Authorization"] = header.value
+    }
+
     public mutating func addParameter(_ key: String, value: String) {
         self.parameters[key] = value
     }

@@ -7,6 +7,7 @@ enum Attribute {
     case converter(value: String)
     case keyMapping(value: String)
     case headers(value: String)
+    case authorization(value: String)
 
     /// Function attributes
     case http(method: String, path: String)
@@ -57,6 +58,9 @@ enum Attribute {
         case "KeyMapping":
             guard let firstArgument else { return nil }
             self = .keyMapping(value: firstArgument)
+        case "Authorization":
+            guard let firstArgument else { return nil }
+            self = .authorization(value: firstArgument)
         default:
             return nil
         }
@@ -101,7 +105,11 @@ enum Attribute {
             return """
             req.preferredKeyMapping = \(value)
             """
-        default:
+        case .authorization(value: let value):
+            return """
+            req.addAuthorization(\(value))
+            """
+        case .http:
             return nil
         }
     }

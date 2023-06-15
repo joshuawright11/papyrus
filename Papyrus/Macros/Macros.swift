@@ -32,6 +32,9 @@ public macro Converter<C: ContentConverter>(_ converter: C) = #externalMacro(mod
 @attached(peer, names: arbitrary)
 public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
+@attached(peer, names: arbitrary)
+public macro Authorization(_ value: AuthorizationHeader) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
 // MARK: Methods
 
 @attached(peer, names: arbitrary)
