@@ -63,8 +63,8 @@ public struct RequestBuilder {
         self.headers["Authorization"] = header.value
     }
 
-    public mutating func addParameter(_ key: String, value: String) {
-        self.parameters[key] = value
+    public mutating func addParameter<L: LosslessStringConvertible>(_ key: String, value: L) {
+        self.parameters[key] = value.description
     }
 
     public mutating func setBody<E: Encodable>(_ value: E) {

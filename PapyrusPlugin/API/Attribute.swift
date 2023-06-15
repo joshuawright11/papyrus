@@ -13,7 +13,7 @@ enum Attribute {
     case http(method: String, path: String)
 
     /// Parameter attributes
-    case body(key: String?)
+    case body
     case field(key: String?)
     case query(key: String?)
     case header(key: String?)
@@ -32,11 +32,11 @@ enum Attribute {
         case "GET", "DELETE", "PATCH", "POST", "PUT", "OPTIONS", "HEAD", "TRACE", "CONNECT":
             guard let firstArgument else { return nil }
             self = .http(method: name, path: firstArgument)
-        case "Http":
+        case "HTTP":
             guard let firstArgument, let secondArgument else { return nil }
             self = .http(method: secondArgument.withoutQuotes, path: firstArgument)
         case "Body":
-            self = .body(key: firstArgument?.withoutQuotes)
+            self = .body
         case "Field":
             self = .field(key: firstArgument?.withoutQuotes)
         case "Query":
@@ -68,10 +68,10 @@ enum Attribute {
 
     func requestStatement(input: String?) -> String? {
         switch self {
-        case let .body(key):
+        case .body:
             guard let input else { return "Input Required!" }
             return """
-            req.addBody("\(key ?? input)", value: \(input))
+            req.setBody(\(input))
             """
         case let .query(key):
             guard let input else { return "Input Required!" }

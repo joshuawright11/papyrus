@@ -1,297 +1,174 @@
 # Papyrus
 
-A type-safe HTTP interface for Swift.
+## INTRODUCTION
 
-It leverages `Codable` and Property Wrappers for creating network APIs that are easy to read, easy to consume and even easy to provide. When shared between a Swift client and server, it enforces type safety when requesting and handling HTTP requests.
-
-## Installation
-
-You may add Papyrus via the Swift Package Manager.
+Papyrus turns your HTTP API into a Swift `protocol`.
 
 ```swift
-.package(url: "https://github.com/alchemy-swift/alchemy", .upToNextMinor(from: "0.1.0"))
+@API
+protocol GitHub {
+@GET("/users/:username/repos")
+func getRepositories(@Path username: String) async throws -> [Repository]
+}
+
+struct Repository: Codable {}
 ```
 
-### Shared Library
-
-If you're sharing code between clients and servers with a Swift library, you can add `Papyrus` as a dependency to that library via SPM.
+You may then use the generated `GitHubAPI` struct to access the API.
 
 ```swift
-// in your Package.swift
+let provider = Provider(baseURL: "https://api.github.com/")
+let github: GitHub = GitHubAPI(provider: provider)
+let repos = try await github.getRepositories(username: "alchemy-swift")
+```
 
-dependencies: [
-    .package(url: "https://github.com/alchemy-swift/alchemy", .upToNextMinor(from: "0.1.0"))
+Annotations on the protocol, functions, and function parameters can be construct your requests.
+
+```swift
+@API
+@Authorization(.bearer("<my-auth-token>"))
+protocol Users {
+    @GET("/user")
+    func getUser() -> User
+
+    @URLForm
+    @POST("/user")
+    func createUser(@Field email: String, @Field password: String) -> User
+}
+```
+
+## Constructing a Request
+
+### Method & Path
+
+Set the method and path of your request as an attribute on the function. Available annotations are `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS`, `HEAD`, `TRACE`, and `CONNECT`.
+
+```swift
+@DELETE("/transfers/:id")
+```
+
+You may set queries directly in the path URL.
+
+```swift
+@GET("/transactions?merchant=Apple")
+```
+
+### URL
+
+The `@Path` attribute replaces a parameter in the path. Parameters are denoted with a leading `:`.
+
+```swift
+@GET("/repositories/:id")
+func getRepository(@Path id: Int) async throws -> [Repository]
+```
+
+You may set url queries with the `@Query` parameter.
+
+```swift
+@GET("/transactions")
+func getTransactions(@Query merchant: String) async throws -> [Transaction]
+```
+
+### Body
+
+The request body can be set using `@Body` on a `Codable` parameter. There can only be one `@Body` in the parameters of a function.
+
+```swift
+struct Todo: Codable {
+    let name: String
+    let isDone: Bool
+    let tags: [String]
+}
+
+@POST("/todo")
+func createTodo(@Body todo: Todo) async throws
+```
+
+You can set individual fields in the request body using the `@Field` parameter. These are mutually exclusive with `@Body`.
+
+```swift
+@POST("/todo")
+func createTodo(@Field name: String, @Field isDone: Bool, @Field tags: [String]) async throws
+```
+
+For convenience, a parameter with no name is treated as a `@Field`.
+
+```swift
+@POST("/todo")
+func createTodo(name: String, isDone: Bool, tags: [String]) async throws
+```
+
+By default, all `@Body` and `@Field` parameters are encoded as `application/json`. You may encode them as `application/x-www-form-urlencoded` using `@URLForm` at the function level.
+
+```swift
+@URLForm
+@POST("/todo")
+func createTodo(name: String, isDone: Bool, tags: [String]) async throws
+```
+
+In addition to functions, you can attribute the entire protocol with `@URLForm` to encode all requests as `@URLForm`.
+
+```swift
+@API
+@URLForm
+protocol Todos {
+    @POST("/todo")
+    func createTodo(name: String, isDone: Bool, tags: [String]) async throws
+
+    @PATCH("/todo/:id")
+    func updateTodo(@Path id: Int, name: String, isDone: Bool, tags: [String]) async throws
+}
+```
+
+### Headers
+
+You can set static headers on a request using `@Headers` at the function or protocol scope.
+
+```swift
+@Headers(["Cache-Control": "max-age=86400"])
+@GET("/user")
+func getUser() async throws -> User
+```
+
+```swift
+@API
+@Headers(["X-Client-Version": "1.2.3"])
+protocol Users {
+    @GET("/user")
+    func getUser() async throws -> User
+
+    @PATCH("/user/:id")
+    func updateUser(id: Int, name: String) async throws
+}
+```
+
+For convenience, there is also an `@Authorization` attribute for setting the `"Authorization"` header.
+
+```swift
+@Authorization(.basic(username: "joshuawright11", password: "P@ssw0rd"))
+protocol Users {
     ...
-],
-targets: [
-    .target(name: "MySharedLibrary", dependencies: [
-        .product(name: "Papyrus", package: "alchemy"),
-    ]),
-]
+}
 ```
 
-### Client
-
-If you want to define or request `Papyrus` APIs on a Swift client (iOS, macOS, etc) you'll add [`PapyrusAlamofire`](https://github.com/alchemy-swift/papyrus-alamofire) as a dependency via SPM. This is a light wrapper around `Papyrus` with support for requesting endpoints with [Alamofire](https://github.com/Alamofire/Alamofire).
-
-Since Xcode manages the `Package.swift` for iOS and macOS targets, you can add `PapyrusAlamofire` as a dependency through `File` -> `Swift Packages` -> `Add Package Dependency` -> paste `https://github.com/alchemy-swift/papyrus-alamofire` -> check `PapyrusAlamofire` to import.
-
-## Usage
-
-Papyrus is used to define, request, and provide HTTP endpoints.
-
-### Defining APIs
-
-#### Basics
-
-A single endpoint is defined with the `Endpoint<Request, Response>` type. 
-
-`Endpoint.Request` represents the data needed to make this request, and `Endpoint.Response` represents the expected return data from this request. Note that `Request` must conform to some `RequestConvertible` and `Response` must conform to `Codable`.
-
-Define an `Endpoint` on an enclosing `EndpointGroup` subclass, and wrap it with a property wrapper representing it's HTTP method and path, relative to a base URL.
+A variable header can be set with the `@Header` attribute.
 
 ```swift
-class TodosAPI: EndpointGroup {
-    @GET("/todos")
-    var getAll: Endpoint<GetTodosRequest, [TodoDTO]>
-
-    struct GetTodosRequest: RequestComponents {
-        @URLQuery
-        var limit: Int
-
-        @URLQuery
-        var incompleteOnly: Bool
-    }
-
-    struct TodoDTO: Codable {
-        var name: String
-        var isComplete: Bool
-    }
-}
+@GET("/accounts")
+func getRepository(@Header customHeader: String) async throws
 ```
 
-Notice a few things about the `getAll` endpoint. 
+## Handling the Response
 
-1. The `@GET("/todos")` indicates that the endpoint is at `POST {some_base_url}/todos`. 
-2. The endpoint expects a request object of `GetUsersRequest` which conforms to `RequestConvertible` and contains two properties, wrapped by `@URLQuery`. The `URLQuery` wrappers indicate data that's expected in the query url of the request. This lets requesters of this endpoint know that the endpoint needs two query values, `limit` and `incompleteOnly`. It also lets the providers of this endpoint know that incoming requests to `GET /todo` will contain two items in their query URLs; `limit` and `incompleteOnly`.
-3. The endpoint has a response type of `[TodoDTO]`, defined below it. This lets clients know what response type to expect and lets providers know what response type to return.
+## Misc
 
-This gives anyone reading or using the API all the information they would need to interact with it.
-
-Requesting this endpoint might look like
-```
-GET {some_base_url}/todos?limit=1&incompleteOnly=0 
-```
-While a response would look like
-```json
-[
-    {
-        "name": "Do laundry",
-        "isComplete": false
-    },
-    {
-        "name": "Learn Alchemy",
-        "isComplete": true
-    },
-    {
-        "name": "Be awesome",
-        "isComplete": true
-    },
-]
-```
-
-**Note**: The DTO suffix of `TodoDTO` stands for `Data Transfer Object`, indicating that this type represents some data moving across the wire. It is not necesssary, but helps differentiate from local `Todo` model types that may exist on either client or server.
-
-#### Supported Methods
-
-Out of the box, Papyrus provides `@GET`, `@POST`, `@PUT`, `@PATCH`, `@DELETE` as well as a `@CUSTOM("OPTIONS", "/some/path")` that can take any method string for defining your `Endpoint`s.
-
-#### Empty Request or Reponse
-
-If you're endpoint doesn't have any request or response data that needs to be parsed, you may define the `Request` or `Response` type to be `Empty`.
+By default, `@Path`, `@Header`, `@Field`, and `@Header` will be set using the label of their function parameter. If you'd like a custom key, you can add a parameter to the attribute.
 
 ```swift
-class SomeAPI: EndpointGroup {
-    @GET("/foo")
-    var noRequest: Endpoint<Empty, SomeResponse>
-
-    @POST("/bar")
-    var noResponse: Endpoint<SomeRequest, Empty>
-}
+@GET("/repositories/:id")
+func getRepository(@Path("id") _ repositoryId: Int)
 ```
 
-#### Custom Request Data
+## Provider
 
-Like `@URLQuery`, there are other property wrappers to define where on an HTTP request data should be. 
-
-Each wrapper denotes a value in the request at the proper location with a key of the name of the property. For example `@Header var someHeader: String` indicates requests to this endpoint should have a header named `someHeader`.
-
-**Note**: `@Body` ignore's its property name and instead encodes it's value into the entire request body.
-
-##### URLQuery
-
-`@URLQuery` can wrap a `Bool`, `String`, `String?`, `Int`, `Int?` or `[String]`. 
-
-Optional properties with nil values will be omitted.
-
-```swift
-class SomeAPI: EndpointGroup {
-    // There will be a query1, query3 and optional query2 in the request URL.
-    @GET("/foo")
-    var queryRequest: Endpoint<QueryRequest, Empty>
-}
-
-struct QueryRequest: RequestComponents {
-    @URLQuery var query1: String
-    @URLQuery var query2: String?
-    @URLQuery var query3: Int
-}
-```
-
-##### Header
-
-`@Header` can wrap a `String`. It indicates that there should be a header of name `{propertyName}` on the request.
-
-```swift
-class SomeAPI: EndpointGroup {
-    @POST("/foo")
-    var foo: Endpoint<HeaderRequest, Empty>
-}
-
-/// Defines a header "someHeader" on the request.
-struct HeaderRequest: RequestComponents {
-    @Header var someHeader: String
-}
-```
-
-##### Path Parameters
-
-`@Path` can wrap a `String`. It indicates a dynamic path parameter at `:{propertyName}` in the request path.
-
-```swift
-class SomeAPI: EndpointGroup {
-    @POST("/some/:someID/value")
-    var foo: Endpoint<PathRequest, Empty>
-}
-
-struct PathRequest: RequestComponents {
-    @Path var someID: String
-}
-```
-
-##### Body
-
-`@Body` can wrap any `Codable` type which will be encoded to the request. By default, the body is encoded as JSON, but you may override `RequestConvertible.contentEncoding` to use another encoding type.
-
-```swift
-class SomeAPI: EndpointGroup {
-    @POST("/json")
-    var json: Endpoint<JSONBody, Empty>
-
-    @GET("/url")
-    var json: Endpoint<URLEncodedBody, Empty>
-}
-
-/// Will encode `BodyData` in the request body.
-struct JSONBody: RequestComponents {
-    @Body var body: BodyData
-}
-
-/// Will encode `BodyData` in the request URL.
-struct URLEncodedBody: RequestComponents {
-    static let contentEncoding = .url
-
-    @Body var body: BodyData
-}
-
-struct BodyData: Codable {
-    var foo: String
-    var baz: Int
-}
-```
-
-##### Combinations
-
-You can combine any number of these property wrappers, except for `@Body`. There can only be a single `@Body` per request.
-
-```swift
-struct MyCustomRequest: RequestComponents {
-    struct SomeCodable: Codable {
-        ...
-    }
-
-    @Body var bodyData: SomeCodable
-
-    @Header var someHeader: String
-
-    @Path var userID: String
-
-    @URLQuery var query1: Int
-    @URLQuery var query2: String
-    @URLQuery var query3: String?
-    @URLQuery var query3: [String]
-}
-```
-
-### Requesting APIs
-
-Papyrus can be used to request endpoints on client or server targets.
-
-To request an endpoint, create the `EndpointGroup` with a `baseURL` and call `request` on a specific endpoint, providing the needed `Request` type.
-
-Requesting the the `TodosAPI.getAll` endpoint from above looks similar on both client and server.
-
-```swift
-// `import PapyrusAlamofire` on client
-import Alchemy
-
-let todosAPI = TodosAPI(baseURL: "http://localhost:8888")
-todosAPI.getAll
-    .request(.init(limit: 50, incompleteOnly: true)) { response, todoResult in
-        switch todoResult {
-        case .success(let todos):
-            for todo in todos {
-                print("Got todo: \(todo.name)")
-            }
-        case .failure(let error):
-            print("Got error: \(error).")
-        }
-    }
-```
-
-This would make a request that looks like:
-```
-GET http://localhost:8888/todos?limit=50&incompleteOnly=false
-```
-
-While the APIs are built to look similar, the client and server implementations sit on top of different HTTP libraries and are customizable in separate ways.
-
-#### Client, via Alamofire
-
-Requesting an `Endpoint` client side is built on top of [Alamofire](https://github.com/Alamofire/Alamofire). By default, requests are run on `Session.default`, but you may provide a custom `Session` for any customization, interceptors, etc.
-
-#### Server, via AsyncHTTPClient
-
-Request an `Endpoint` in an `Alchemy` server is built on top of [AsyncHTTPClient](https://github.com/swift-server/async-http-client). By default, requests are run on `Services.client`, but you may provide a custom `HTTPClient`.
-
-### Providing APIs
-
-Alchemy contains convenient extensions for registering your `Endpoint`s on a `Router`. Use `.on` to register an `Endpoint` to a router.
-
-```swift
-let todos = TodosAPI()
-router.on(todos.getAll) { (request: Request, data: GetTodosRequest) in
-    // when a request to `GET /todos` is handled, the `GetTodosRequest` properties will be loaded from the `Alchemy.Request`.
-}
-```
-
-This will automatically parse the relevant `GetTodosRequest` data from the right places (URL query, headers, body, path parameters) on the incoming request. In this case, "limit" & "incompleteOnly" from the request query `String`. 
-
-If expected data is missing, a `400` is thrown describing the missing expected fields:
-
-```json
-400 Bad Request
-{
-    "message": "expected query value `limit`"
-}
-```
+## Testing

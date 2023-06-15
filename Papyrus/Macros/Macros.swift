@@ -38,7 +38,7 @@ public macro Authorization(_ value: AuthorizationHeader) = #externalMacro(module
 // MARK: Methods
 
 @attached(peer, names: arbitrary)
-public macro Http(_ path: String, method: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro HTTP(_ path: String, method: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
 public macro DELETE(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
@@ -82,4 +82,4 @@ public macro Path(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin"
 public macro Field(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(accessor, names: arbitrary)
-public macro Body(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Body() = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
