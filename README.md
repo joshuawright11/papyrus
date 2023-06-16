@@ -18,7 +18,7 @@ protocol GitHub {
 struct Repository: Codable { ... }
 ```
 
-You may then use the generated `GitHubAPI` struct to access the API.
+The API is accessible through a generated struct.
 
 ```swift
 let provider = Provider(baseURL: "https://api.github.com/")
@@ -26,7 +26,7 @@ let github: GitHub = GitHubAPI(provider: provider)
 let repos = try await github.getRepositories(username: "alchemy-swift")
 ```
 
-Annotations on the protocol, functions, and function parameters can be construct your requests.
+Annotations on the protocol, functions, and parameters help construct the requests.
 
 ```swift
 @API
@@ -41,13 +41,26 @@ protocol Users {
 }
 ```
 
-## Requirements
+## Table of Contents
+
+1. [Getting Started](#getting-started)
+2. [Building a Request](#constructing-a-request)
+3. [Handling the Response](#handling-the-response)
+4. [Custom Keys](#custom-keys)
+5. [Provider Configuration](#provider-configuration)
+6. [Testing](#testing)
+7. [Acknowledgements](#acknowledgements)
+8. [License](#license)
+
+## Getting Started
+
+### Requirements
 
 Supports iOS 13+ / macOS 10.15+.
 
 Keep in mind that Papyrus uses Swift macros which require Swift 5.9 / Xcode 14 to compile.
 
-## Installation
+### Installation
 
 You can install Papyrus using the Swift Package Manager.
 
@@ -57,17 +70,9 @@ dependencies: [
 ]
 ```
 
-## Usage
+## Constructing a Request
 
-1. [Building a Request](#constructing-a-request)
-2. [Handling the Response](#handling-the-response)
-3. [Custom Keys](#custom-keys)
-4. [Provider Configuration](#provider-configuration)
-5. [Testing](#testing)
-
-### Constructing a Request
-
-#### Method & Path
+### Method & Path
 
 Set the method and path of your request as an attribute on the function. Available annotations are `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS`, `HEAD`, `TRACE`, and `CONNECT`.
 
@@ -81,7 +86,7 @@ You may set queries directly in the path URL.
 @GET("/transactions?merchant=Apple")
 ```
 
-#### URL
+### URL
 
 The `@Path` attribute replaces a parameter in the path. Parameters are denoted with a leading `:`.
 
@@ -97,7 +102,7 @@ You may set url queries with the `@Query` parameter.
 func getTransactions(@Query merchant: String) async throws -> [Transaction]
 ```
 
-#### Body
+### Body
 
 The request body can be set using `@Body` on a `Codable` parameter. There can only be one `@Body` in the parameters of a function.
 
@@ -126,7 +131,7 @@ For convenience, a parameter with no name is treated as a `@Field`.
 func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-#### Converters
+### Converters
 
 By default, all `@Body` and `@Field` parameters are encoded as `application/json`. You may encode them as `application/x-www-form-urlencoded` using `@URLForm` at the function level.
 
@@ -152,7 +157,7 @@ protocol Todos {
 
 If you'd like to use custom encoding or decoding logic, you may pass an argument to `@JSON` or `@URLForm` the converter attribute.
 
-#### Headers
+### Headers
 
 You can set static headers on a request using `@Headers` at the function or protocol scope.
 
@@ -190,7 +195,7 @@ A variable header can be set with the `@Header` attribute.
 func getRepository(@Header customHeader: String) async throws
 ```
 
-### Handling the Response
+## Handling the Response
 
 Your function return types must conform to `Codable`. They will be decoded from the HTTP response body using the relevant converter. You may also leave the return type empty. In both of these cases, any error that occurs during the request flight will be thrown.
 
@@ -221,7 +226,7 @@ let (user, res) = try await users.getUser()
 print("The response status code was: \(res.statusCode!)")
 ```
 
-### Custom Keys
+## Custom Keys
 
 If you use two labels for a function parameter, the second one will be inferred as the relevant key.
 
@@ -249,7 +254,7 @@ protocol Todos {
 }
 ```
 
-### Provider Configuration
+## Provider Configuration
 
 Papyrus makes request with Alamofire. You can pass a custom Alamofire session to the provider.
 
@@ -292,7 +297,7 @@ let modifier: Interceptor = ...
 let provider = Provider(baseURL: "http://localhost:3000", modifiers: [modifier], interceptors: [interceptor])
 ```
 
-### Testing
+## Testing
 
 APIs defined with Papyrus are simple to mock for tests. Just conform your mock to the protocol. Note that you don't need to include any attributes when conforming to the protocol.
 
@@ -358,7 +363,7 @@ func testCounting() {
 }
 ```
 
-## Credits
+## Acknowledgements
 
 Papyrus was heavily inspired by [Retrofit](https://github.com/square/retrofit).
 
