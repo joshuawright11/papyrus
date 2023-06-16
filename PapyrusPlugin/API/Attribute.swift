@@ -78,8 +78,9 @@ enum Attribute {
             """
         case let .query(key):
             guard let input else { return "Input Required!" }
+            let mapParameter = key == nil ? "" : ", mapKey: false"
             return """
-            req.addQuery("\(key ?? input)", value: \(input))
+            req.addQuery("\(key ?? input)", value: \(input)\(mapParameter))
             """
         case let .header(key):
             guard let input else { return "Input Required!" }
@@ -95,8 +96,9 @@ enum Attribute {
             """
         case let .field(key):
             guard let input else { return "Input Required!" }
+            let mapParameter = key == nil ? "" : ", mapKey: false"
             return """
-            req.addField("\(key ?? input)", value: \(input))
+            req.addField("\(key ?? input)", value: \(input)\(mapParameter))
             """
         case .json(let encoder, let decoder):
             return """

@@ -12,9 +12,9 @@ protocol Todos {
 
     @POST("/todos/:idCount/tags?foo=bar")
     @KeyMapping(.snakeCase)
-    @URLForm
     @Headers(["boo": "far"])
-    func tags(@Path idCount: String, @Header fieldOne: Int, fieldTwo: Bool) async throws -> [Todo]
+    @URLForm
+    func tags(@Path idCount: String, @Field fieldOne: Int, @Query fieldTwo: Bool) async throws -> [Todo]
 }
 
 @API

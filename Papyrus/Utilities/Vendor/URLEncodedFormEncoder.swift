@@ -140,36 +140,36 @@ private class _URLEncodedFormEncoder: Encoder {
             self.container = container
         }
 
-        mutating func encode(_ value: URLEncodedFormNode, key: String) {
+        mutating func encode(_ value: URLEncodedFormNode, key: Key) {
             self.container.addChild(key: key, value: value)
         }
 
-        mutating func encode(_ value: LosslessStringConvertible, key: String) {
+        mutating func encode(_ value: LosslessStringConvertible, key: Key) {
             self.encode(.leaf(.init(value)), key: key)
         }
 
-        mutating func encodeNil(forKey key: Key) throws { self.encode("", key: key.stringValue) }
-        mutating func encode(_ value: Bool, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: String, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Double, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Float, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Int, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Int8, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Int16, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Int32, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: Int64, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: UInt, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: UInt8, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: UInt16, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: UInt32, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
-        mutating func encode(_ value: UInt64, forKey key: Key) throws { self.encode(value, key: key.stringValue) }
+        mutating func encodeNil(forKey key: Key) throws { self.encode("", key: key) }
+        mutating func encode(_ value: Bool, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: String, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Double, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Float, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Int, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Int8, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Int16, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Int32, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: Int64, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: UInt, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: UInt8, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: UInt16, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: UInt32, forKey key: Key) throws { self.encode(value, key: key) }
+        mutating func encode(_ value: UInt64, forKey key: Key) throws { self.encode(value, key: key) }
 
         mutating func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
             self.encoder.codingPath.append(key)
             defer { self.encoder.codingPath.removeLast() }
 
             let childContainer = try encoder.box(value)
-            self.container.addChild(key: key.stringValue, value: childContainer)
+            self.container.addChild(key: key, value: childContainer)
         }
 
         mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -177,7 +177,7 @@ private class _URLEncodedFormEncoder: Encoder {
             defer { self.encoder.codingPath.removeLast() }
 
             let keyedContainer = URLEncodedFormNode.Map(keyMapping: self.encoder.options.keyMapping)
-            self.container.addChild(key: key.stringValue, value: .map(keyedContainer))
+            self.container.addChild(key: key, value: .map(keyedContainer))
 
             let kec = KEC<NestedKey>(referencing: self.encoder, container: keyedContainer)
             return KeyedEncodingContainer(kec)
@@ -188,7 +188,7 @@ private class _URLEncodedFormEncoder: Encoder {
             defer { self.encoder.codingPath.removeLast() }
 
             let unkeyedContainer = URLEncodedFormNode.Array()
-            self.container.addChild(key: key.stringValue, value: .array(unkeyedContainer))
+            self.container.addChild(key: key, value: .array(unkeyedContainer))
 
             return UKEC(referencing: self.encoder, container: unkeyedContainer)
         }
@@ -395,3 +395,6 @@ private struct URLEncodedFormEncoderStorage {
         return self.containers.removeLast()
     }
 }
+
+private protocol StringKeyedDict {}
+extension Dictionary: StringKeyedDict where Key == String {}

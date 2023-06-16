@@ -1,8 +1,45 @@
 import Foundation
 
 public struct RequestBuilder {
-    public enum BodyContent {
-        case fields([String: AnyEncodable])
+    public enum FieldKey: Hashable, ExpressibleByStringLiteral {
+        /// The key was explicitly defined by the user, i.e.
+        /// `@Path("explicit-key") key: String`. It won't
+        /// be affected by custom KeyMapping.
+        case explicit(String)
+        /// The key was implied defined by the parameter label, i.e.
+        /// `@Path implicitKey: String`. It will be affected by
+        /// custom `KeyMapping`.
+        case implicit(String)
+
+        public init(stringLiteral value: String) {
+            self = .explicit(value)
+        }
+
+        public func hash(into hasher: inout Hasher) {
+            switch self {
+            case .explicit(let value):
+                hasher.combine(value)
+            case .implicit(let value):
+                hasher.combine(value)
+            }
+        }
+
+        fileprivate func mapped(_ keyMapping: KeyMapping?) -> String {
+            switch self {
+            case .explicit(let value):
+                return value
+            case .implicit(let value):
+                guard let keyMapping else {
+                    return value
+                }
+
+                return keyMapping.mapTo(input: value)
+            }
+        }
+    }
+
+    public enum Content {
+        case fields([FieldKey: AnyEncodable])
         case value(AnyEncodable)
     }
 
@@ -16,8 +53,8 @@ public struct RequestBuilder {
     public var path: String
     public var parameters: [String: String]
     public var headers: [String: String]
-    public var query: [String: AnyEncodable]
-    public var body: BodyContent?
+    public var queries: [FieldKey: AnyEncodable]
+    public var body: Content?
 
     // MARK: Configuration
 
@@ -47,7 +84,7 @@ public struct RequestBuilder {
         self.path = path
         self.parameters = [:]
         self.headers = [:]
-        self.query = [:]
+        self.queries = [:]
         self.body = nil
     }
     
@@ -80,12 +117,13 @@ public struct RequestBuilder {
         body = .value(AnyEncodable(value))
     }
     
-    public mutating func addQuery<E: Encodable>(_ key: String, value: E) {
-        query[key] = AnyEncodable(value)
+    public mutating func addQuery<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
+        let key: FieldKey = mapKey ? .implicit(key) : .explicit(key)
+        queries[key] = AnyEncodable(value)
     }
     
-    public mutating func addField<E: Encodable>(_ key: String, value: E) {
-        var fields: [String: AnyEncodable] = [:]
+    public mutating func addField<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
+        var fields: [FieldKey: AnyEncodable] = [:]
         if let body = body {
             guard case .fields(let existingFields) = body else {
                 preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a @Body, \(body). @Body and @Field are mutually exclusive.")
@@ -93,7 +131,8 @@ public struct RequestBuilder {
             
             fields = existingFields
         }
-        
+
+        let key: FieldKey = mapKey ? .implicit(key) : .explicit(key)
         fields[key] = AnyEncodable(value)
         body = .fields(fields)
     }
@@ -129,19 +168,17 @@ public struct RequestBuilder {
         case .value(let value):
             return try requestEncoder.encode(value)
         case .fields(let fields):
-            if requestEncoder is JSONEncoder, let keyMapping {
-                // JSONEncoder doesn't map dict keys with the preferred key
-                // mapping when encoding. We'll need to manually do it.
-                let mappedFields = Dictionary(uniqueKeysWithValues: fields.map { (keyMapping.mapTo(input: $0), $1) })
-                return try requestEncoder.encode(mappedFields)
-            } else {
-                return try requestEncoder.encode(fields)
+            var dict: [String: AnyEncodable] = [:]
+            for (key, value) in fields {
+                dict[key.mapped(keyMapping)] = value
             }
+
+            return try requestEncoder.encode(dict)
         }
     }
     
     private func queryString() throws -> String {
-        guard !query.isEmpty else {
+        guard !queries.isEmpty else {
             return ""
         }
 
@@ -150,7 +187,12 @@ public struct RequestBuilder {
             prefix = ""
         }
 
-        return try prefix + queryEncoder.encode(query)
+        var dict: [String: AnyEncodable] = [:]
+        for (key, value) in queries {
+            dict[key.mapped(keyMapping)] = value
+        }
+
+        return try prefix + queryEncoder.encode(dict)
     }
 }
 

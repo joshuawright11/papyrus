@@ -148,9 +148,17 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
             self.keyMapping = keyMapping
         }
 
-        func addChild(key: String, value: URLEncodedFormNode) {
-            let mappedKey = keyMapping.mapTo(input: key) // Encoding here, map to the desired input.
-            self.values[mappedKey] = value
+        func addChild<Key: CodingKey>(key: Key, value: URLEncodedFormNode) {
+            var key = key.stringValue
+
+            // Special case encoding dictionary keys. `JSONEncoder` does not map
+            // keys of dictionaries.
+            let isDictionary = "\(Key.self)" == "_DictionaryCodingKey"
+            if !isDictionary {
+                key = keyMapping.mapTo(input: key)
+            }
+
+            self.values[key] = value
         }
 
         static func == (lhs: URLEncodedFormNode.Map, rhs: URLEncodedFormNode.Map) -> Bool {
