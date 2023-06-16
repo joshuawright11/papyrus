@@ -403,8 +403,8 @@ For your convenience, a mock implementation can be automatically generated with 
 In addition to conforming to your protocol, a generated `Mock` type has `mock` functions to easily verify request parameters and mock their responses.
 
 ```swift
-@API  // Generates `GitHubAPI`
-@Mock // Generates `GitHubMock`
+@API  // Generates `GitHubAPI: GitHub`
+@Mock // Generates `GitHubMock: GitHub`
 protocol GitHub {
     @GET("/users/:username/repos")
     func getRepositories(@Path username: String) async throws -> [Repository]
