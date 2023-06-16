@@ -42,7 +42,7 @@ protocol Users {
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Building a Request](#constructing-a-request)
+2. [Defining an Endpoint](#defining-an-endpoint)
 3. [Handling the Response](#handling-the-response)
 4. [Custom Keys](#custom-keys)
 5. [Configuration](#configuration)
@@ -68,7 +68,9 @@ dependencies: [
 ]
 ```
 
-## Constructing a Request
+## Defining an Endpoint
+
+Individual endpoints are definied by adding functions to your protocol. The function's parameters represent the request content.
 
 ### Setting the Method and Path
 
@@ -216,12 +218,18 @@ Note that variable headers are automatically mapped to Capital-Kebab-Case. In th
 
 ## Handling the Response
 
+The return type of your function represents the response of your endpoint.
+
+### Decoding from the Response
+
 Endpoint functions should return a type that conforms to `Decodable`. It will automatically be decoded from the HTTP response body using JSON by default.
 
 ```swift
 @GET("/user")
 func getUser() async throws -> User
 ```
+
+### Empty responses
 
 If you don't need to decode something from the response and just want to confirm it was successful, you may leave out the return type.
 
@@ -338,7 +346,7 @@ let provider = Provider(baseURL: "http://localhost:3000")
     }
 ```
 
-If you'd like to decouple your request modifier or interceptor logic from the `Provider`, you can pass instances of the the `RequestModifer` and `Interceptor` on provider initialization.
+If you'd like to decouple your request modifier or interceptor logic from the `Provider`, you can pass instances of the `RequestModifer` and `Interceptor` protocols on provider initialization.
 
 ```swift
 let interceptor: Interceptor = ...
