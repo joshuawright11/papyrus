@@ -111,14 +111,21 @@ public enum KeyMapping {
     }
 }
 
-struct GenericCodingKey: CodingKey {
-    init(_ string: String) { self.stringValue = string }
-    
+private struct GenericCodingKey: CodingKey {
     var stringValue: String
-    init?(stringValue: String) { self.stringValue = stringValue }
-    
     var intValue: Int?
-    init?(intValue: Int) { return nil }
+
+    init(_ string: String) {
+        self.stringValue = string
+    }
+
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+    }
+
+    init?(intValue: Int) {
+        return nil
+    }
 }
 
 extension String {
@@ -168,11 +175,13 @@ extension String {
             }
             searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
         }
+
         words.append(wordStart..<searchRange.upperBound)
-        let result = words.map({ (range) in
-            return self[range].lowercased()
-        }).joined(separator: "_")
-        return result
+        return words
+            .map { range in
+                self[range].lowercased()
+            }
+            .joined(separator: "_")
     }
     
     fileprivate func camelCaseFromSnakeCase() -> String {
@@ -218,6 +227,7 @@ extension String {
             // Just trailing
             result = joinedString + String(stringKey[trailingUnderscoreRange])
         }
+
         return result
     }
 }

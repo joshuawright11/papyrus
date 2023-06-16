@@ -54,11 +54,14 @@ public struct RequestBuilder {
     // MARK: Building
 
     public mutating func addHeaders(_ headerDict: [String: String]) {
-        headers.merge(headerDict, uniquingKeysWith: { _, b in b })
+        for (key, value) in headerDict {
+            addHeader(key, value: value, convertToHeaderCase: false)
+        }
     }
 
-    public mutating func addHeader(_ key: String, value: String) {
-        headers[key] = value
+    public mutating func addHeader<L: LosslessStringConvertible>(_ key: String, value: L, convertToHeaderCase: Bool = true) {
+        let key = convertToHeaderCase ? key.httpHeaderCase() : key
+        headers[key] = value.description
     }
 
     public mutating func addAuthorization(_ header: AuthorizationHeader) {
@@ -95,7 +98,7 @@ public struct RequestBuilder {
         body = .fields(fields)
     }
     
-    // MARK: Creating a Request
+    // MARK: Creating Request Parts
 
     public func fullURL(baseURL: String) throws -> String {
         try baseURL + parameterizedPath() + queryString()
@@ -158,5 +161,17 @@ extension KeyMappable {
         }
 
         return with(keyMapping: keyMapping)
+    }
+}
+
+extension String {
+    /// Converts a `camelCase` String to `Http-Header-Case`.
+    fileprivate func httpHeaderCase() -> String {
+        let snakeCase = KeyMapping.snakeCase.mapTo(input: self)
+        let kebabCase = snakeCase
+            .components(separatedBy: "_")
+            .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+            .joined(separator: "-")
+        return kebabCase
     }
 }

@@ -83,8 +83,10 @@ enum Attribute {
             """
         case let .header(key):
             guard let input else { return "Input Required!" }
+            let hasCustomKey = key == nil
+            let convertParameter = hasCustomKey ? "" : ", convertToHeaderCase: true"
             return """
-            req.addHeader("\(key ?? input)", value: \(input))
+            req.addHeader("\(key ?? input)", value: \(input)\(convertParameter))
             """
         case let .path(key):
             guard let input else { return "Input Required!" }

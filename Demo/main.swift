@@ -5,6 +5,7 @@ import Papyrus
 @KeyMapping(.useDefaultKeys)
 @Authorization(.bearer("TOKEN!"))
 @Mock
+@Headers(["foo": "bar"])
 protocol Todos {
     @GET("/todos/:id")
     func todos(id: String, @Header header1 headerOne: String, @Header header2: String) async throws -> [Todo]
@@ -12,7 +13,8 @@ protocol Todos {
     @POST("/todos/:idCount/tags?foo=bar")
     @KeyMapping(.snakeCase)
     @URLForm
-    func tags(@Path idCount: String, @Query fieldOne: Int, fieldTwo: Bool) async throws -> [Todo]
+    @Headers(["boo": "far"])
+    func tags(@Path idCount: String, @Header fieldOne: Int, fieldTwo: Bool) async throws -> [Todo]
 }
 
 @API
