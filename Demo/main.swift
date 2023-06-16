@@ -50,5 +50,24 @@ let provider = Provider(baseURL: "http://localhost:3000")
 let todos: Todos = TodosAPI(provider: provider)
 let user: Users = UsersAPI(provider: provider)
 let accounts: Accounts = AccountsAPI(provider: provider)
-let tags = try await todos.tags(idCount: "Hello", fieldOne: 1, fieldTwo: true)
-print("Got \(tags.count) todos.")
+do {
+    let tags = try await todos.tags(idCount: "Hello", fieldOne: 1, fieldTwo: true)
+    print("Got \(tags.count) todos.")
+}
+catch {
+    print("Got error: \(error).")
+}
+
+let mock = TodosMock()
+mock.mockTodos { one, two, three in
+    return []
+}
+
+let t: Todos = mock
+do {
+    let r = try await t.todos(id: "foo", header1: "bar", header2: "baz")
+    print("Result is \(r.count).")
+}
+catch {
+    print("Result error is: \(error).")
+}
