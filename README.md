@@ -1,4 +1,4 @@
-# 📜 Papyrus
+# Papyrus 📜
 
 <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version"></a>
 <a href="https://github.com/alchemy-swift/alchemy/releases"><img src="https://img.shields.io/github/release/alchemy-swift/papyrus.svg" alt="Latest Release"></a>
