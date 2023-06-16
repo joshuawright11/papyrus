@@ -2,9 +2,9 @@ import SwiftSyntax
 
 enum Attribute {
     /// Type or Function attributes
-    case json(value: String)
+    case json(encoder: String, decoder: String)
     case urlForm(value: String)
-    case converter(value: String)
+    case converter(encoder: String, decoder: String)
     case keyMapping(value: String)
     case headers(value: String)
     case authorization(value: String)
@@ -49,12 +49,15 @@ enum Attribute {
             guard let firstArgument else { return nil }
             self = .headers(value: firstArgument)
         case "JSON":
-            self = .json(value: firstArgument ?? ".json")
+            self = .json(
+                encoder: firstArgument ?? "JSONEncoder()",
+                decoder: secondArgument ?? "JSONDecoder()"
+            )
         case "URLForm":
-            self = .urlForm(value: firstArgument ?? ".urlForm")
-        case "Converter":
-            guard let firstArgument else { return nil }
-            self = .converter(value: firstArgument)
+            self = .urlForm(value: firstArgument ?? "URLEncodedFormEncoder()")
+        case "Coder":
+            guard let firstArgument, let secondArgument else { return nil }
+            self = .converter(encoder: firstArgument, decoder: secondArgument)
         case "KeyMapping":
             guard let firstArgument else { return nil }
             self = .keyMapping(value: firstArgument)
@@ -93,9 +96,19 @@ enum Attribute {
             return """
             req.addField("\(key ?? input)", value: \(input))
             """
-        case .json(let value), .urlForm(let value), .converter(let value):
+        case .json(let encoder, let decoder):
             return """
-            req.preferredContentConverter = \(value)
+            req.requestEncoder = \(encoder)
+            req.responseDecoder = \(decoder)
+            """
+        case .urlForm(let value):
+            return """
+            req.requestEncoder = \(value)
+            """
+        case .converter(let encoder, let decoder):
+            return """
+            req.requestEncoder = \(encoder)
+            req.responseDecoder = \(decoder)
             """
         case .headers(let value):
             return """
@@ -103,7 +116,7 @@ enum Attribute {
             """
         case .keyMapping(let value):
             return """
-            req.preferredKeyMapping = \(value)
+            req.keyMapping = \(value)
             """
         case .authorization(value: let value):
             return """

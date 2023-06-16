@@ -3,34 +3,38 @@ import XCTest
 
 final class ConverterTests: XCTestCase {
     func testWithKeyMappingDoesntMutate() throws {
-        let defaultConverter = JSONConverter()
-        switch defaultConverter.encoder.keyEncodingStrategy {
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+
+        switch encoder.keyEncodingStrategy {
         case .useDefaultKeys: break
         default: XCTFail("Should be default keys")
         }
 
-        switch defaultConverter.decoder.keyDecodingStrategy {
+        switch decoder.keyDecodingStrategy {
         case .useDefaultKeys: break
         default: XCTFail("Should be default keys")
         }
 
-        let snakeConverter = defaultConverter.with(keyMapping: .snakeCase)
-        switch defaultConverter.encoder.keyEncodingStrategy {
+        let snakeEncoder = encoder.with(keyMapping: .snakeCase)
+        let snakeDecoder = decoder.with(keyMapping: .snakeCase)
+
+        switch encoder.keyEncodingStrategy {
         case .useDefaultKeys: break
         default: XCTFail("Should be default keys")
         }
 
-        switch defaultConverter.decoder.keyDecodingStrategy {
+        switch decoder.keyDecodingStrategy {
         case .useDefaultKeys: break
         default: XCTFail("Should be default keys")
         }
 
-        switch snakeConverter.encoder.keyEncodingStrategy {
+        switch snakeEncoder.keyEncodingStrategy {
         case .convertToSnakeCase: break
         default: XCTFail("Should be snake_case keys")
         }
 
-        switch snakeConverter.decoder.keyDecodingStrategy {
+        switch snakeDecoder.keyDecodingStrategy {
         case .convertFromSnakeCase: break
         default: XCTFail("Should be snake_case keys")
         }

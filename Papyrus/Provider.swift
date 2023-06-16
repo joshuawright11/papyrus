@@ -1,21 +1,23 @@
 import Alamofire
 import Foundation
 
-/*
- 1. one tuple parameter allowed?
- 2.
- */
-
 /// Makes URL requests.
 public final class Provider: HTTPProvider {
     public let baseURL: String
     public let session: Session
     public var interceptors: [Interceptor]
+    public var modifiers: [RequestModifier]
 
     public init(baseURL: String, session: Session = .default, interceptors: [() -> Void] = []) {
         self.baseURL = baseURL
         self.session = session
         self.interceptors = []
+        self.modifiers = []
+    }
+
+    public func modifyRequest(action: @escaping (inout RequestBuilder) throws -> Void) -> Self {
+        modifiers.append(AnonymousModifier(action: action))
+        return self
     }
 
     @discardableResult
@@ -32,12 +34,25 @@ public final class Provider: HTTPProvider {
             next = { try await interceptor.intercept(req: $0, next: _next) }
         }
 
-        let req = try request.createURLRequest(baseURL: baseURL)
+        var _request = request
+        for modifier in modifiers {
+            try modifier.modify(req: &_request)
+        }
+
+        let req = try _request.createURLRequest(baseURL: baseURL)
         return try await next(req)
     }
 
     private func _request(_ request: Request) async -> Response {
         await session.request(request.request).validate().serializingData().response
+    }
+}
+
+private struct AnonymousModifier: RequestModifier {
+    let action: (inout RequestBuilder) throws -> Void
+
+    func modify(req: inout RequestBuilder) throws {
+        try action(&req)
     }
 }
 
@@ -67,18 +82,18 @@ extension RequestBuilder {
 }
 
 extension Decodable {
-    public init(response: Response, converter: ContentConverter) throws {
+    public init(response: Response, decoder: ResponseDecoder) throws {
         try response.validate()
 
         guard let data = response.body else {
             throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
         }
 
-        self = try converter.decode(Self.self, from: data)
+        self = try decoder.decode(Self.self, from: data)
     }
 }
 
-extension ContentConverter {
+extension ResponseDecoder {
     public func decode<D: Decodable>(_ type: D.Type = D.self, from response: Response) throws -> D {
         if let error = response.error {
             throw error

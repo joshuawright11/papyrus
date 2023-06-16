@@ -52,7 +52,7 @@ extension FunctionDeclSyntax {
         switch returnType {
         case .tuple(let array):
             let elements = array.map { element in
-                let decodeElement = element.type == "Response" ? "res" : "try req.contentConverter.decode(\(element.type).self, from: res)"
+                let decodeElement = element.type == "Response" ? "res" : "try req.responseDecoder.decode(\(element.type).self, from: res)"
                 return [
                     element.label,
                     decodeElement
@@ -69,7 +69,7 @@ extension FunctionDeclSyntax {
             ]
         case .type(let string) where string != "Response":
             return [
-                "return try req.contentConverter.decode(\(string).self, from: res)"
+                "return try req.responseDecoder.decode(\(string).self, from: res)"
             ]
         default:
             return []

@@ -1,75 +1,77 @@
 import Foundation
 
-public struct ConverterDefaults {
-    public static var content: ContentConverter = JSONConverter()
-    public static var query: URLFormConverter = URLFormConverter()
-}
-
-// Used for building a Request. Add Request Modifier?
 public struct RequestBuilder {
     public enum BodyContent {
         case fields([String: AnyEncodable])
         case value(AnyEncodable)
     }
-    
-    // Data
+
+    public static var defaultQueryEncoder: URLEncodedFormEncoder = URLEncodedFormEncoder()
+    public static var defaultRequestEncoder: RequestEncoder = JSONEncoder()
+    public static var defaultResponseDecoder: ResponseDecoder = JSONDecoder()
+
+    // MARK: Data
+
     public var method: String
     public var path: String
     public var parameters: [String: String]
     public var headers: [String: String]
     public var query: [String: AnyEncodable]
     public var body: BodyContent?
-    
-    // Converters
-    public var preferredContentConverter: ContentConverter?
-    private var _contentConverter: ContentConverter { preferredContentConverter ?? ConverterDefaults.content }
-    public var contentConverter: ContentConverter { preferredKeyMapping.map { _contentConverter.with(keyMapping: $0) } ?? _contentConverter }
-    
-    public var preferredQueryConverter: URLFormConverter?
-    private var _queryConverter: URLFormConverter { preferredQueryConverter ?? ConverterDefaults.query }
-    public var queryConverter: URLFormConverter { preferredKeyMapping.map { _queryConverter.with(keyMapping: $0) } ?? _queryConverter }
-    
-    public var preferredKeyMapping: KeyMapping?
 
-    public init(method: String, path: String) {
-        self.init()
-        self.method = method
-        self.path = path
+    // MARK: Configuration
+
+    public var keyMapping: KeyMapping?
+
+    public var queryEncoder: URLEncodedFormEncoder {
+        set { _queryEncoder = newValue }
+        get { _queryEncoder.with(keyMapping: keyMapping) }
     }
 
-    init() {
-        self.method = "GET"
-        self.path = "/"
-        self.body = nil
-        self.query = [:]
-        self.headers = [:]
+    public var requestEncoder: RequestEncoder {
+        set { _requestEncoder = newValue }
+        get { _requestEncoder.with(keyMapping: keyMapping) }
+    }
+
+    public var responseDecoder: ResponseDecoder {
+        set { _responseDecoder = newValue }
+        get { _responseDecoder.with(keyMapping: keyMapping) }
+    }
+
+    private var _queryEncoder: URLEncodedFormEncoder = defaultQueryEncoder
+    private var _requestEncoder: RequestEncoder = defaultRequestEncoder
+    private var _responseDecoder: ResponseDecoder = defaultResponseDecoder
+
+    public init(method: String, path: String) {
+        self.method = method
+        self.path = path
         self.parameters = [:]
-        self.preferredContentConverter = nil
-        self.preferredQueryConverter = nil
-        self.preferredKeyMapping = nil
+        self.headers = [:]
+        self.query = [:]
+        self.body = nil
     }
     
     // MARK: Building
 
-    public mutating func addHeaders(_ headers: [String: String]) {
-        self.headers.merge(headers, uniquingKeysWith: { _, b in b })
+    public mutating func addHeaders(_ headerDict: [String: String]) {
+        headers.merge(headerDict, uniquingKeysWith: { _, b in b })
     }
 
     public mutating func addHeader(_ key: String, value: String) {
-        self.headers[key] = value
+        headers[key] = value
     }
 
     public mutating func addAuthorization(_ header: AuthorizationHeader) {
-        self.headers["Authorization"] = header.value
+        headers["Authorization"] = header.value
     }
 
     public mutating func addParameter<L: LosslessStringConvertible>(_ key: String, value: L) {
-        self.parameters[key] = value.description
+        parameters[key] = value.description
     }
 
     public mutating func setBody<E: Encodable>(_ value: E) {
         if let body = body {
-            preconditionFailure("Tried to set an endpoint body to type \(E.self), but it already had one: \(body).")
+            preconditionFailure("Tried to set a request @Body to type \(E.self), but it already had one: \(body).")
         }
         
         body = .value(AnyEncodable(value))
@@ -83,7 +85,7 @@ public struct RequestBuilder {
         var fields: [String: AnyEncodable] = [:]
         if let body = body {
             guard case .fields(let existingFields) = body else {
-                preconditionFailure("Tried to add a field, \(key): \(E.self), to an endpoint, but it already had a body, \(body). @Body and @Field are mutually exclusive.")
+                preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a @Body, \(body). @Body and @Field are mutually exclusive.")
             }
             
             fields = existingFields
@@ -93,50 +95,45 @@ public struct RequestBuilder {
         body = .fields(fields)
     }
     
-    // MARK: Create
-    
+    // MARK: Creating a Request
+
+    public func fullURL(baseURL: String) throws -> String {
+        try baseURL + parameterizedPath() + queryString()
+    }
+
     public func bodyAndHeaders() throws -> (Data?, [String: String]) {
         let body = try bodyData()
         var headers = headers
-        headers["Content-Type"] = contentConverter.contentType
+        headers["Content-Type"] = requestEncoder.contentType
         headers["Content-Length"] = "\(body?.count ?? 0)"
         return (body, headers)
     }
 
-    public func fullURL(baseURL: String) throws -> String {
-        try baseURL + fullPath() + queryString()
-    }
-
-    public func fullPath() throws -> String {
-        let mappedParameters = Dictionary(uniqueKeysWithValues: parameters.map { (preferredKeyMapping?.mapTo(input: $0) ?? $0, $1) })
-        return try replacedPath(mappedParameters)
-    }
-
-    private func bodyData() throws -> Data? {
-        guard let body = body else { return nil }
-        switch body {
-        case .value(let value):
-            return try contentConverter.encode(value)
-        case .fields(let fields):
-            if contentConverter is JSONConverter, let mapping = preferredKeyMapping {
-                // For some reason, JSONEncoder doesn't map dict keys with the
-                // preferred keymapping when encoding. We'll need to manually
-                // do it.
-                let mappedFields = Dictionary(uniqueKeysWithValues: fields.map { (mapping.mapTo(input: $0), $1) })
-                return try contentConverter.encode(mappedFields)
-            } else {
-                return try contentConverter.encode(fields)
-            }
-        }
-    }
-    
-    private func replacedPath(_ mappedParameters: [String: String]) throws -> String {
-        try mappedParameters.reduce(into: path) { newPath, component in
+    private func parameterizedPath() throws -> String {
+        try parameters.reduce(into: path) { newPath, component in
             guard newPath.contains(":\(component.key)") else {
                 throw PapyrusError("Tried to set path component `\(component.key)` but did not find `:\(component.key)` in \(path).")
             }
-            
+
             newPath = newPath.replacingOccurrences(of: ":\(component.key)", with: component.value)
+        }
+    }
+
+    private func bodyData() throws -> Data? {
+        switch body {
+        case .none:
+            return nil
+        case .value(let value):
+            return try requestEncoder.encode(value)
+        case .fields(let fields):
+            if requestEncoder is JSONEncoder, let keyMapping {
+                // JSONEncoder doesn't map dict keys with the preferred key
+                // mapping when encoding. We'll need to manually do it.
+                let mappedFields = Dictionary(uniqueKeysWithValues: fields.map { (keyMapping.mapTo(input: $0), $1) })
+                return try requestEncoder.encode(mappedFields)
+            } else {
+                return try requestEncoder.encode(fields)
+            }
         }
     }
     
@@ -150,6 +147,16 @@ public struct RequestBuilder {
             prefix = ""
         }
 
-        return try prefix + queryConverter.encode(query)
+        return try prefix + queryEncoder.encode(query)
+    }
+}
+
+extension KeyMappable {
+    fileprivate func with(keyMapping: KeyMapping?) -> Self {
+        guard let keyMapping else {
+            return self
+        }
+
+        return with(keyMapping: keyMapping)
     }
 }

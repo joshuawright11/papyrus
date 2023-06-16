@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Josh Wright on 6/9/23.
-//
-
 import Foundation
 
 // MARK: Top Level
@@ -21,13 +14,13 @@ public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 public macro Headers(_ headers: [String: String]) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro JSON(_ converter: JSONConverter = .json) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro JSON(encoder: JSONEncoder = JSONEncoder(), decoder: JSONDecoder = JSONDecoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro URLForm(_ converter: URLFormConverter = .urlForm) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro URLForm(_ encoder: URLEncodedFormEncoder = URLEncodedFormEncoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro Converter<C: ContentConverter>(_ converter: C) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Converter(encoder: RequestEncoder, decoder: ResponseDecoder) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
 public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")

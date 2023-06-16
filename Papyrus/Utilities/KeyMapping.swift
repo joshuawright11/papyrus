@@ -1,5 +1,9 @@
 import Foundation
 
+public protocol KeyMappable {
+    func with(keyMapping: KeyMapping) -> Self
+}
+
 /// Represents the mapping between your type's property names and
 /// their corresponding database column.
 ///
