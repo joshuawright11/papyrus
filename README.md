@@ -4,7 +4,7 @@
 <a href="https://github.com/alchemy-swift/alchemy/releases"><img src="https://img.shields.io/github/release/alchemy-swift/papyrus.svg" alt="Latest Release"></a>
 <a href="https://github.com/alchemy-swift/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alchemy-swift/papyrus.svg" alt="License"></a>
 
-Papyrus turns your HTTP API into a Swift `protocol`.
+Papyrus turns your HTTP APIs into type-safe Swift `protocol`s.
 
 ```swift
 @API
@@ -16,7 +16,7 @@ protocol GitHub {
 struct Repository: Codable { ... }
 ```
 
-Each protocol function represents an endpoint on your API. They can be consumed through a generated type.
+Each protocol function represents an endpoint on your API. They can be consumed through an automatically generated type.
 
 ```swift
 let provider = Provider(baseURL: "https://api.github.com/")
@@ -24,7 +24,7 @@ let github: GitHub = GitHubAPI(provider: provider)
 let repos = try await github.getRepositories(username: "alchemy-swift")
 ```
 
-Annotations on the protocol, functions and parameters help construct requests.
+Annotations on the protocol, functions and parameters help construct requests and decode responses.
 
 ```swift
 @API
@@ -87,6 +87,8 @@ The `@Path` attribute replaces a named parameter in the path. Parameters are den
 func getRepository(@Path userId: Int, @Path id: Int) async throws -> [Repository]
 ```
 
+#### Adding Query Parameters
+
 You may set url queries with the `@Query` parameter.
 
 ```swift
@@ -129,7 +131,7 @@ For convenience, a parameter with no attribute is treated as a `@Field`.
 func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-### Encoding
+### Encoding the Body
 
 By default, all `@Body` and `@Field` parameters are encoded as `application/json`. You may encode them as `application/x-www-form-urlencoded` using `@URLForm`.
 
@@ -152,6 +154,8 @@ protocol Todos {
     func updateTodo(@Path id: Int, name: String, isDone: Bool, tags: [String]) async throws
 }
 ```
+
+#### Custom Body Encoders
 
 If you'd like to use a custom JSON or URLForm encoder, you may pass them as arguments to `@JSON` and `@URLForm`.
 
@@ -228,7 +232,11 @@ func logout() async throws
 
 Note that if the function return type is Codable or empty, any error that occurs during the request flight, such as an unsuccessful response code, will be thrown.
 
-To access the raw response instead of automatically decoding a type, you may set the response type to `Response`. Note that in this case, errors that occur during the flight of the request will NOT be thrown so you should check the `Response.error` property before assuming it was successful.
+### Accessing the Raw Response
+
+To just get the raw response you may set the return type to `Response`.
+
+Note that in this case, errors that occur during the flight of the request will NOT be thrown so you should check the `Response.error` property before assuming it was successful.
 
 ```swift
 @GET("/user")
@@ -265,6 +273,8 @@ If you'd like a custom key for `@Path`, `@Header`, `@Field` or `@Query`, you can
 @GET("/repositories/:id")
 func getRepository(@Path("id") repositoryId: Int) async throws -> Repository
 ```
+
+### Key Mapping
 
 Often, you'll want to encode request fields and decode response fields using something other than camelCase. Instead of setting a custom key for each individual attribute, you can use `@KeyMapping` at the function or protocol level.
 
@@ -338,7 +348,7 @@ let provider = Provider(baseURL: "http://localhost:3000", modifiers: [modifier],
 
 ## Testing
 
-APIs defined with Papyrus are simple to mock for tests; just conform your mock to the protocol.
+Because APIs defined with Papyrus are protocols, they're simple to mock in tests; just implement the protocol.
 
 Note that you don't need to include any attributes when conforming to the protocol.
 
