@@ -4,6 +4,12 @@ public protocol ResponseDecoder: KeyMappable {
     func decode<D: Decodable>(_ type: D.Type, from: Data) throws -> D
 }
 
+extension ResponseDecoder where Self == JSONDecoder {
+    public static func json(_ decoder: JSONDecoder) -> Self {
+        decoder
+    }
+}
+
 extension JSONDecoder: ResponseDecoder {
     public func with(keyMapping: KeyMapping) -> Self {
         let copy = copy()

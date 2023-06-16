@@ -102,12 +102,12 @@ enum Attribute {
             """
         case .json(let encoder, let decoder):
             return """
-            req.requestEncoder = \(encoder)
-            req.responseDecoder = \(decoder)
+            req.requestEncoder = .json(\(encoder))
+            req.responseDecoder = .json(\(decoder))
             """
         case .urlForm(let value):
             return """
-            req.requestEncoder = \(value)
+            req.requestEncoder = .urlForm(\(value))
             """
         case .converter(let encoder, let decoder):
             return """

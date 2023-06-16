@@ -5,6 +5,18 @@ public protocol RequestEncoder: KeyMappable {
     func encode<E: Encodable>(_ value: E) throws -> Data
 }
 
+extension RequestEncoder where Self == JSONEncoder {
+    public static func json(_ encoder: JSONEncoder) -> Self {
+        encoder
+    }
+}
+
+extension RequestEncoder where Self == URLEncodedFormEncoder {
+    public static func urlForm(_ encoder: URLEncodedFormEncoder) -> Self {
+        encoder
+    }
+}
+
 extension URLEncodedFormEncoder: RequestEncoder {
     public var contentType: String { "application/x-www-form-urlencoded" }
 

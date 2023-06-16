@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: Top Level
+// MARK: Protocol attributes
 
 @attached(peer, names: arbitrary)
 public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
@@ -8,7 +8,7 @@ public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
 @attached(peer, names: arbitrary)
 public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 
-// MARK: Modifiers
+// MARK: Function or Protocol attributes
 
 @attached(peer, names: arbitrary)
 public macro Headers(_ headers: [String: String]) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
@@ -28,7 +28,7 @@ public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "Papyrus
 @attached(peer, names: arbitrary)
 public macro Authorization(_ value: AuthorizationHeader) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
-// MARK: Methods
+// MARK: Method attributes
 
 @attached(peer, names: arbitrary)
 public macro HTTP(_ path: String, method: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
@@ -60,7 +60,7 @@ public macro TRACE(_ path: String) = #externalMacro(module: "PapyrusPlugin", typ
 @attached(peer, names: arbitrary)
 public macro CONNECT(_ path: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
-// MARK: Parameters
+// MARK: Parameter attributes
 
 @attached(accessor)
 public macro Header(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
