@@ -1,13 +1,5 @@
 import Papyrus
 
-extension JSONEncoder {
-    static var iso8601: JSONEncoder {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        return encoder
-    }
-}
-
 @API
 @JSON
 @KeyMapping(.useDefaultKeys)
@@ -58,11 +50,5 @@ let provider = Provider(baseURL: "http://localhost:3000")
 let todos: Todos = TodosAPI(provider: provider)
 let user: Users = UsersAPI(provider: provider)
 let accounts: Accounts = AccountsAPI(provider: provider)
-
-do {
-    let todos = try await todos.tags(idCount: "Hello", fieldOne: 1, fieldTwo: true)
-    print("NO ERROR \(todos.count)!")
-}
-catch {
-    print("ERROR: \(error)")
-}
+let tags = try await todos.tags(idCount: "Hello", fieldOne: 1, fieldTwo: true)
+print("Got \(tags.count) todos.")

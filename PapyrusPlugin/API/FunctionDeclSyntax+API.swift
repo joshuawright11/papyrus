@@ -7,10 +7,10 @@ extension FunctionDeclSyntax {
         case type(String)
     }
 
-    var papyrusAttributes: [Attribute] {
+    var apiAttributes: [APIAttribute] {
         attributes?
             .compactMap { $0.as(AttributeSyntax.self) }
-            .compactMap(Attribute.init) ?? []
+            .compactMap(APIAttribute.init) ?? []
     }
 
     private var returnClause: String {
@@ -107,7 +107,7 @@ extension FunctionDeclSyntax {
         """
     }
 
-    func apiFunction(protocolAttributes: [Attribute]) -> String {
+    func apiFunction(protocolAttributes: [APIAttribute]) -> String {
         guard isAsync, isThrows else {
             return "Not async throws!"
         }
@@ -115,7 +115,7 @@ extension FunctionDeclSyntax {
         var topLevelStatements: [String] = []
         var method: String?
         var path: String?
-        for attribute in papyrusAttributes {
+        for attribute in apiAttributes {
             switch attribute {
             case let .http(_method, _path):
                 guard method == nil, path == nil else {
@@ -147,7 +147,7 @@ extension FunctionDeclSyntax {
         }
 
         // Request Initialization
-        let decl = parameters.isEmpty && papyrusAttributes.count <= 1 ? "let" : "var"
+        let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
         let newRequestFunction = protocolAttributes.isEmpty ? "RequestBuilder" : "newRequest"
         let requestStatement = """
             \(decl) req = \(newRequestFunction)(method: "\(method)", path: \(path))

@@ -2,7 +2,7 @@ import SwiftSyntax
 
 extension FunctionParameterSyntax {
     var isBody: Bool {
-        for attribute in papyrusAttributes {
+        for attribute in apiAttributes {
             if case .body = attribute {
                 return true
             }
@@ -12,7 +12,7 @@ extension FunctionParameterSyntax {
     }
 
     var isField: Bool {
-        for attribute in papyrusAttributes {
+        for attribute in apiAttributes {
             switch attribute {
             case .field:
                 return true
@@ -35,15 +35,15 @@ extension FunctionParameterSyntax {
         return "\(trimmed.firstName)\(secondName): \(trimmed.type)"
     }
 
-    var papyrusAttributes: [Attribute] {
+    var apiAttributes: [APIAttribute] {
         attributes?
             .compactMap { $0.as(AttributeSyntax.self) }
-            .compactMap(Attribute.init) ?? []
+            .compactMap(APIAttribute.init) ?? []
     }
 
     var apiBuilderStatement: String? {
-        var parameterAttribute: Attribute? = nil
-        for attribute in papyrusAttributes {
+        var parameterAttribute: APIAttribute? = nil
+        for attribute in apiAttributes {
             switch attribute {
             case .body, .query, .header, .path, .field:
                 guard parameterAttribute == nil else {

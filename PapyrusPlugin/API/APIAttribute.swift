@@ -1,6 +1,6 @@
 import SwiftSyntax
 
-enum Attribute {
+enum APIAttribute {
     /// Type or Function attributes
     case json(encoder: String, decoder: String)
     case urlForm(value: String)

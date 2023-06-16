@@ -1,8 +1,11 @@
-//
-//  File.swift
-//  
-//
-//  Created by Josh Wright on 6/16/23.
-//
+public protocol RequestModifier {
+    func modify(req: inout RequestBuilder) throws
+}
 
-import Foundation
+struct AnonymousModifier: RequestModifier {
+    let action: (inout RequestBuilder) throws -> Void
+
+    func modify(req: inout RequestBuilder) throws {
+        try action(&req)
+    }
+}

@@ -5,48 +5,21 @@ public protocol KeyMappable {
 }
 
 /// Represents the mapping between your type's property names and
-/// their corresponding database column.
-///
-/// For example, you might be using a `PostgreSQL` database which has
-/// a snake_case naming convention. Your `users` table might have
-/// fields `id`, `email`, `first_name`, and `last_name`.
-///
-/// Since Swift's naming convention is camelCase, your corresponding
-/// database model will probably look like this:
-/// ```swift
-/// struct User: Model {
-///     var id: Int?
-///     let email: String
-///     let firstName: String // doesn't match database field of `first_name`
-///     let lastName: String // doesn't match database field of `last_name`
-/// }
-/// ```
-/// By overriding the `keyMappingStrategy` on `User`, you can
-/// customize the mapping between the property names and
-/// database columns. Note that in the example above you
-/// won't need to override, since keyMappingStrategy is,
-/// by default, convertToSnakeCase.
+/// their corresponding request field key.
 public enum KeyMapping {
-    /// Use the literal name for all properties on an object as its
-    /// corresponding database column.
+    /// Use the literal name for all properties on a type as its field key.
     case useDefaultKeys
     
-    /// Convert property names from camelCase to snake_case for the
-    /// database columns.
+    /// Convert property names from camelCase to snake_case for field keys.
     ///
     /// e.g. `someGreatString` -> `some_great_string`
     case snakeCase
     
-    /// A custom mapping of property name to database column name.
+    /// A custom mapping of property name to field key.
     case custom(to: (String) -> String, from: (String) -> String)
     
     /// Given the strategy, map from an input string to an output
     /// string.
-    ///
-    /// - Parameter input: The input string, representing the name of
-    ///   the swift type's property
-    /// - Returns: The output string, representing the column of the
-    ///   database's table.
     public func mapTo(input: String) -> String {
         switch self {
         case .snakeCase:
@@ -58,13 +31,7 @@ public enum KeyMapping {
         }
     }
 
-    /// Given the strategy, map from an input string to an output
-    /// string.
-    ///
-    /// - Parameter input: The input string, representing the name of
-    ///   the swift type's property
-    /// - Returns: The output string, representing the column of the
-    ///   database's table.
+    /// The reverse of `mapTo`.
     public func mapFrom(input: String) -> String {
         switch self {
         case .snakeCase:

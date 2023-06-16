@@ -4,6 +4,20 @@ public protocol ResponseDecoder: KeyMappable {
     func decode<D: Decodable>(_ type: D.Type, from: Data) throws -> D
 }
 
+extension ResponseDecoder {
+    public func decode<D: Decodable>(_ type: D.Type = D.self, from response: Response) throws -> D {
+        if let error = response.error {
+            throw error
+        }
+
+        guard let data = response.body else {
+            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
+        }
+
+        return try decode(type, from: data)
+    }
+}
+
 extension ResponseDecoder where Self == JSONDecoder {
     public static func json(_ decoder: JSONDecoder) -> Self {
         decoder

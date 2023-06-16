@@ -2,7 +2,7 @@ import Alamofire
 import Foundation
 
 /// Makes URL requests.
-public final class Provider: HTTPProvider {
+public final class Provider {
     public let baseURL: String
     public let session: Session
     public var interceptors: [Interceptor]
@@ -48,27 +48,6 @@ public final class Provider: HTTPProvider {
     }
 }
 
-private struct AnonymousModifier: RequestModifier {
-    let action: (inout RequestBuilder) throws -> Void
-
-    func modify(req: inout RequestBuilder) throws {
-        try action(&req)
-    }
-}
-
-private struct AnonymousInterceptor: Interceptor {
-    let action: (Request, (Request) async throws -> Response) async throws -> Response
-
-    func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response {
-        try await action(req, next)
-    }
-}
-
-public protocol HTTPProvider {
-    @discardableResult
-    func request(_ request: RequestBuilder) async throws -> Response
-}
-
 extension RequestBuilder {
     fileprivate func createURLRequest(baseURL: String) throws -> URLRequest {
         let url = try fullURL(baseURL: baseURL).asURL()
@@ -78,31 +57,5 @@ extension RequestBuilder {
         request.allHTTPHeaderFields = headers
         request.httpBody = body
         return request
-    }
-}
-
-extension Decodable {
-    public init(response: Response, decoder: ResponseDecoder) throws {
-        try response.validate()
-
-        guard let data = response.body else {
-            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
-        }
-
-        self = try decoder.decode(Self.self, from: data)
-    }
-}
-
-extension ResponseDecoder {
-    public func decode<D: Decodable>(_ type: D.Type = D.self, from response: Response) throws -> D {
-        if let error = response.error {
-            throw error
-        }
-
-        guard let data = response.body else {
-            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
-        }
-
-        return try decode(type, from: data)
     }
 }

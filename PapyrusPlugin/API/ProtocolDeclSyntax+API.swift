@@ -46,7 +46,7 @@ extension ProtocolDeclSyntax {
     }
 
     func createApiFunctions() -> [String] {
-        functions.map { $0.apiFunction(protocolAttributes: papyrusAttributes) }
+        functions.map { $0.apiFunction(protocolAttributes: apiAttributes) }
     }
 
     private var functions: [FunctionDeclSyntax] {
@@ -55,10 +55,10 @@ extension ProtocolDeclSyntax {
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
     }
 
-    private var papyrusAttributes: [Attribute] {
+    private var apiAttributes: [APIAttribute] {
         attributes?
             .compactMap { $0.as(AttributeSyntax.self) }
-            .compactMap(Attribute.init) ?? []
+            .compactMap(APIAttribute.init) ?? []
     }
 
     private var newRequestFunction: String {
@@ -76,6 +76,6 @@ extension ProtocolDeclSyntax {
     }
 
     private var globalStatements: [String] {
-        papyrusAttributes.compactMap { $0.requestStatement(input: nil) }
+        apiAttributes.compactMap { $0.requestStatement(input: nil) }
     }
 }
