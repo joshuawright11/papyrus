@@ -1,5 +1,11 @@
 # Papyrus
 
+<p align="center">
+<a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version"></a>
+<a href="https://github.com/alchemy-swift/alchemy/releases"><img src="https://img.shields.io/github/release/alchemy-swift/papyrus.svg" alt="Latest Release"></a>
+<a href="https://github.com/alchemy-swift/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alchemy-swift/papyrus.svg" alt="License"></a>
+</p>
+
 Papyrus turns your HTTP API into a Swift `protocol`.
 
 ```swift
@@ -52,6 +58,12 @@ dependencies: [
 ```
 
 ## Usage
+
+1. [Building a Request](#constructing-a-request)
+2. [Handling the Response](#handling-the-response)
+3. [Custom Keys](#custom-keys)
+4. [Provider Configuration](#provider-configuration)
+5. [Testing](#testing)
 
 ### Constructing a Request
 
@@ -114,7 +126,7 @@ For convenience, a parameter with no name is treated as a `@Field`.
 func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-### Converters
+#### Converters
 
 By default, all `@Body` and `@Field` parameters are encoded as `application/json`. You may encode them as `application/x-www-form-urlencoded` using `@URLForm` at the function level.
 
@@ -237,7 +249,7 @@ protocol Todos {
 }
 ```
 
-### Provider
+### Provider Configuration
 
 Papyrus makes request with Alamofire. You can pass a custom Alamofire session to the provider.
 
