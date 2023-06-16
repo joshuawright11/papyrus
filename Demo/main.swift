@@ -38,6 +38,15 @@ struct Todo: Codable {
 }
 
 let provider = Provider(baseURL: "http://localhost:3000")
+    .intercept { req, next in
+        let start = Date()
+        let res = try await next(req)
+        let elapsedTime = String(format: "%.2fs", Date().timeIntervalSince(start))
+        // Got a 200 for GET /users after 0.45s
+        print("Got a \(res.statusCode!) for \(req.method) \(req.url!.relativePath) after \(elapsedTime)")
+        return res
+    }
+
 let todos: Todos = TodosAPI(provider: provider)
 let user: Users = UsersAPI(provider: provider)
 let accounts: Accounts = AccountsAPI(provider: provider)
@@ -48,4 +57,9 @@ do {
 }
 catch {
     print("ERROR: \(error)")
+}
+
+let mock = TodosMock()
+mock.mockTodos { one, two, three in
+    <#code#>
 }

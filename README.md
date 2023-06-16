@@ -5,8 +5,8 @@ Papyrus turns your HTTP API into a Swift `protocol`.
 ```swift
 @API
 protocol GitHub {
-@GET("/users/:username/repos")
-func getRepositories(@Path username: String) async throws -> [Repository]
+    @GET("/users/:username/repos")
+    func getRepositories(@Path username: String) async throws -> [Repository]
 }
 
 struct Repository: Codable { ... }
@@ -37,9 +37,9 @@ protocol Users {
 
 ## Requirements
 
-Papyrus leverages Swift macros which requires Swift 5.9 / Xcode 14.
+Supports iOS 13+ / macOS 10.15+.
 
-It can be deployed back to iOS 13 / macOS 10.15.
+Keep in mind that Papyrus uses Swift macros which require Swift 5.9 / Xcode 14 to compile.
 
 ## Installation
 
@@ -239,4 +239,117 @@ protocol Todos {
 
 ### Provider
 
+Papyrus makes request with Alamofire. You can pass a custom Alamofire session to the provider.
+
+```swift
+let customSession: Session = ...
+let provider = Provider(baseURL: "https://api.github.com", session: customSession)
+let github: GitHub = GitHubAPI(provider: provider)
+```
+
+If you'd like to manually run custom build logic before executing any request on a provider, you may use the `modifyRequests()` function.
+
+```swift
+let provider = Provider(baseURL: "https://sandbox.plaid.com")
+    .modifyRequests { (req: inout RequestBuilder) in
+        req.addField("client_id", value: "<client-id>")
+        req.addField("secret", value: "<secret>")
+    }
+let plaid: Plaid = PlaidAPI(provider: provider)
+```
+
+You may also add custom request interceptors using `intercept()`. Remember that you'll need to call the second closure parameter if you want the request to continue.
+
+```swift
+let provider = Provider(baseURL: "http://localhost:3000")
+    .intercept { req, next in
+        let start = Date()
+        let res = try await next(req)
+        let elapsedTime = String(format: "%.2fs", Date().timeIntervalSince(start))
+        // Got a 200 for GET /users after 0.45s
+        print("Got a \(res.statusCode!) for \(req.method) \(req.url!.relativePath) after \(elapsedTime)")
+        return res
+    }
+```
+
+If you'd like to decouple your request modifier or interceptor logic from the `Provider`, you can pass instances of the the `RequestModifer` and `Interceptor` protocols when creating a provider.
+
+```swift
+let interceptor: Interceptor = ...
+let modifier: Interceptor = ...
+let provider = Provider(baseURL: "http://localhost:3000", modifiers: [modifier], interceptors: [interceptor])
+```
+
 ### Testing
+
+APIs defined with Papyrus are simple to mock for tests. Just conform your mock to the protocol. Note that you don't need to include any attributes when conforming to the protocol.
+
+```swift
+@API
+protocol GitHub {
+    @GET("/users/:username/repos")
+    func getRepositories(@Path username: String) async throws -> [Repository]
+}
+
+struct GitHubMock: GitHub {
+    func getRepositories(username: String) async throws -> [Repository] {
+        return [
+            Repository(name: "papyrus"),
+            Repository(name: "alchemy")
+        ]
+    }
+}
+```
+
+You can then use your mock during tests when the protocol is required.
+
+```swift
+struct CounterService {
+    let github: GitHub
+
+    func countRepositories(of username: String) async throws -> Int {
+        try await getRepositories(username: String).count
+    }
+}
+
+func testCounting() {
+    let mock: GitHub = GitHubMock()
+    let service = MyService(github: mock)
+    let count = service.countRepositories(of: "joshuawright11")
+    XCTAssertEqual(count, 2)
+}
+```
+
+For your convenience, you may generate a mock by adding the `@Mock` attribute to your protocol. Like `@API`, this creates a new implementation of your protocol. The generated `Mock` type conforms to your protocol and has `mock` functions to easily verify parameters and mock responses.
+
+```swift
+@API  // Generates `GitHubAPI`
+@Mock // Generates `GitHubMock`
+protocol GitHub {
+    @GET("/users/:username/repos")
+    func getRepositories(@Path username: String) async throws -> [Repository]
+}
+
+func testCounting() {
+    let mock = GitHubMock()
+    mock.mockGetRepositories { username in
+        XCTAssertEqual(username, "joshuawright11")
+        return [
+            Repository(name: "papyrus"),
+            Repository(name: "alchemy")
+        ]
+    }
+
+    let service = MyService(github: mock)
+    let count = service.countRepositories(of: "joshuawright11")
+    XCTAssertEqual(count, 2)
+}
+```
+
+## Credits
+
+Papyrus was heavily inspired by [Retrofit](https://github.com/square/retrofit).
+
+## License
+
+Papyrus is released under an MIT license. See [License.md](License.md) for more information.

@@ -8,14 +8,14 @@ public final class Provider: HTTPProvider {
     public var interceptors: [Interceptor]
     public var modifiers: [RequestModifier]
 
-    public init(baseURL: String, session: Session = .default, interceptors: [() -> Void] = []) {
+    public init(baseURL: String, session: Session = .default, modifiers: [RequestModifier] = [], interceptors: [Interceptor] = []) {
         self.baseURL = baseURL
         self.session = session
-        self.interceptors = []
-        self.modifiers = []
+        self.interceptors = interceptors
+        self.modifiers = modifiers
     }
 
-    public func modifyRequest(action: @escaping (inout RequestBuilder) throws -> Void) -> Self {
+    public func modifyRequests(action: @escaping (inout RequestBuilder) throws -> Void) -> Self {
         modifiers.append(AnonymousModifier(action: action))
         return self
     }
