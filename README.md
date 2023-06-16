@@ -420,7 +420,9 @@ func testCounting() {
 
 ## Contribution
 
-👋 Thanks for checking out Papyrus! If you'd like to contribute please [file an issue](https://github.com/alchemy-swift/papyrus/issues), [open a pull request](https://github.com/alchemy-swift/papyrus/issues) or [start a discussion](https://github.com/alchemy-swift/papyrus/discussions).
+👋 Thanks for checking out Papyrus!
+
+If you'd like to contribute please [file an issue](https://github.com/alchemy-swift/papyrus/issues), [open a pull request](https://github.com/alchemy-swift/papyrus/issues) or [start a discussion](https://github.com/alchemy-swift/papyrus/discussions).
 
 ## Acknowledgements
 
