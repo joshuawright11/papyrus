@@ -1,5 +1,13 @@
 import Papyrus
 
+extension JSONEncoder {
+    static var iso8601: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }
+}
+
 @API
 @JSON
 @KeyMapping(.useDefaultKeys)
@@ -57,9 +65,4 @@ do {
 }
 catch {
     print("ERROR: \(error)")
-}
-
-let mock = TodosMock()
-mock.mockTodos { one, two, three in
-    <#code#>
 }
