@@ -35,6 +35,15 @@ protocol Users {
 protocol Accounts {
     @GET("/accounts")
     func getAccounts() async throws
+
+    @POST("/accounts")
+    func createAccount2(name: String) async throws -> Int
+
+    @POST("/accounts")
+    func createAccount(name: String, completionHandler: @escaping (Result<Int, Error>) -> Void)
+
+    @PATCH("/accounts")
+    func updateAccount(name: String, completionHandler: @escaping (Response) -> Void)
 }
 
 let provider = Provider(baseURL: "http://localhost:3000")

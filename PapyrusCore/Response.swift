@@ -8,9 +8,12 @@ public protocol Response {
 }
 
 extension Response {
-    public func validate() throws {
-        if let error = error {
-            throw error
+    @discardableResult
+    public func validate() throws -> Self {
+        guard let error else {
+            return self
         }
+
+        throw error
     }
 }

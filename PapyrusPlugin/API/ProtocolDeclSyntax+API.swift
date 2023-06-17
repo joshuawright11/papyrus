@@ -20,7 +20,7 @@ extension ProtocolDeclSyntax {
 
             \(accessModifier)init(defaultError: Error = PapyrusError("Not mocked")) {
                 self.defaultError = defaultError
-                self.mocks = [:]
+                mocks = [:]
             }
 
             """,

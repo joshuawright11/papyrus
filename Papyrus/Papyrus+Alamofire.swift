@@ -24,8 +24,12 @@ extension Session: ProviderClient {
         return request
     }
 
-    public func request(_ req: Request) async throws -> Response {
+    public func request(_ req: Request) async -> Response {
         await request(req.request).validate().serializingData().response
+    }
+
+    public func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
+        request(req.request).response(completionHandler: completionHandler)
     }
 }
 

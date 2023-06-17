@@ -36,6 +36,14 @@ extension FunctionDeclSyntax {
         return " -> \(_type)"
     }
 
+    private var responseType: ReturnType? {
+        if useCallback, let callbackType {
+            return .type(callbackType)
+        }
+
+        return returnType
+    }
+
     private var returnType: ReturnType? {
         guard let type = signature.output?.returnType else {
             return nil
@@ -48,8 +56,8 @@ extension FunctionDeclSyntax {
         }
     }
 
-    private var returnStatements: [String] {
-        switch returnType {
+    private var returnExpression: String? {
+        switch responseType {
         case .tuple(let array):
             let elements = array.map { element in
                 let decodeElement = element.type == "Response" ? "res" : "try req.responseDecoder.decode(\(element.type).self, from: res)"
@@ -60,19 +68,15 @@ extension FunctionDeclSyntax {
                 .compactMap { $0 }
                 .joined(separator: ": ")
             }
-            return [
-                """
-                return (
+            return """
+                (
                     \(elements.joined(separator: ",\n"))
                 )
                 """
-            ]
         case .type(let string) where string != "Response":
-            return [
-                "return try req.responseDecoder.decode(\(string).self, from: res)"
-            ]
+            return "try req.responseDecoder.decode(\(string).self, from: res)"
         default:
-            return []
+            return nil
         }
     }
 
@@ -82,12 +86,27 @@ extension FunctionDeclSyntax {
     }
 
     private var mockFunction: String {
-        guard isAsync, isThrows else {
-            return "Not async throws!"
+        guard useConcurrency || useCallback else {
+            return "Not async throws or callback!"
         }
 
         let input = parameters.map { $0.secondName ?? $0.firstName }.map(\.text).joined(separator: ", ")
-        return """
+        return callbackName.map { callback in
+            let unimplementedResponse = justResponse ? "ErrorResponse(defaultError)" : ".failure(defaultError)"
+            return """
+                \(concreteSignature) {
+                    guard let mocker = mocks["\(identifier.text)"] as? \(closureSignature) else {
+                        \(callback)(\(unimplementedResponse))
+                        return
+                    }
+
+                    mocker(\(input))
+                }
+                """
+
+            }
+        ??
+        """
         \(concreteSignature) {
             guard let mocker = mocks["\(identifier.text)"] as? \(closureSignature) else {
                 throw defaultError
@@ -103,14 +122,23 @@ extension FunctionDeclSyntax {
         let nameCapitalized = name.prefix(1).capitalized + name.dropFirst()
         return """
         func mock\(nameCapitalized)(result: @escaping \(closureSignature)) {
-            self.mocks["\(name)"] = result
+            mocks["\(name)"] = result
         }
         """
     }
 
+    var justResponse: Bool {
+        switch responseType {
+        case .type(let string):
+            return string == "Response"
+        default:
+            return false
+        }
+    }
+
     func apiFunction(protocolAttributes: [APIAttribute]) -> String {
-        guard isAsync, isThrows else {
-            return "Not async throws!"
+        guard useConcurrency || useCallback else {
+            return "Not async throws or callback!"
         }
 
         var topLevelStatements: [String] = []
@@ -158,17 +186,39 @@ extension FunctionDeclSyntax {
         let buildStatements = parameters.compactMap(\.apiBuilderStatement)
 
         // Get Response
-        let responseAssignment = switch returnType {
+        let responseAssignment = switch responseType {
         case .tuple:
             "let res = "
-        case .type(let string):
-            if string == "Response" { "return " } else { "let res = " }
+        case .type:
+            if justResponse { "return " } else { "let res = " }
         case .none:
             ""
         }
 
-        let validation = returnType == nil ? ".validate()" : ""
-        let responseStatement = "\(responseAssignment)try await provider.request(req)\(validation)"
+        let validation = responseType == nil ? ".validate()" : ""
+        let responseStatement = callbackName.map { callback in
+            let closureContent =
+            justResponse
+                ? "\(callback)(res)"
+                : """
+                    do {
+                        try res.validate()
+                        \(returnExpression.map { "let res = \($0)" } ?? "")
+                        \(callback)(.success(res))
+                    }
+                    catch {
+                        \(callback)(.failure(error))
+                    }
+                    """
+            return """
+            provider.request(req) { res in
+                \(closureContent)
+            }
+            """
+        }
+        ?? """
+        \(responseAssignment)try await provider.request(req)\(validation)
+        """
 
         let lines: [String?] = [
             "\(concreteSignature) {",
@@ -176,7 +226,7 @@ extension FunctionDeclSyntax {
             topLevelStatements.joined(separator: "\n"),
             buildStatements.joined(separator: "\n"),
             responseStatement,
-            returnStatements.joined(separator: "\n"),
+            useConcurrency ? returnExpression.map { "return \($0)" } : nil,
             "}"
         ]
 
@@ -195,16 +245,62 @@ extension FunctionDeclSyntax {
 
     private var closureSignature: String {
         let parameters = parameters.map(\.closureSignatureString).joined(separator: ", ")
-        let closureReturn = returnClause.isEmpty ? " -> Void" : returnClause
-        return "(\(parameters)) async throws\(closureReturn)"
+        var closureReturn = " -> Void"
+        if useConcurrency {
+            closureReturn = "async throws" + (returnClause.isEmpty ? " -> Void" : returnClause)
+        }
+
+        return "(\(parameters)) \(closureReturn)"
     }
 
     private var concreteSignature: String {
-        let nameString = identifier
+        var finalParameterAndReturn = ")"
+        if useConcurrency {
+            finalParameterAndReturn.append("async throws\(returnClause)")
+        }
+
         let parametersString = parameters.map(\.signatureString).joined(separator: ", ")
         return """
-            func \(nameString)(\(parametersString)) async throws\(returnClause)
+            func \(identifier)(\(parametersString)\(finalParameterAndReturn)
             """
+    }
+
+    private var useConcurrency: Bool {
+        isAsync && isThrows
+    }
+
+    private var callbackName: String? {
+        guard let parameter = parameters.last, useCallback else {
+            return nil
+        }
+
+        return (parameter.secondName ?? parameter.firstName).text
+    }
+
+    private var callbackType: String? {
+        guard let parameter = parameters.last, returnType == nil else {
+            return nil
+        }
+
+        let type = parameter.type.trimmedDescription
+        if type == "@escaping (Response) -> Void" {
+            return "Response"
+        } else {
+            return type
+                .replacingOccurrences(of: "@escaping (Result<", with: "")
+                .replacingOccurrences(of: ", Error>) -> Void", with: "")
+        }
+    }
+
+    private var useCallback: Bool {
+        guard let parameter = parameters.last, returnType == nil else {
+            return false
+        }
+
+        let type = parameter.type.trimmedDescription
+        let isResult = type.hasPrefix("@escaping (Result<") && type.hasSuffix("Error>) -> Void")
+        let isResponse = type == "@escaping (Response) -> Void"
+        return isResult || isResponse
     }
 
     private var isAsync: Bool {

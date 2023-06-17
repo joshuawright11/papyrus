@@ -1,6 +1,10 @@
 import SwiftSyntax
 
 extension FunctionParameterSyntax {
+    var isCallback: Bool {
+        type.as(AttributedTypeSyntax.self)?.baseType.is(FunctionTypeSyntax.self) ?? false
+    }
+
     var isBody: Bool {
         for attribute in apiAttributes {
             if case .body = attribute {
@@ -42,6 +46,10 @@ extension FunctionParameterSyntax {
     }
 
     var apiBuilderStatement: String? {
+        guard !isCallback else {
+            return nil
+        }
+
         var parameterAttribute: APIAttribute? = nil
         for attribute in apiAttributes {
             switch attribute {

@@ -40,12 +40,16 @@ public final class Provider {
         let (body, headers) = try builder.bodyAndHeaders()
         let request = client.build(method: builder.method, url: url, headers: headers, body: body)
 
-        var next = client.request
+        var next: (Request) async throws -> Response = client.request
         for interceptor in interceptors.reversed() {
             let _next = next
             next = { try await interceptor.intercept(req: $0, next: _next) }
         }
 
         return try await next(request)
+    }
+
+    public func request(_ builder: RequestBuilder, completionHandler: (Response) -> Void) {
+        
     }
 }
