@@ -49,6 +49,7 @@ public struct RequestBuilder {
 
     // MARK: Data
 
+    public var baseURL: String
     public var method: String
     public var path: String
     public var parameters: [String: String]
@@ -79,7 +80,8 @@ public struct RequestBuilder {
     private var _requestEncoder: RequestEncoder = defaultRequestEncoder
     private var _responseDecoder: ResponseDecoder = defaultResponseDecoder
 
-    public init(method: String, path: String) {
+    public init(baseURL: String, method: String, path: String) {
+        self.baseURL = baseURL
         self.method = method
         self.path = path
         self.parameters = [:]
@@ -139,8 +141,13 @@ public struct RequestBuilder {
     
     // MARK: Creating Request Parts
 
-    public func fullURL(baseURL: String) throws -> String {
-        try baseURL + parameterizedPath() + queryString()
+    public func fullURL() throws -> URL {
+        let urlString = try baseURL + parameterizedPath() + queryString()
+        guard let url = URL(string: urlString) else {
+            throw PapyrusError("Invalid URL: \(urlString)")
+        }
+
+        return url
     }
 
     public func bodyAndHeaders() throws -> (Data?, [String: String]) {

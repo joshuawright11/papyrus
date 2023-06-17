@@ -12,8 +12,18 @@ struct APIMacro: PeerMacro {
         }
 
         return [
-            `protocol`.createAPI(),
+            `protocol`.createAPI(node.argString),
         ]
         .map { DeclSyntax(stringLiteral: $0) }
+    }
+}
+
+extension AttributeSyntax {
+    var argString: String? {
+        if case let .argumentList(list) = argument {
+            return list.first?.expression.description.withoutQuotes
+        }
+
+        return nil
     }
 }

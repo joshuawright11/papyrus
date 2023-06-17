@@ -298,6 +298,20 @@ protocol Todos {
 
 ## Configuration
 
+### Customizing the Generated Type
+
+When you use `@API` or [`@Mock`](#mocking-with-mock), Papyrus will generate an implementation named `<protocol>API` or `<protocol>Mock` respectively. The [access level](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/accesscontrol/) will match the access level of the protocol.
+
+If you'd like to customize the name of the generated type, you may pass an argument to `@API` or `@Mock`.
+
+```swift
+@API("RedditAPI") // Generates `public struct RedditAPI: RedditService`
+@Mock("RedditMock") // Generates `public struct RedditMock: RedditService`
+public protocol RedditService {
+    ...
+}
+```
+
 ### Alamofire
 
 Under the hood, Papyrus uses [Alamofire](https://github.com/Alamofire/Alamofire) to make requests. If you'd like to use a custom Alamofire `Session` for making requests, pass it in when initializing a `Provider`.

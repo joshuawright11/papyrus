@@ -11,20 +11,32 @@ let package = Package(
     products: [
         .executable(name: "PapyrusDemo", targets: ["PapyrusDemo"]),
         .library(name: "Papyrus", targets: ["Papyrus"]),
+        .library(name: "PapyrusCore", targets: ["PapyrusCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", branch: "main"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.7.1"))
     ],
     targets: [
-        .executableTarget(name: "PapyrusDemo", dependencies: ["Papyrus"], path: "Demo"),
+        .executableTarget(
+            name: "PapyrusDemo",
+            dependencies: ["Papyrus"],
+            path: "Demo"
+        ),
         .target(
             name: "Papyrus",
             dependencies: [
-                .byName(name: "PapyrusPlugin"),
+                .byName(name: "PapyrusCore"),
                 .byName(name: "Alamofire"),
             ],
             path: "Papyrus"
+        ),
+        .target(
+            name: "PapyrusCore",
+            dependencies: [
+                .byName(name: "PapyrusPlugin"),
+            ],
+            path: "PapyrusCore"
         ),
         .macro(
             name: "PapyrusPlugin",
@@ -38,6 +50,10 @@ let package = Package(
             ],
             path: "PapyrusPlugin"
         ),
-        .testTarget(name: "PapyrusTests", dependencies: ["Papyrus"], path: "PapyrusTests"),
+        .testTarget(
+            name: "PapyrusTests",
+            dependencies: ["Papyrus"],
+            path: "PapyrusTests"
+        ),
     ]
 )

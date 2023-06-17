@@ -1,10 +1,15 @@
 import Papyrus
 
+public struct Todo: Codable {
+    let id: Int
+    let name: String
+}
+
 @API
+@Mock
 @JSON
 @KeyMapping(.useDefaultKeys)
 @Authorization(.bearer("TOKEN!"))
-@Mock
 @Headers(["foo": "bar"])
 protocol Todos {
     @GET("/todos/:id")
@@ -32,11 +37,6 @@ protocol Accounts {
     func getAccounts() async throws
 }
 
-struct Todo: Codable {
-    let id: Int
-    let name: String
-}
-
 let provider = Provider(baseURL: "http://localhost:3000")
     .intercept { req, next in
         let start = Date()
@@ -60,7 +60,10 @@ catch {
 
 let mock = TodosMock()
 mock.mockTodos { one, two, three in
-    return []
+    return [
+        Todo(id: 1, name: "Foo"),
+        Todo(id: 2, name: "Bar"),
+    ]
 }
 
 let t: Todos = mock

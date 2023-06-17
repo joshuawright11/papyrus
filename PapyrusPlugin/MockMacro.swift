@@ -12,7 +12,7 @@ struct MockMacro: PeerMacro {
         }
 
         return [
-            `protocol`.createMock()
+            `protocol`.createMock(node.argString)
         ]
         .map { DeclSyntax(stringLiteral: $0) }
     }

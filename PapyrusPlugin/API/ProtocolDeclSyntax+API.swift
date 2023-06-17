@@ -1,15 +1,24 @@
 import SwiftSyntax
 
 extension ProtocolDeclSyntax {
+    var accessModifier: String {
+        guard let accessModifier = modifiers?.first?.trimmedDescription else {
+            return ""
+        }
 
-    func createMock() -> String {
+        return "\(accessModifier) "
+    }
+
+    func createMock(_ customName: String?) -> String {
+        let customName = customName.map { "final class \($0)" }
+        let name = customName ?? "final class \(identifier.trimmed)Mock"
         return [
             """
-            final class \(identifier.trimmed)Mock: \(identifier.trimmed) {
-            let defaultError: Error
-            var mocks: [String: Any]
+            \(accessModifier)\(name): \(identifier.trimmed) {
+            private let defaultError: Error
+            private var mocks: [String: Any]
 
-            init(defaultError: Error = PapyrusError("Not mocked")) {
+            \(accessModifier)init(defaultError: Error = PapyrusError("Not mocked")) {
                 self.defaultError = defaultError
                 self.mocks = [:]
             }
@@ -23,21 +32,23 @@ extension ProtocolDeclSyntax {
     }
 
     func createMockFunctions() -> [String] {
-        functions.flatMap(\.mockFunctions)
+        functions.flatMap { $0.mockFunctions(accessLevel: accessModifier) }
     }
 
-    func createAPI() -> String {
-        [
+    func createAPI(_ customName: String?) -> String {
+        let customName = customName.map { "struct \($0)" }
+        let name = customName ?? "struct \(identifier.trimmed)API"
+        return [
             """
-            struct \(identifier.trimmed)API: \(identifier.trimmed) {
-            let provider: Provider
+            \(accessModifier)\(name): \(identifier.trimmed) {
+            private let provider: Provider
 
-            init(provider: Provider) {
+            \(accessModifier)init(provider: Provider) {
                 self.provider = provider
             }
 
             """,
-            (createApiFunctions() + [newRequestFunction])
+            (createApiFunctions(accessLevel: accessModifier) + [newRequestFunction])
                 .filter { !$0.isEmpty }
                 .joined(separator: "\n\n"),
             "}"
@@ -45,8 +56,10 @@ extension ProtocolDeclSyntax {
         .joined(separator: "\n")
     }
 
-    func createApiFunctions() -> [String] {
-        functions.map { $0.apiFunction(protocolAttributes: apiAttributes) }
+    func createApiFunctions(accessLevel: String) -> [String] {
+        functions
+            .map { $0.apiFunction(protocolAttributes: apiAttributes) }
+            .map { accessModifier + $0 }
     }
 
     private var functions: [FunctionDeclSyntax] {
@@ -67,8 +80,8 @@ extension ProtocolDeclSyntax {
         }
 
         return """
-        private func newRequest(method: String, path: String) -> RequestBuilder {
-            var req = RequestBuilder(method: method, path: path)
+        private func newBuilder(method: String, path: String) -> RequestBuilder {
+            var req = provider.newBuilder(method: method, path: path)
             \(globalStatements.joined(separator: "\n") )
             return req
         }

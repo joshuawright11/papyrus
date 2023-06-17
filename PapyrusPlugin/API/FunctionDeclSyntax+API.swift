@@ -76,8 +76,9 @@ extension FunctionDeclSyntax {
         }
     }
 
-    var mockFunctions: [String] {
+    func mockFunctions(accessLevel: String) -> [String] {
         [mockFunction, mockerFunction]
+            .map { accessLevel + $0 }
     }
 
     private var mockFunction: String {
@@ -148,7 +149,7 @@ extension FunctionDeclSyntax {
 
         // Request Initialization
         let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
-        let newRequestFunction = protocolAttributes.isEmpty ? "RequestBuilder" : "newRequest"
+        let newRequestFunction = protocolAttributes.isEmpty ? "provider.newBuilder" : "newBuilder"
         let requestStatement = """
             \(decl) req = \(newRequestFunction)(method: "\(method)", path: \(path))
             """

@@ -133,7 +133,7 @@ enum APIAttribute {
 }
 
 extension String {
-    fileprivate var withoutQuotes: String {
+    var withoutQuotes: String {
         filter { $0 != "\"" }
     }
 }
