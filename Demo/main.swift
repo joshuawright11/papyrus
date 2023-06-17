@@ -1,4 +1,4 @@
-import Papyrus
+import PapyrusAsyncHTTPClient
 
 public struct Todo: Codable {
     let id: Int
