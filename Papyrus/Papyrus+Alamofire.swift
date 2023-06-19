@@ -9,19 +9,19 @@ extension Provider {
                             session: Session = Session.default,
                             modifiers: [RequestModifier] = [],
                             interceptors: [Interceptor] = []) {
-        self.init(baseURL: baseURL, client: session, modifiers: modifiers, interceptors: interceptors)
+        self.init(baseURL: baseURL, http: session, modifiers: modifiers, interceptors: interceptors)
     }
 }
 
 // MARK: `ProviderClient` Conformance
 
-extension Session: ProviderClient {
+extension Session: HTTPService {
     public func build(method: String, url: URL, headers: [String: String], body: Data?) -> Request {
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.body = body
+        request.httpBody = body
         request.allHTTPHeaderFields = headers
-        return request
+        return RequestProxy(request: request)
     }
 
     public func request(_ req: Request) async -> Response {
@@ -29,7 +29,7 @@ extension Session: ProviderClient {
     }
 
     public func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
-        request(req.request).response(completionHandler: completionHandler)
+        request(req.request).validate().response(completionHandler: completionHandler)
     }
 }
 
@@ -55,25 +55,32 @@ extension Response {
 
 // MARK: `Request` Conformance
 
-extension Request {
-    public var request: URLRequest {
-        self as! URLRequest
-    }
-}
+private struct RequestProxy: Request {
+    var request: URLRequest
 
-extension URLRequest: Request {
+    public var url: URL {
+        get { request.url! }
+        set { request.url = newValue }
+    }
+
     public var body: Data? {
-        get { httpBody }
-        set { httpBody = newValue }
+        get { request.httpBody }
+        set { request.httpBody = newValue }
     }
 
     public var method: String {
-        get { httpMethod ?? "" }
-        set { httpMethod = newValue }
+        get { request.httpMethod ?? "" }
+        set { request.httpMethod = newValue }
     }
 
     public var headers: [String: String] {
-        get { allHTTPHeaderFields ?? [:] }
-        set { allHTTPHeaderFields = newValue }
+        get { request.allHTTPHeaderFields ?? [:] }
+        set { request.allHTTPHeaderFields = newValue }
+    }
+}
+
+extension Request {
+    public var request: URLRequest {
+        (self as! RequestProxy).request
     }
 }

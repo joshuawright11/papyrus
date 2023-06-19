@@ -58,6 +58,10 @@ Supports iOS 13+ / macOS 10.15+.
 
 Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 [(currently in beta)](https://developer.apple.com/xcode/) to compile.
 
+### Swift Concurrency
+
+When relevant, examples in the documentation use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html). While using that is highly recommended, if you haven't yet migrated to Swift concurrency and would prefer a closure based API, see the secition on [closure based APIs](#closure-based-apis).
+
 ### Installation
 
 You can install Papyrus using the [Swift Package Manager](https://www.swift.org/package-manager/).
@@ -366,6 +370,25 @@ If you'd like to decouple your request modifier or interceptor logic from the `P
 let interceptor: Interceptor = ...
 let modifier: Interceptor = ...
 let provider = Provider(baseURL: "http://localhost:3000", modifiers: [modifier], interceptors: [interceptor])
+```
+
+### Closure Based APIs
+
+[Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) is the modern way of running asynchronous code in Swift.
+
+While using it is highly recommended, if you haven't yet migrated to Swift concurrency and need access to a closure based API, you can pass an `@escaping` completion handler as the last argument in an endpoint function.
+
+The function must have no return type and the closure must have a single argument of type `Result<T: Codable, Error>`, `Result<Void, Error>`, or `Response` argument.
+
+```swift
+@GET("/user")
+func getUser(callback: @escaping (Result<User, Error>) -> Void)
+
+@POST("/user")
+func createUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void)
+
+@GET("/response")
+func getResponse(completion: @escaping (Response) -> Void)
 ```
 
 ## Testing

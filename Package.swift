@@ -21,7 +21,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "PapyrusDemo",
-            dependencies: ["PapyrusAsyncHTTPClient"],
+            dependencies: ["Papyrus"],
             path: "Demo"
         ),
         .target(

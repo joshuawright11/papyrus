@@ -7,38 +7,27 @@ extension Provider {
                             httpClient: HTTPClient = HTTPClient(eventLoopGroupProvider: .createNew),
                             modifiers: [RequestModifier] = [],
                             interceptors: [Interceptor] = []) {
-        self.init(baseURL: baseURL, client: httpClient, modifiers: modifiers, interceptors: interceptors)
+        self.init(baseURL: baseURL, http: httpClient, modifiers: modifiers, interceptors: interceptors)
     }
 }
 
 // MARK: `ProviderClient` Conformance
 
-extension HTTPClient: ProviderClient {
+extension HTTPClient: HTTPService {
     public func build(method: String, url: URL, headers: [String: String], body: Data?) -> PapyrusCore.Request {
-        let method = HTTPMethod(rawValue: method)
-        let body = body.map { HTTPClient.Body.data($0) }
-        var headers = HTTPHeaders()
-        for (key, value) in headers {
-            headers.add(name: key, value: value)
-        }
-
-        let req = try! HTTPClient.Request(url: url.absoluteString,
-                                          method: method,
-                                          headers: headers,
-                                          body: body)
-        return HTTPClientRequest(request: req)
+        RequestProxy(method: method, url: url, headers: headers, body: body)
     }
 
     public func request(_ req: PapyrusCore.Request) async -> PapyrusCore.Response {
         do {
             let res = try await execute(request: req.request).get()
             guard res.status.isSuccessful else {
-                return HTTPClientResponse(response: res, error: .unsuccessfulStatus(res.status))
+                return ResponseProxy(response: res, error: .unsuccessfulStatus(res.status))
             }
 
-            return HTTPClientResponse(response: res, error: nil)
+            return ResponseProxy(response: res, error: nil)
         } catch {
-            return HTTPClientResponse(response: nil, error: error)
+            return ResponseProxy(response: nil, error: error)
         }
     }
 
@@ -48,14 +37,14 @@ extension HTTPClient: ProviderClient {
                 switch result {
                 case .success(let res):
                     guard res.status.isSuccessful else {
-                        let res = HTTPClientResponse(response: res, error: .unsuccessfulStatus(res.status))
+                        let res = ResponseProxy(response: res, error: .unsuccessfulStatus(res.status))
                         completionHandler(res)
                         return
                     }
 
-                    completionHandler(HTTPClientResponse(response: res, error: nil))
+                    completionHandler(ResponseProxy(response: res, error: nil))
                 case .failure(let error):
-                    completionHandler(HTTPClientResponse(response: nil, error: error))
+                    completionHandler(ResponseProxy(response: nil, error: error))
                 }
             }
     }
@@ -63,10 +52,9 @@ extension HTTPClient: ProviderClient {
 
 // MARK: `Response` Conformance
 
-struct HTTPClientResponse: Response {
+private struct ResponseProxy: Response {
     let response: HTTPClient.Response?
     let error: Error?
-
     var body: Data? { response?.body.map { Data(buffer: $0) } }
     var headers: [String: String]? { response?.headers.dict }
     var statusCode: Int? { response.map { Int($0.status.code) } }
@@ -74,46 +62,40 @@ struct HTTPClientResponse: Response {
 
 extension Response {
     public var response: HTTPClient.Response? {
-        (self as! HTTPClientResponse).response
+        (self as! ResponseProxy).response
     }
 }
 
 // MARK: `Request` Conformance
 
-struct HTTPClientRequest: Request {
-    var request: HTTPClient.Request
-
-    var url: URL? {
-        get { request.url }
-        set { fatalError() }
-    }
-
-    var method: String {
-        get { request.method.rawValue }
-        set { fatalError() }
-    }
-
-    var headers: [String : String] {
-        get { request.headers.dict }
-        set {
-            request.headers = HTTPHeaders()
-            request.headers.add(contentsOf: newValue.map { ($0, $1) })
+private struct RequestProxy: Request {
+    var request: HTTPClient.Request {
+        let method = HTTPMethod(rawValue: method)
+        let body = body.map { HTTPClient.Body.data($0) }
+        var headers = HTTPHeaders()
+        for (key, value) in headers {
+            headers.add(name: key, value: value)
         }
+
+        return try! HTTPClient.Request(url: url.absoluteString,
+                                       method: method,
+                                       headers: headers,
+                                       body: body)
     }
-    var body: Data? {
-        get {
-            // TODO: Figure out how to give access to data.
-            nil
-        }
-        set { request.body = newValue.map { .data($0) }}
-    }
+
+    var method: String
+    var url: URL
+    var headers: [String : String]
+    var body: Data?
 }
 
 extension Request {
     public var request: HTTPClient.Request {
-        (self as! HTTPClientRequest).request
+        (self as! RequestProxy).request
     }
 }
+
+// MARK: Utilities
 
 extension HTTPHeaders {
     fileprivate var dict: [String: String] {

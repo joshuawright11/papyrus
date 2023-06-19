@@ -92,7 +92,7 @@ extension FunctionDeclSyntax {
 
         let input = parameters.map { $0.secondName ?? $0.firstName }.map(\.text).joined(separator: ", ")
         return callbackName.map { callback in
-            let unimplementedResponse = justResponse ? "ErrorResponse(defaultError)" : ".failure(defaultError)"
+            let unimplementedResponse = justResponse ? ".error(defaultError)" : ".failure(defaultError)"
             return """
                 \(concreteSignature) {
                     guard let mocker = mocks["\(identifier.text)"] as? \(closureSignature) else {
@@ -283,6 +283,7 @@ extension FunctionDeclSyntax {
         }
 
         let type = parameter.type.trimmedDescription
+        /// This shouldn't be string based.
         if type == "@escaping (Response) -> Void" {
             return "Response"
         } else {

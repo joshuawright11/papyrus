@@ -161,7 +161,7 @@ public struct RequestBuilder {
     private func parameterizedPath() throws -> String {
         try parameters.reduce(into: path) { newPath, component in
             guard newPath.contains(":\(component.key)") else {
-                throw PapyrusError("Tried to set path component `\(component.key)` but did not find `:\(component.key)` in \(path).")
+                throw PapyrusError("Tried to set path parameter `\(component.key)` but did not find `:\(component.key)` in path `\(path)`.")
             }
 
             newPath = newPath.replacingOccurrences(of: ":\(component.key)", with: component.value)

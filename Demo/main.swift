@@ -1,4 +1,4 @@
-import PapyrusAsyncHTTPClient
+import Papyrus
 
 public struct Todo: Codable {
     let id: Int
@@ -12,8 +12,9 @@ public struct Todo: Codable {
 @Authorization(.bearer("TOKEN!"))
 @Headers(["foo": "bar"])
 protocol Todos {
-    @GET("/todos/:id")
-    func todos(id: String, @Header header1 headerOne: String, @Header header2: String) async throws -> [Todo]
+    @URLForm
+    @POST("/todos")
+    func todos(id: String, @Header header1 headerOne: String, @Header header2: String, completion: @escaping (Result<[Todo], Error>) -> Void)
 
     @POST("/todos/:idCount/tags?foo=bar")
     @KeyMapping(.snakeCase)
@@ -46,40 +47,47 @@ protocol Accounts {
     func updateAccount(name: String, completionHandler: @escaping (Response) -> Void)
 }
 
-let provider = Provider(baseURL: "http://localhost:3000")
+let provider = Provider(baseURL: "http://127.0.0.1:3000")
     .intercept { req, next in
         let start = Date()
         let res = try await next(req)
         let elapsedTime = String(format: "%.2fs", Date().timeIntervalSince(start))
         // Got a 200 for GET /users after 0.45s
-        print("Got a \(res.statusCode!) for \(req.method) \(req.url!.relativePath) after \(elapsedTime)")
+        print("Got a \(res.statusCode!) for \(req.method) \(req.url) after \(elapsedTime)")
         return res
     }
 
 let todos: Todos = TodosAPI(provider: provider)
 let user: Users = UsersAPI(provider: provider)
 let accounts: Accounts = AccountsAPI(provider: provider)
-do {
-    let tags = try await todos.tags(idCount: "Hello", fieldOne: 1, fieldTwo: true)
-    print("Got \(tags.count) todos.")
-}
-catch {
-    print("Got error: \(error).")
+
+try await withCheckedThrowingContinuation { done in
+    todos.todos(id: "FOO", header1: "BAR", header2: "BAZ") {
+        switch $0 {
+        case .failure(let error):
+            print("Got error: \(error).")
+        case .success(let todos):
+            print("Got \(todos.count) todos.")
+        }
+
+        done.resume()
+    }
 }
 
 let mock = TodosMock()
-mock.mockTodos { one, two, three in
-    return [
+mock.mockTodos { one, two, three, callback in
+    callback(.success([
         Todo(id: 1, name: "Foo"),
         Todo(id: 2, name: "Bar"),
-    ]
+    ]))
 }
 
 let t: Todos = mock
-do {
-    let r = try await t.todos(id: "foo", header1: "bar", header2: "baz")
-    print("Result is \(r.count).")
-}
-catch {
-    print("Result error is: \(error).")
+t.todos(id: "foo", header1: "bar", header2: "baz") {
+    switch $0 {
+    case .failure(let error):
+        print("Result error is: \(error).")
+    case .success(let todos):
+        print("Result is \(todos.count).")
+    }
 }

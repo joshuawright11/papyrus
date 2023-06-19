@@ -1,11 +1,13 @@
 public protocol Interceptor {
-    func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response
+    typealias Next = (Request) async throws -> Response
+
+    func intercept(req: Request, next: Next) async throws -> Response
 }
 
 struct AnonymousInterceptor: Interceptor {
-    let action: (Request, (Request) async throws -> Response) async throws -> Response
+    let action: (Request, Interceptor.Next) async throws -> Response
 
-    func intercept(req: Request, next: (Request) async throws -> Response) async throws -> Response {
+    func intercept(req: Request, next: Interceptor.Next) async throws -> Response {
         try await action(req, next)
     }
 }
