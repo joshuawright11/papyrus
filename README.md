@@ -74,9 +74,9 @@ dependencies: [
 ]
 ```
 
-## Defining an Endpoint
+## Defining APIs
 
-Individual endpoints are definied by adding functions to your protocol. The function's parameters represent the request content.
+Each API you need to consume is represented by a _protocol_. Individual endpoints are represented by the _protocol's functions_. The function's _parameters_ and _return type_ represent the request content and response, respectively.
 
 ### Setting the Method and Path
 
