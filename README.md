@@ -13,29 +13,23 @@ protocol GitHub {
     func getRepositories(@Path username: String) async throws -> [Repository]
 }
 
-struct Repository: Codable { ... }
-```
-
-Each protocol function represents an endpoint on your API. They can be consumed through an automatically generated type.
-
-```swift
 let provider = Provider(baseURL: "https://api.github.com/")
 let github: GitHub = GitHubAPI(provider: provider)
 let repos = try await github.getRepositories(username: "alchemy-swift")
 ```
 
-Annotations on the protocol, functions and parameters help construct requests and decode responses.
+Each protocol function represents an endpoint on your API. Annotations on the protocol, functions, and parameters help construct requests and decode responses.
 
 ```swift
 @API
 @Authorization(.bearer("<my-auth-token>"))
 protocol Users {
     @GET("/user")
-    func getUser() -> User
+    func getUser() async throws -> User
 
     @URLForm
     @POST("/user")
-    func createUser(@Field email: String, @Field password: String) -> User
+    func createUser(@Field email: String, @Field password: String) async throws -> User
 }
 ```
 
@@ -56,11 +50,13 @@ protocol Users {
 
 Supports iOS 13+ / macOS 10.15+.
 
+Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire). If you're using Linux / Swift on Server, use [PapyrusAsyncHTTP](#https://github.com/alchemy-swift/papyrus/tree/main/PapyrusAsyncHTTPClient) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
+
 Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 [(currently in beta)](https://developer.apple.com/xcode/) to compile.
 
 ### Swift Concurrency
 
-When relevant, examples in the documentation use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html). While using that is highly recommended, if you haven't yet migrated to Swift concurrency and would prefer a closure based API, see the secition on [closure based APIs](#closure-based-apis).
+Examples are shown using [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html). While using it is highly recommended, if you haven't yet migrated to Swift concurrency and would prefer a closure based API, see the section on [closure based APIs](#closure-based-apis).
 
 ### Installation
 
