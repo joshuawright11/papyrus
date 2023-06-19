@@ -50,13 +50,19 @@ protocol Users {
 
 Supports iOS 13+ / macOS 10.15+.
 
-Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire). If you're using Linux / Swift on Server, use [PapyrusAsyncHTTP](#https://github.com/alchemy-swift/papyrus/tree/main/PapyrusAsyncHTTPClient) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
-
 Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 [(currently in beta)](https://developer.apple.com/xcode/) to compile.
+
+### Swift on the Server
+
+Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
+
+If you're using Linux / Swift on Server, use [PapyrusAsyncHTTP](#https://github.com/alchemy-swift/papyrus/tree/main/PapyrusAsyncHTTPClient) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
 ### Swift Concurrency
 
-Examples are shown using [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html). While using it is highly recommended, if you haven't yet migrated to Swift concurrency and would prefer a closure based API, see the section on [closure based APIs](#closure-based-apis).
+Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html).
+
+While using concurrency is recommended, if you haven't yet migrated and need a closure based API, see the section on [closure based APIs](#closure-based-apis).
 
 ### Installation
 
