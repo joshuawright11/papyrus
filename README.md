@@ -36,7 +36,7 @@ protocol Users {
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Defining an Endpoint](#defining-an-endpoint)
+2. [Defining APIs](#defining-apis)
 3. [Handling the Response](#handling-the-response)
 4. [Custom Keys](#custom-keys)
 5. [Configuration](#configuration)
