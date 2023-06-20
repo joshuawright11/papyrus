@@ -75,7 +75,7 @@ While using concurrency is recommended, if you haven't yet migrated and need a c
 
 ### Swift on the Server
 
-Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
+Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).  
 
 If you're using Linux / Swift on Server, use [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
@@ -85,7 +85,7 @@ You can install Papyrus using the [Swift Package Manager](https://www.swift.org/
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/joshuawright11/papyrus.git", .upToNextMinor(from: "0.3.0"))
+    .package(url: "https://github.com/joshuawright11/papyrus.git", branch: "main")
 ]
 ```
 
