@@ -402,12 +402,15 @@ While using it is highly recommended, if you haven't yet migrated to Swift concu
 The function must have no return type and the closure must have a single argument of type `Result<T: Codable, Error>`, `Result<Void, Error>`, or `Response` argument.
 
 ```swift
+// equivalent to `func getUser() async throws -> User`
 @GET("/user")
 func getUser(callback: @escaping (Result<User, Error>) -> Void)
 
+// equivalent to `func createUser(email: String, password: String) async throws`
 @POST("/user")
 func createUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void)
 
+// equivalent to `func getResponse() async throws -> Response`
 @GET("/response")
 func getResponse(completion: @escaping (Response) -> Void)
 ```
