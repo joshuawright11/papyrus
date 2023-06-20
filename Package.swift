@@ -9,28 +9,19 @@ let package = Package(
         .macOS("10.15"),
     ],
     products: [
-        .executable(name: "PapyrusDemo", targets: ["PapyrusDemo"]),
+        .executable(name: "PapyrusExample", targets: ["PapyrusExample"]),
         .library(name: "Papyrus", targets: ["Papyrus"]),
         .library(name: "PapyrusCore", targets: ["PapyrusCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", branch: "main"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.7.1")),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.9.0"),
     ],
     targets: [
         .executableTarget(
-            name: "PapyrusDemo",
+            name: "PapyrusExample",
             dependencies: ["Papyrus"],
-            path: "Demo"
-        ),
-        .target(
-            name: "PapyrusAsyncHTTPClient",
-            dependencies: [
-                .byName(name: "PapyrusCore"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client"),
-            ],
-            path: "PapyrusAsyncHTTPClient"
+            path: "Example"
         ),
         .target(
             name: "Papyrus",

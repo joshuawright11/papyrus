@@ -1,8 +1,8 @@
 # Papyrus 📜
 
 <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version"></a>
-<a href="https://github.com/alchemy-swift/alchemy/releases"><img src="https://img.shields.io/github/release/alchemy-swift/papyrus.svg" alt="Latest Release"></a>
-<a href="https://github.com/alchemy-swift/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alchemy-swift/papyrus.svg" alt="License"></a>
+<a href="https://github.com/joshuawright11/papyrus/releases"><img src="https://img.shields.io/github/release/joshuawright11/papyrus.svg" alt="Latest Release"></a>
+<a href="https://github.com/joshuawright11/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/joshuawright11/papyrus.svg" alt="License"></a>
 
 Papyrus turns your HTTP APIs into type-safe Swift protocols.
 
@@ -77,7 +77,7 @@ While using concurrency is recommended, if you haven't yet migrated and need a c
 
 Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
 
-If you're using Linux / Swift on Server, use [PapyrusAsyncHTTP](https://github.com/alchemy-swift/papyrus/tree/main/PapyrusAsyncHTTPClient) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
+If you're using Linux / Swift on Server, use [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
 ### Installation
 
@@ -85,7 +85,7 @@ You can install Papyrus using the [Swift Package Manager](https://www.swift.org/
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/alchemy-swift/papyrus.git", .upToNextMinor(from: "0.3.0"))
+    .package(url: "https://github.com/joshuawright11/papyrus.git", .upToNextMinor(from: "0.3.0"))
 ]
 ```
 
@@ -491,7 +491,7 @@ func testCounting() {
 
 👋 Thanks for checking out Papyrus!
 
-If you'd like to contribute please [file an issue](https://github.com/alchemy-swift/papyrus/issues), [open a pull request](https://github.com/alchemy-swift/papyrus/issues) or [start a discussion](https://github.com/alchemy-swift/papyrus/discussions).
+If you'd like to contribute please [file an issue](https://github.com/joshuawright11/papyrus/issues), [open a pull request](https://github.com/joshuawright11/papyrus/issues) or [start a discussion](https://github.com/joshuawright11/papyrus/discussions).
 
 ## Acknowledgements
 
