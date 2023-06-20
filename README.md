@@ -4,7 +4,7 @@
 <a href="https://github.com/alchemy-swift/alchemy/releases"><img src="https://img.shields.io/github/release/alchemy-swift/papyrus.svg" alt="Latest Release"></a>
 <a href="https://github.com/alchemy-swift/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alchemy-swift/papyrus.svg" alt="License"></a>
 
-Papyrus turns your HTTP APIs into type-safe Swift `protocol`s.
+Papyrus turns your HTTP APIs into type-safe Swift protocols.
 
 ```swift
 @API
@@ -12,13 +12,17 @@ protocol GitHub {
     @GET("/users/:username/repos")
     func getRepositories(@Path username: String) async throws -> [Repository]
 }
+```
 
+```swift
 let provider = Provider(baseURL: "https://api.github.com/")
 let github: GitHub = GitHubAPI(provider: provider)
 let repos = try await github.getRepositories(username: "alchemy-swift")
 ```
 
-Each protocol function represents an endpoint on your API. Annotations on the protocol, functions, and parameters help construct requests and decode responses.
+Each function on your protocol represents an endpoint on your API.
+
+Annotations on the protocol, functions, and parameters help construct requests and decode responses.
 
 ```swift
 @API
@@ -33,16 +37,27 @@ protocol Users {
 }
 ```
 
+## Features
+
+-   [x] Turn REST APIs into Swift protocols
+-   [x] Generate Swift Concurrency _or_ completion handler based APIs
+-   [x] JSON and URLForm encoding
+-   [x] Easy to configure key mapping
+-   [x] Automatically decode responses with `Codable`
+-   [x] Custom Interceptors & Builders
+-   [x] Generate mock APIs for testing
+-   [x] iOS / macOS support powered by [Alamofire](https://github.com/Alamofire/Alamofire)
+-   [x] Swift on Server support powered by [async-http-client](https://github.com/swift-server/async-http-client)
+
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
 2. [Defining APIs](#defining-apis)
 3. [Handling the Response](#handling-the-response)
-4. [Custom Keys](#custom-keys)
-5. [Configuration](#configuration)
-6. [Testing](#testing)
-7. [Acknowledgements](#acknowledgements)
-8. [License](#license)
+4. [Configuration](#configuration)
+5. [Testing](#testing)
+6. [Acknowledgements](#acknowledgements)
+7. [License](#license)
 
 ## Getting Started
 
@@ -52,17 +67,17 @@ Supports iOS 13+ / macOS 10.15+.
 
 Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 [(currently in beta)](https://developer.apple.com/xcode/) to compile.
 
-### Swift on the Server
-
-Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
-
-If you're using Linux / Swift on Server, use [PapyrusAsyncHTTP](#https://github.com/alchemy-swift/papyrus/tree/main/PapyrusAsyncHTTPClient) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
-
 ### Swift Concurrency
 
 Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html).
 
 While using concurrency is recommended, if you haven't yet migrated and need a closure based API, see the section on [closure based APIs](#closure-based-apis).
+
+### Swift on the Server
+
+Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
+
+If you're using Linux / Swift on Server, use [PapyrusAsyncHTTP](https://github.com/alchemy-swift/papyrus/tree/main/PapyrusAsyncHTTPClient) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
 ### Installation
 
@@ -76,7 +91,11 @@ dependencies: [
 
 ## Defining APIs
 
-Each API you need to consume is represented by a _protocol_. Individual endpoints are represented by the _protocol's functions_. The function's _parameters_ and _return type_ represent the request content and response, respectively.
+Each API you need to consume is represented by a _protocol_.
+
+Individual endpoints are represented by the _protocol's functions_.
+
+The function's _parameters_ and _return type_ represent the request content and response, respectively.
 
 ### Setting the Method and Path
 
@@ -109,6 +128,46 @@ You can also set static queries directly in the path string.
 ```swift
 @GET("/transactions?merchant=Apple")
 ```
+
+### Headers
+
+You can set static headers on a request using `@Headers` at the function or protocol scope.
+
+```swift
+@Headers(["Cache-Control": "max-age=86400"])
+@GET("/user")
+func getUser() async throws -> User
+```
+
+```swift
+@API
+@Headers(["X-Client-Version": "1.2.3"])
+protocol Users {
+    @GET("/user")
+    func getUser() async throws -> User
+
+    @PATCH("/user/:id")
+    func updateUser(@Path id: Int, name: String) async throws
+}
+```
+
+For convenience, the `@Authorization` attribute can be used to set a static `"Authorization"` header.
+
+```swift
+@Authorization(.basic(username: "joshuawright11", password: "P@ssw0rd"))
+protocol Users {
+    ...
+}
+```
+
+A variable header can be set with the `@Header` attribute.
+
+```swift
+@GET("/accounts")
+func getRepository(@Header customHeader: String) async throws
+```
+
+Note that variable headers are automatically mapped to Capital-Kebab-Case. In this case, `Custom-Header`. If you'd like to set a different header key, see the section on [Custom Keys](#custom-keys).
 
 ### Setting a Body
 
@@ -182,46 +241,6 @@ protocol Todos {
 }
 ```
 
-### Headers
-
-You can set static headers on a request using `@Headers` at the function or protocol scope.
-
-```swift
-@Headers(["Cache-Control": "max-age=86400"])
-@GET("/user")
-func getUser() async throws -> User
-```
-
-```swift
-@API
-@Headers(["X-Client-Version": "1.2.3"])
-protocol Users {
-    @GET("/user")
-    func getUser() async throws -> User
-
-    @PATCH("/user/:id")
-    func updateUser(@Path id: Int, name: String) async throws
-}
-```
-
-For convenience, the `@Authorization` attribute can be used to set a static `"Authorization"` header.
-
-```swift
-@Authorization(.basic(username: "joshuawright11", password: "P@ssw0rd"))
-protocol Users {
-    ...
-}
-```
-
-A variable header can be set with the `@Header` attribute.
-
-```swift
-@GET("/accounts")
-func getRepository(@Header customHeader: String) async throws
-```
-
-Note that variable headers are automatically mapped to Capital-Kebab-Case. In this case, `Custom-Header`. If you'd like to set a different header key, see the section on [Custom Keys](#custom-keys).
-
 ## Handling the Response
 
 The return type of your function represents the response of your endpoint.
@@ -272,7 +291,9 @@ let (user, res) = try await users.getUser()
 print("The response status code was: \(res.statusCode!)")
 ```
 
-## Custom Keys
+## Configuration
+
+### Custom Keys
 
 If you use two labels for a function parameter, the second one will be inferred as the relevant key.
 
@@ -288,7 +309,7 @@ If you'd like a custom key for `@Path`, `@Header`, `@Field` or `@Query`, you can
 func getRepository(@Path("id") repositoryId: Int) async throws -> Repository
 ```
 
-### Key Mapping
+#### Key Mapping
 
 Often, you'll want to encode request fields and decode response fields using something other than camelCase. Instead of setting a custom key for each individual attribute, you can use `@KeyMapping` at the function or protocol level.
 
@@ -301,8 +322,6 @@ protocol Todos {
     ...
 }
 ```
-
-## Configuration
 
 ### Customizing the Generated Type
 
