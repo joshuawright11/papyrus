@@ -30,10 +30,16 @@ enum APIAttribute {
         let name = syntax.attributeName.trimmedDescription
         switch name {
         case "GET", "DELETE", "PATCH", "POST", "PUT", "OPTIONS", "HEAD", "TRACE", "CONNECT":
-            guard let firstArgument else { return nil }
+            guard let firstArgument else {
+                return nil
+            }
+
             self = .http(method: name, path: firstArgument)
         case "HTTP":
-            guard let firstArgument, let secondArgument else { return nil }
+            guard let firstArgument, let secondArgument else {
+                return nil
+            }
+
             self = .http(method: secondArgument.withoutQuotes, path: firstArgument)
         case "Body":
             self = .body
@@ -46,7 +52,10 @@ enum APIAttribute {
         case "Path":
             self = .path(key: firstArgument?.withoutQuotes)
         case "Headers":
-            guard let firstArgument else { return nil }
+            guard let firstArgument else {
+                return nil
+            }
+
             self = .headers(value: firstArgument)
         case "JSON":
             self = .json(
@@ -56,13 +65,22 @@ enum APIAttribute {
         case "URLForm":
             self = .urlForm(value: firstArgument ?? "URLEncodedFormEncoder()")
         case "Coder":
-            guard let firstArgument, let secondArgument else { return nil }
+            guard let firstArgument, let secondArgument else {
+                return nil
+            }
+
             self = .converter(encoder: firstArgument, decoder: secondArgument)
         case "KeyMapping":
-            guard let firstArgument else { return nil }
+            guard let firstArgument else {
+                return nil
+            }
+
             self = .keyMapping(value: firstArgument)
         case "Authorization":
-            guard let firstArgument else { return nil }
+            guard let firstArgument else {
+                return nil
+            }
+
             self = .authorization(value: firstArgument)
         default:
             return nil
@@ -72,30 +90,45 @@ enum APIAttribute {
     func requestStatement(input: String?) -> String? {
         switch self {
         case .body:
-            guard let input else { return "Input Required!" }
+            guard let input else {
+                return "Input Required!"
+            }
+
             return """
             req.setBody(\(input))
             """
         case let .query(key):
-            guard let input else { return "Input Required!" }
+            guard let input else {
+                return "Input Required!"
+            }
+
             let mapParameter = key == nil ? "" : ", mapKey: false"
             return """
             req.addQuery("\(key ?? input)", value: \(input)\(mapParameter))
             """
         case let .header(key):
-            guard let input else { return "Input Required!" }
+            guard let input else {
+                return "Input Required!"
+            }
+
             let hasCustomKey = key == nil
             let convertParameter = hasCustomKey ? "" : ", convertToHeaderCase: true"
             return """
             req.addHeader("\(key ?? input)", value: \(input)\(convertParameter))
             """
         case let .path(key):
-            guard let input else { return "Input Required!" }
+            guard let input else {
+                return "Input Required!"
+            }
+
             return """
             req.addParameter("\(key ?? input)", value: \(input))
             """
         case let .field(key):
-            guard let input else { return "Input Required!" }
+            guard let input else {
+                return "Input Required!"
+            }
+
             let mapParameter = key == nil ? "" : ", mapKey: false"
             return """
             req.addField("\(key ?? input)", value: \(input)\(mapParameter))
@@ -129,11 +162,5 @@ enum APIAttribute {
         case .http:
             return nil
         }
-    }
-}
-
-extension String {
-    var withoutQuotes: String {
-        filter { $0 != "\"" }
     }
 }
