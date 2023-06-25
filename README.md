@@ -6,7 +6,7 @@
 
 Papyrus is a type-safe HTTP client for Swift. 
 
-It turns your HTTP APIs into type-safe Swift protocols.
+It turns your APIs into Swift protocols.
 
 ```swift
 @API
