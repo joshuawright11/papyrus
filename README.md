@@ -4,7 +4,9 @@
 <a href="https://github.com/joshuawright11/papyrus/releases"><img src="https://img.shields.io/github/release/joshuawright11/papyrus.svg" alt="Latest Release"></a>
 <a href="https://github.com/joshuawright11/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/joshuawright11/papyrus.svg" alt="License"></a>
 
-Papyrus turns your HTTP APIs into type-safe Swift protocols.
+Papyrus is a type-safe HTTP client for Swift. 
+
+It turns your HTTP APIs into type-safe Swift protocols.
 
 ```swift
 @API
