@@ -10,51 +10,51 @@ struct MockMacro: PeerMacro {
                 throw PapyrusPluginError("@Mock can only be applied to protocols.")
             }
 
-            return try type.createMock(named: node.firstArgument)
+            let name = node.firstArgument ?? "\(type.typeName)Mock"
+            return try type.createMock(named: name)
         }
     }
 }
 
 extension ProtocolDeclSyntax {
-    fileprivate func createMock(named customName: String?) throws -> String {
-        let typeName = customName ?? "\(name)Mock"
-        let functions = try createMockFunctions().map { access + $0 }
-        return access + """
-            final class \(typeName): \(name) {
-                private let defaultError: Error
-                private var mocks: [String: Any]
+    fileprivate func createMock(named mockName: String) throws -> String {
+        """
+        \(access)final class \(mockName): \(typeName) {
+            private let notMockedError: Error
+            private var mocks: [String: Any]
 
-                \(access)init(defaultError: Error = PapyrusError("Not mocked")) {
-                    self.defaultError = defaultError
-                    mocks = [:]
-                }
-
-            \(functions.joined(separator: "\n\n"))
+            \(access)init(notMockedError: Error = PapyrusError("Not mocked")) {
+                self.notMockedError = notMockedError
+                mocks = [:]
             }
-            """
+
+        \(try generateMockFunctions())
+        }
+        """
     }
 
-    private func createMockFunctions() throws -> [String] {
-        try functions.flatMap {
-            try [$0.mockedFunction(), $0.mockerFunction]
-        }
+    private func generateMockFunctions() throws -> String {
+        try functions
+            .flatMap { try [$0.mockImplementation(), $0.mockerFunction] }
+            .map { access + $0 }
+            .joined(separator: "\n\n")
     }
 }
 
 extension FunctionDeclSyntax {
-    fileprivate func mockedFunction() throws -> String {
+    fileprivate func mockImplementation() throws -> String {
         try validateSignature()
 
         let notFoundExpression: String
         switch style {
         case .concurrency:
-            notFoundExpression = "throw defaultError"
+            notFoundExpression = "throw notMockedError"
         case .completionHandler:
             guard let callbackName else {
                 throw PapyrusPluginError("Missing @escaping completion handler as final function argument.")
             }
 
-            let unimplementedError = returnsResponse ? ".error(defaultError)" : ".failure(defaultError)"
+            let unimplementedError = returnResponseOnly ? ".error(notMockedError)" : ".failure(notMockedError)"
             notFoundExpression = """
                 \(callbackName)(\(unimplementedError))
                 return
@@ -71,8 +71,8 @@ extension FunctionDeclSyntax {
             }
 
         return """
-            func \(signatureString) {
-                guard let mocker = mocks["\(name)"] as? \(closureTypeString) else {
+            func \(functionName)\(signature) {
+                guard let mocker = mocks["\(functionName)"] as? \(mockClosureType) else {
                     \(notFoundExpression)
                 }
 
@@ -83,16 +83,16 @@ extension FunctionDeclSyntax {
 
     fileprivate var mockerFunction: String {
         """
-        func mock\(name.capitalizeFirst)(result: @escaping \(closureTypeString)) {
-            mocks["\(name)"] = result
+        func mock\(functionName.capitalizeFirst)(result: @escaping \(mockClosureType)) {
+            mocks["\(functionName)"] = result
         }
         """
     }
 
-    private var closureTypeString: String {
+    private var mockClosureType: String {
         let parameterTypes = parameters.map(\.typeString).joined(separator: ", ")
         let effects = effects.isEmpty ? "" : " \(effects.joined(separator: " "))"
-        let returnType = returnTypeString ?? "Void"
+        let returnType = signature.output?.returnType.trimmedDescription ?? "Void"
         return "(\(parameterTypes))\(effects) -> \(returnType)"
     }
 }

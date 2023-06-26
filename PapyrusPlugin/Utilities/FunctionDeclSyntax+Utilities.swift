@@ -1,8 +1,17 @@
 import Foundation
 import SwiftSyntax
 
-/// Async Preference
 extension FunctionDeclSyntax {
+    enum ReturnType: Equatable {
+        struct TupleParameter: Equatable {
+            let label: String?
+            let type: String
+        }
+
+        case tuple([TupleParameter])
+        case type(String)
+    }
+
     enum AsyncStyle {
         case concurrency
         case completionHandler
@@ -32,22 +41,10 @@ extension FunctionDeclSyntax {
     private var hasAsyncAwait: Bool {
         effects.contains("async") && effects.contains("throws")
     }
-}
-
-extension FunctionDeclSyntax {
-    enum ReturnType: Equatable {
-        struct TupleParameter: Equatable {
-            let label: String?
-            let type: String
-        }
-
-        case tuple([TupleParameter])
-        case type(String)
-    }
 
     // MARK: Function effects & attributes
 
-    var name: String {
+    var functionName: String {
         identifier.text
     }
 
@@ -55,12 +52,6 @@ extension FunctionDeclSyntax {
         [signature.effectSpecifiers?.asyncSpecifier, signature.effectSpecifiers?.throwsSpecifier]
             .compactMap { $0 }
             .map { $0.text }
-    }
-
-    var signatureString: String {
-        """
-        \(name)\(signature)
-        """
     }
 
     var parameters: [FunctionParameterSyntax] {
@@ -86,7 +77,7 @@ extension FunctionDeclSyntax {
         }
 
         let type = parameter.type.trimmedDescription
-        /// This shouldn't be string based.
+        // This shouldn't be string based.
         if type == "@escaping (Response) -> Void" {
             return "Response"
         } else {
@@ -97,10 +88,6 @@ extension FunctionDeclSyntax {
     }
 
     // MARK: Return Data
-
-    var returnTypeString: String? {
-        signature.output?.returnType.trimmedDescription
-    }
 
     var responseType: ReturnType? {
         if style == .completionHandler, let callbackType {
@@ -122,31 +109,7 @@ extension FunctionDeclSyntax {
         }
     }
 
-    var returnExpression: String? {
-        switch responseType {
-        case .tuple(let array):
-            let elements = array.map { element in
-                let decodeElement = element.type == "Response" ? "res" : "try req.responseDecoder.decode(\(element.type).self, from: res)"
-                return [
-                    element.label,
-                    decodeElement
-                ]
-                .compactMap { $0 }
-                .joined(separator: ": ")
-            }
-            return """
-                (
-                    \(elements.joined(separator: ",\n"))
-                )
-                """
-        case .type(let string) where string != "Response":
-            return "try req.responseDecoder.decode(\(string).self, from: res)"
-        default:
-            return nil
-        }
-    }
-
-    var returnsResponse: Bool {
+    var returnResponseOnly: Bool {
         responseType == .type("Response")
     }
 }

@@ -87,7 +87,7 @@ enum APIAttribute {
         }
     }
 
-    func requestStatement(input: String?) -> String? {
+    func apiBuilderStatement(input: String? = nil) -> String? {
         switch self {
         case .body:
             guard let input else {

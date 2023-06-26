@@ -1,7 +1,7 @@
 import SwiftSyntax
 
 extension ProtocolDeclSyntax {
-    var name: String {
+    var typeName: String {
         identifier.text
     }
     

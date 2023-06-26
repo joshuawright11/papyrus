@@ -10,55 +10,51 @@ struct APIMacro: PeerMacro {
                 throw PapyrusPluginError("@API can only be applied to protocols.")
             }
 
-            return try type.createAPI(named: node.firstArgument)
+            let name = node.firstArgument ?? "\(type.typeName)API"
+            return try type.createAPI(named: name)
         }
     }
 }
 
 extension ProtocolDeclSyntax {
-    func createAPI(named customName: String?) throws -> String {
-        let customName = customName.map { "struct \($0)" }
-        let name = customName ?? "struct \(identifier.trimmed)API"
-        return [
-            """
-            \(access)\(name): \(identifier.trimmed) {
+    func createAPI(named apiName: String) throws -> String {
+        """
+        \(access)struct \(apiName): \(typeName) {
             private let provider: Provider
 
             \(access)init(provider: Provider) {
                 self.provider = provider
             }
 
-            """,
-            (try createApiFunctions() + [newRequestFunction])
-                .filter { !$0.isEmpty }
-                .joined(separator: "\n\n"),
-            "}"
-        ]
-        .joined(separator: "\n")
-    }
-
-    private func createApiFunctions() throws -> [String] {
-        try functions
-            .map { try $0.apiFunction(protocolAttributes: apiAttributes) }
-            .map { access + $0 }
-    }
-
-    private var newRequestFunction: String {
-        guard !globalStatements.isEmpty else {
-            return ""
-        }
-
-        return """
-        private func newBuilder(method: String, path: String) -> RequestBuilder {
-            var req = provider.newBuilder(method: method, path: path)
-            \(globalStatements.joined(separator: "\n") )
-            return req
+        \(try generateAPIFunctions())
         }
         """
     }
 
-    private var globalStatements: [String] {
-        apiAttributes.compactMap { $0.requestStatement(input: nil) }
+    private func generateAPIFunctions() throws -> String {
+        var functions = try functions
+            .map { try $0.apiFunction() }
+            .map { access + $0 }
+        functions.append(newRequestFunction)
+        return functions.joined(separator: "\n\n")
+    }
+
+    private var newRequestFunction: String {
+        let globalBuilderStatements = apiAttributes.compactMap { $0.apiBuilderStatement() }
+        let content = globalBuilderStatements.isEmpty
+            ? """
+              provider.newBuilder(method: method, path: path)
+              """
+            : """
+              var req = provider.newBuilder(method: method, path: path)
+              \(globalBuilderStatements.joined(separator: "\n"))
+              return req
+              """
+        return """
+            private func builder(method: String, path: String) -> RequestBuilder {
+            \(content)
+            }
+            """
     }
 
     private var apiAttributes: [APIAttribute] {
@@ -69,7 +65,78 @@ extension ProtocolDeclSyntax {
 }
 
 extension FunctionDeclSyntax {
-    func apiMethodAndPath() throws -> (method: String, path: String) {
+    fileprivate func apiFunction() throws -> String {
+        let (method, path) = try apiMethodAndPath()
+        try validateSignature()
+        try validateBody()
+
+        let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
+        var buildRequest = """
+            \(decl) req = builder(method: "\(method)", path: \(path))
+            """
+
+        for statement in apiAttributes.compactMap({ $0.apiBuilderStatement() }) {
+            buildRequest.appendNewLine(statement)
+        }
+
+        for statement in try parameters.compactMap({ try $0.apiBuilderStatement() }) {
+            buildRequest.appendNewLine(statement)
+        }
+
+        return """
+            func \(functionName)\(signature) {
+            \(buildRequest)
+            \(try handleResponse())
+            }
+            """
+    }
+
+    private func handleResponse() throws -> String {
+        switch style {
+        case .completionHandler:
+            guard let callbackName else {
+                throw PapyrusPluginError("No callback found!")
+            }
+
+            if returnResponseOnly {
+                return """
+                    provider.request(req) { res in
+                    \(callbackName)(res)
+                    }
+                    """
+            } else {
+                return """
+                    provider.request(req) { res in
+                        do {
+                            try res.validate()
+                            \(resultExpression.map { "let res = \($0)" } ?? "")
+                            \(callbackName)(.success(res))
+                        } catch {
+                            \(callbackName)(.failure(error))
+                        }
+                    }
+                    """
+            }
+        case .concurrency:
+            switch responseType {
+            case .type where returnResponseOnly:
+                return "return try await provider.request(req)"
+            case .type, .tuple:
+                guard let resultExpression else {
+                    throw PapyrusPluginError("Missing result expression!")
+                }
+
+                return """
+                    let res = try await provider.request(req)
+                    return \(resultExpression)
+                    """
+            case .none:
+                return "try await provider.request(req).validate()"
+            }
+        }
+    }
+
+    private func apiMethodAndPath() throws -> (method: String, path: String) {
         var method, path: String?
         for attribute in apiAttributes {
             switch attribute {
@@ -91,90 +158,52 @@ extension FunctionDeclSyntax {
         return (method, path)
     }
 
-    func apiFunction(protocolAttributes: [APIAttribute]) throws -> String {
-        let (method, path) = try apiMethodAndPath()
-        try validateSignature()
-        try validateBody()
-
-        var topLevelStatements: [String] = []
-        for attribute in apiAttributes {
+    private func validateBody() throws {
+        var bodies = 0, fields = 0
+        for attribute in parameters.flatMap(\.apiAttributes) {
             switch attribute {
-            case .http:
-                continue
+            case .body:
+                bodies += 1
+            case .field:
+                fields += 1
             default:
-                if let statement = attribute.requestStatement(input: nil) {
-                    topLevelStatements.append(statement)
+                continue
+            }
+        }
+
+        guard fields == 0 || bodies == 0 else {
+            throw PapyrusPluginError("Can't have @Body and @Field!")
+        }
+
+        guard bodies <= 1 else {
+            throw PapyrusPluginError("Can only have one @Body!")
+        }
+    }
+
+    private var resultExpression: String? {
+        guard !returnResponseOnly else {
+            return nil
+        }
+
+        switch responseType {
+        case .tuple(let array):
+            let elements = array
+                .map { element in
+                    let expression = element.type == "Response" ? "res" : "try req.responseDecoder.decode(\(element.type).self, from: res)"
+                    return [element.label, expression]
+                        .compactMap { $0 }
+                        .joined(separator: ": ")
                 }
-            }
-        }
-
-        // Request Initialization
-        let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
-        let newRequestFunction = protocolAttributes.isEmpty ? "provider.newBuilder" : "newBuilder"
-        let requestStatement = """
-            \(decl) req = \(newRequestFunction)(method: "\(method)", path: \(path))
-            """
-
-        // Request Construction
-        let buildStatements = parameters.compactMap(\.apiBuilderStatement)
-
-        // Get Response
-        let responseAssignment =
-            switch responseType {
-            case .tuple:
-                "let res = "
-            case .type:
-                if returnsResponse { "return " } else { "let res = " }
-            case .none:
-                ""
-            }
-
-        let validation = responseType == nil ? ".validate()" : ""
-        let responseStatement = callbackName.map { callback in
-            let closureContent = returnsResponse
-                ? "\(callback)(res)"
-                : """
-                    do {
-                        try res.validate()
-                        \(returnExpression.map { "let res = \($0)" } ?? "")
-                        \(callback)(.success(res))
-                    }
-                    catch {
-                        \(callback)(.failure(error))
-                    }
-                    """
             return """
-            provider.request(req) { res in
-                \(closureContent)
-            }
-            """
+                (
+                    \(elements.joined(separator: ",\n"))
+                )
+                """
+        case .type(let string):
+            return "try req.responseDecoder.decode(\(string).self, from: res)"
+        default:
+            return nil
         }
-        ?? """
-        \(responseAssignment)try await provider.request(req)\(validation)
-        """
-
-        let _return: String? =
-            switch style {
-            case .concurrency:
-                returnExpression.map { "return \($0)" }
-            case .completionHandler:
-                nil
-            }
-
-        let lines: [String?] = [
-            "func \(signatureString) {",
-            requestStatement,
-            topLevelStatements.joined(separator: "\n"),
-            buildStatements.joined(separator: "\n"),
-            responseStatement,
-            _return,
-            "}"
-        ]
-
-        return lines
-            .compactMap { $0 }
-            .filter { !$0.isEmpty }
-            .joined(separator: "\n")
     }
 
     private var apiAttributes: [APIAttribute] {
@@ -182,35 +211,10 @@ extension FunctionDeclSyntax {
             .compactMap { $0.as(AttributeSyntax.self) }
             .compactMap(APIAttribute.init) ?? []
     }
-
-    private func validateBody() throws {
-        var hasBody = false
-        var hasField = false
-        for parameter in parameters {
-            for attribute in parameter.apiAttributes {
-                switch attribute {
-                case .body:
-                    guard !hasBody else {
-                        throw PapyrusPluginError("Can only have one @Body!")
-                    }
-
-                    hasBody = true
-                case .field:
-                    hasField = true
-                default:
-                    continue
-                }
-            }
-        }
-
-        guard !hasField || !hasBody else {
-            throw PapyrusPluginError("Can't have @Body and @Field!")
-        }
-    }
 }
 
 extension FunctionParameterSyntax {
-    var apiBuilderStatement: String? {
+    fileprivate func apiBuilderStatement() throws -> String? {
         guard !isClosure else {
             return nil
         }
@@ -220,7 +224,7 @@ extension FunctionParameterSyntax {
             switch attribute {
             case .body, .query, .header, .path, .field:
                 guard parameterAttribute == nil else {
-                    return "Only one attribute per parameter!"
+                    throw PapyrusPluginError("Only one attribute is allowed per parameter!")
                 }
 
                 parameterAttribute = attribute
@@ -230,10 +234,10 @@ extension FunctionParameterSyntax {
         }
 
         let attribute = parameterAttribute ?? .field(key: nil)
-        return attribute.requestStatement(input: variableName)
+        return attribute.apiBuilderStatement(input: variableName)
     }
 
-    var apiAttributes: [APIAttribute] {
+    fileprivate var apiAttributes: [APIAttribute] {
         attributes?
             .compactMap { $0.as(AttributeSyntax.self) }
             .compactMap(APIAttribute.init) ?? []
