@@ -15,83 +15,31 @@ public enum KeyMapping {
     /// e.g. `someGreatString` -> `some_great_string`
     case snakeCase
     
-    /// A custom mapping of property name to field key.
+    /// A custom key mapping.
     case custom(to: (String) -> String, from: (String) -> String)
     
-    /// Given the strategy, map from an input string to an output
-    /// string.
-    public func mapTo(input: String) -> String {
+    /// Encode String from camelCase to this KeyMapping strategy.
+    public func encode(_ string: String) -> String {
         switch self {
         case .snakeCase:
-            return input.camelCaseToSnakeCase()
+            return string.camelCaseToSnakeCase()
         case .useDefaultKeys:
-            return input
+            return string
         case .custom(let toMapper, _):
-            return toMapper(input)
+            return toMapper(string)
         }
     }
 
-    /// The reverse of `mapTo`.
-    public func mapFrom(input: String) -> String {
+    /// Decode a String from this KeyMapping strategy to camelCase.
+    public func decode(_ string: String) -> String {
         switch self {
         case .snakeCase:
-            return input.camelCaseFromSnakeCase()
+            return string.camelCaseFromSnakeCase()
         case .useDefaultKeys:
-            return input
+            return string
         case .custom(_, let fromMapper):
-            return fromMapper(input)
+            return fromMapper(string)
         }
-    }
-    
-    public var jsonEncodingStrategy: JSONEncoder.KeyEncodingStrategy {
-        switch self {
-        case .snakeCase:
-            return .convertToSnakeCase
-        case .useDefaultKeys:
-            return .useDefaultKeys
-        case .custom(let toMapper, _):
-            return .custom { keys in
-                guard let last = keys.last else {
-                    return GenericCodingKey("")
-                }
-                
-                return GenericCodingKey(toMapper(last.stringValue))
-            }
-        }
-    }
-    
-    public var jsonDecodingStrategy: JSONDecoder.KeyDecodingStrategy {
-        switch self {
-        case .snakeCase:
-            return .convertFromSnakeCase
-        case .useDefaultKeys:
-            return .useDefaultKeys
-        case .custom(_, let fromMapper):
-            return .custom { keys in
-                guard let last = keys.last else {
-                    return GenericCodingKey("")
-                }
-                
-                return GenericCodingKey(fromMapper(last.stringValue))
-            }
-        }
-    }
-}
-
-private struct GenericCodingKey: CodingKey {
-    var stringValue: String
-    var intValue: Int?
-
-    init(_ string: String) {
-        self.stringValue = string
-    }
-
-    init?(stringValue: String) {
-        self.stringValue = stringValue
-    }
-
-    init?(intValue: Int) {
-        return nil
     }
 }
 

@@ -189,7 +189,7 @@ extension FunctionDeclSyntax {
         case .tuple(let array):
             let elements = array
                 .map { element in
-                    let expression = element.type == "Response" ? "res" : "try req.responseDecoder.decode(\(element.type).self, from: res)"
+                    let expression = element.type == "Response" ? "res" : "try res.decode(\(element.type).self, using: req.responseDecoder)"
                     return [element.label, expression]
                         .compactMap { $0 }
                         .joined(separator: ": ")
@@ -200,7 +200,7 @@ extension FunctionDeclSyntax {
                 )
                 """
         case .type(let string):
-            return "try req.responseDecoder.decode(\(string).self, from: res)"
+            return "try res.decode(\(string).self, using: req.responseDecoder)"
         default:
             return nil
         }

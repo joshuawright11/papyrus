@@ -4,19 +4,7 @@ public protocol ResponseDecoder: KeyMappable {
     func decode<D: Decodable>(_ type: D.Type, from: Data) throws -> D
 }
 
-extension ResponseDecoder {
-    public func decode<D: Decodable>(_ type: D.Type = D.self, from response: Response) throws -> D {
-        if let error = response.error {
-            throw error
-        }
-
-        guard let data = response.body else {
-            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
-        }
-
-        return try decode(type, from: data)
-    }
-}
+// MARK: application/json
 
 extension ResponseDecoder where Self == JSONDecoder {
     public static func json(_ decoder: JSONDecoder) -> Self {
@@ -26,16 +14,7 @@ extension ResponseDecoder where Self == JSONDecoder {
 
 extension JSONDecoder: ResponseDecoder {
     public func with(keyMapping: KeyMapping) -> Self {
-        let copy = copy()
-        copy.keyDecodingStrategy = keyMapping.jsonDecodingStrategy
-        return copy as! Self
-    }
-}
-
-extension JSONDecoder {
-    fileprivate func copy() -> JSONDecoder {
         let new = JSONDecoder()
-        new.keyDecodingStrategy = keyDecodingStrategy
         new.userInfo = userInfo
         new.dataDecodingStrategy = dataDecodingStrategy
         new.dateDecodingStrategy = dateDecodingStrategy
@@ -47,6 +26,45 @@ extension JSONDecoder {
             new.allowsJSON5 = allowsJSON5
         }
 #endif
-        return new
+        new.keyDecodingStrategy = keyMapping.jsonDecodingStrategy
+        return new as! Self
+    }
+}
+
+// MARK: JSONEncoder + KeyMapping
+
+extension KeyMapping {
+    struct GenericCodingKey: CodingKey {
+        var stringValue: String
+        var intValue: Int?
+
+        init(_ string: String) {
+            self.stringValue = string
+        }
+
+        init?(stringValue: String) {
+            self.stringValue = stringValue
+        }
+
+        init?(intValue: Int) {
+            return nil
+        }
+    }
+
+    public var jsonDecodingStrategy: JSONDecoder.KeyDecodingStrategy {
+        switch self {
+        case .snakeCase:
+            return .convertFromSnakeCase
+        case .useDefaultKeys:
+            return .useDefaultKeys
+        case .custom(_, let fromMapper):
+            return .custom { keys in
+                guard let last = keys.last else {
+                    return GenericCodingKey("")
+                }
+
+                return GenericCodingKey(fromMapper(last.stringValue))
+            }
+        }
     }
 }

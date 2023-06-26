@@ -64,7 +64,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
 
         switch (self, keyType) {
         case (.map(let map), .map(let key)):
-            let key = keyMapping.mapFrom(input: String(key)) // Decoding, map from the desired output.
+            let key = keyMapping.decode(String(key))
             if keys.count == 0 {
                 guard map.values[key] == nil else { throw Error.failedToDecode() }
                 map.values[key] = .leaf(value)
@@ -155,7 +155,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
             // keys of dictionaries.
             let isDictionary = "\(Key.self)" == "_DictionaryCodingKey"
             if !isDictionary {
-                key = keyMapping.mapTo(input: key)
+                key = keyMapping.encode(key)
             }
 
             self.values[key] = value

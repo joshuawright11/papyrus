@@ -16,6 +16,16 @@ extension Response {
 
         throw error
     }
+
+    public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
+        try validate()
+
+        guard let data = body else {
+            throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
+        }
+
+        return try decoder.decode(type, from: data)
+    }
 }
 
 extension Response where Self == ErrorResponse {

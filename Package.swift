@@ -9,7 +9,7 @@ let package = Package(
         .macOS("10.15"),
     ],
     products: [
-        .executable(name: "PapyrusExample", targets: ["PapyrusExample"]),
+        .executable(name: "Example", targets: ["Example"]),
         .library(name: "Papyrus", targets: ["Papyrus"]),
         .library(name: "PapyrusCore", targets: ["PapyrusCore"]),
     ],
@@ -19,7 +19,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "PapyrusExample",
+            name: "Example",
             dependencies: ["Papyrus"],
             path: "Example"
         ),

@@ -51,7 +51,7 @@ public struct RequestBuilder {
                     return value
                 }
 
-                return keyMapping.mapTo(input: value)
+                return keyMapping.encode(value)
             }
         }
     }
@@ -248,7 +248,7 @@ extension KeyMappable {
 extension String {
     /// Converts a `camelCase` String to `Http-Header-Case`.
     fileprivate func httpHeaderCase() -> String {
-        let snakeCase = KeyMapping.snakeCase.mapTo(input: self)
+        let snakeCase = KeyMapping.snakeCase.encode(self)
         let kebabCase = snakeCase
             .components(separatedBy: "_")
             .map { $0.prefix(1).uppercased() + $0.dropFirst() }
