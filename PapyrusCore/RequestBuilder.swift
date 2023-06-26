@@ -1,7 +1,25 @@
 import Foundation
 
 public struct RequestBuilder {
-    public enum FieldKey: Hashable, ExpressibleByStringLiteral {
+    public struct AuthorizationHeader {
+        public let value: String
+
+        public init(value: String) {
+            self.value = value
+        }
+
+        public static func bearer(_ token: String) -> AuthorizationHeader {
+            AuthorizationHeader(value: "Bearer \(token)")
+        }
+
+        public static func basic(username: String, password: String) -> AuthorizationHeader {
+            let unencoded = username + ":" + password
+            let base64Encoded = Data(unencoded.utf8).base64EncodedString()
+            return AuthorizationHeader(value: "Basic \(base64Encoded)")
+        }
+    }
+
+    public enum ContentKey: Hashable, ExpressibleByStringLiteral {
         /// The key was explicitly defined by the user, i.e.
         /// `@Path("explicit-key") key: String`. It won't
         /// be affected by custom KeyMapping.
@@ -38,9 +56,23 @@ public struct RequestBuilder {
         }
     }
 
+    public struct ContentValue: Encodable {
+        private let _encode: (Encoder) throws -> Void
+
+        public init<T: Encodable>(_ wrapped: T) {
+            _encode = wrapped.encode
+        }
+
+        // MARK: Encodable
+
+        public func encode(to encoder: Encoder) throws {
+            try _encode(encoder)
+        }
+    }
+
     public enum Content {
-        case fields([FieldKey: AnyEncodable])
-        case value(AnyEncodable)
+        case fields([ContentKey: ContentValue])
+        case value(ContentValue)
     }
 
     public static var defaultQueryEncoder: URLEncodedFormEncoder = URLEncodedFormEncoder()
@@ -54,7 +86,7 @@ public struct RequestBuilder {
     public var path: String
     public var parameters: [String: String]
     public var headers: [String: String]
-    public var queries: [FieldKey: AnyEncodable]
+    public var queries: [ContentKey: ContentValue]
     public var body: Content?
 
     // MARK: Configuration
@@ -116,16 +148,16 @@ public struct RequestBuilder {
             preconditionFailure("Tried to set a request @Body to type \(E.self), but it already had one: \(body).")
         }
         
-        body = .value(AnyEncodable(value))
+        body = .value(ContentValue(value))
     }
     
     public mutating func addQuery<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
-        let key: FieldKey = mapKey ? .implicit(key) : .explicit(key)
-        queries[key] = AnyEncodable(value)
+        let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
+        queries[key] = ContentValue(value)
     }
     
     public mutating func addField<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
-        var fields: [FieldKey: AnyEncodable] = [:]
+        var fields: [ContentKey: ContentValue] = [:]
         if let body = body {
             guard case .fields(let existingFields) = body else {
                 preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a @Body, \(body). @Body and @Field are mutually exclusive.")
@@ -134,8 +166,8 @@ public struct RequestBuilder {
             fields = existingFields
         }
 
-        let key: FieldKey = mapKey ? .implicit(key) : .explicit(key)
-        fields[key] = AnyEncodable(value)
+        let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
+        fields[key] = ContentValue(value)
         body = .fields(fields)
     }
     
@@ -175,7 +207,7 @@ public struct RequestBuilder {
         case .value(let value):
             return try requestEncoder.encode(value)
         case .fields(let fields):
-            var dict: [String: AnyEncodable] = [:]
+            var dict: [String: ContentValue] = [:]
             for (key, value) in fields {
                 dict[key.mapped(keyMapping)] = value
             }
@@ -194,7 +226,7 @@ public struct RequestBuilder {
             prefix = ""
         }
 
-        var dict: [String: AnyEncodable] = [:]
+        var dict: [String: ContentValue] = [:]
         for (key, value) in queries {
             dict[key.mapped(keyMapping)] = value
         }

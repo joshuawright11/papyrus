@@ -36,4 +36,3 @@ public struct ErrorResponse: Response {
     public var statusCode: Int? { nil }
     public var error: Error? { _error }
 }
-

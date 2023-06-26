@@ -1,5 +1,3 @@
-import Foundation
-
 /// A Papyrus related error.
 public struct PapyrusError: Error {
     /// What went wrong.

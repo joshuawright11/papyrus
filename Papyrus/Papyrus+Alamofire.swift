@@ -1,22 +1,20 @@
-import Alamofire
-import PapyrusCore
-
-public typealias Interceptor = PapyrusCore.Interceptor
-public typealias Request = PapyrusCore.Request
+@_exported import Alamofire
+@_exported import Foundation
+@_exported import PapyrusCore
 
 extension Provider {
     public convenience init(baseURL: String,
                             session: Session = Session.default,
                             modifiers: [RequestModifier] = [],
-                            interceptors: [Interceptor] = []) {
+                            interceptors: [PapyrusCore.Interceptor] = []) {
         self.init(baseURL: baseURL, http: session, modifiers: modifiers, interceptors: interceptors)
     }
 }
 
-// MARK: `ProviderClient` Conformance
+// MARK: `HTTPService` Conformance
 
 extension Session: HTTPService {
-    public func build(method: String, url: URL, headers: [String: String], body: Data?) -> Request {
+    public func build(method: String, url: URL, headers: [String: String], body: Data?) -> PapyrusCore.Request {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.httpBody = body
@@ -24,11 +22,11 @@ extension Session: HTTPService {
         return RequestProxy(request: request)
     }
 
-    public func request(_ req: Request) async -> Response {
+    public func request(_ req: PapyrusCore.Request) async -> Response {
         await request(req.request).validate().serializingData().response
     }
 
-    public func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
+    public func request(_ req: PapyrusCore.Request, completionHandler: @escaping (Response) -> Void) {
         request(req.request).validate().response(completionHandler: completionHandler)
     }
 }
@@ -55,7 +53,7 @@ extension Response {
 
 // MARK: `Request` Conformance
 
-private struct RequestProxy: Request {
+private struct RequestProxy: PapyrusCore.Request {
     var request: URLRequest
 
     public var url: URL {
@@ -79,7 +77,7 @@ private struct RequestProxy: Request {
     }
 }
 
-extension Request {
+extension PapyrusCore.Request {
     public var request: URLRequest {
         (self as! RequestProxy).request
     }

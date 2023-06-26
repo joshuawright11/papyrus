@@ -1,5 +1,14 @@
 import Foundation
 
+public protocol Interceptor {
+    typealias Next = (Request) async throws -> Response
+    func intercept(req: Request, next: Next) async throws -> Response
+}
+
+public protocol RequestModifier {
+    func modify(req: inout RequestBuilder) throws
+}
+
 /// Makes URL requests.
 public final class Provider {
     public let baseURL: String
@@ -19,12 +28,28 @@ public final class Provider {
     }
 
     public func modifyRequests(action: @escaping (inout RequestBuilder) throws -> Void) -> Self {
+        struct AnonymousModifier: RequestModifier {
+            let action: (inout RequestBuilder) throws -> Void
+
+            func modify(req: inout RequestBuilder) throws {
+                try action(&req)
+            }
+        }
+
         modifiers.append(AnonymousModifier(action: action))
         return self
     }
 
     @discardableResult
     public func intercept(action: @escaping (Request, (Request) async throws -> Response) async throws -> Response) -> Self {
+        struct AnonymousInterceptor: Interceptor {
+            let action: (Request, Interceptor.Next) async throws -> Response
+
+            func intercept(req: Request, next: Interceptor.Next) async throws -> Response {
+                try await action(req, next)
+            }
+        }
+
         interceptors.append(AnonymousInterceptor(action: action))
         return self
     }

@@ -96,3 +96,15 @@ extension FunctionDeclSyntax {
         return "(\(parameterTypes))\(effects) -> \(returnType)"
     }
 }
+
+extension FunctionParameterSyntax {
+    fileprivate var typeString: String {
+        trimmed.type.description
+    }
+}
+
+extension String {
+    fileprivate var capitalizeFirst: String {
+        prefix(1).capitalized + dropFirst()
+    }
+}

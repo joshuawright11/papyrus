@@ -26,9 +26,9 @@ public macro Converter(encoder: RequestEncoder, decoder: ResponseDecoder) = #ext
 public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
-public macro Authorization(_ value: AuthorizationHeader) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Authorization(_ value: RequestBuilder.AuthorizationHeader) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
-// MARK: Method attributes
+// MARK: Function attributes
 
 @attached(peer, names: arbitrary)
 public macro HTTP(_ path: String, method: String) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")

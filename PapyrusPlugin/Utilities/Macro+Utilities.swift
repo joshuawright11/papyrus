@@ -4,9 +4,9 @@ import SwiftSyntaxMacros
 extension Macro {
     static func handleError(_ closure: () throws -> String) -> [DeclSyntax] {
         do {
-            return [try closure().declSyntax]
+            return [DeclSyntax(stringLiteral: try closure())]
         } catch {
-            return ["\(error)".declSyntax]
+            return [DeclSyntax(stringLiteral: "\(error)")]
         }
     }
 }

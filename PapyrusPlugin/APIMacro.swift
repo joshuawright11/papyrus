@@ -76,11 +76,11 @@ extension FunctionDeclSyntax {
             """
 
         for statement in apiAttributes.compactMap({ $0.apiBuilderStatement() }) {
-            buildRequest.appendNewLine(statement)
+            buildRequest.append("\n" + statement)
         }
 
         for statement in try parameters.compactMap({ try $0.apiBuilderStatement() }) {
-            buildRequest.appendNewLine(statement)
+            buildRequest.append("\n" + statement)
         }
 
         return """

@@ -17,14 +17,17 @@ extension FunctionDeclSyntax {
         case completionHandler
     }
 
-    func validateSignature() throws {
-        guard hasEscapingCompletion || hasAsyncAwait else {
-            throw PapyrusPluginError("Function must either have `async throws` effects or an `@escaping` completion handler as the final argument.")
-        }
-    }
+    // MARK: Async Style
 
     var style: AsyncStyle {
         hasEscapingCompletion ? .completionHandler : .concurrency
+    }
+
+    func validateSignature() throws {
+        let hasAsyncAwait = effects.contains("async") && effects.contains("throws")
+        guard hasEscapingCompletion || hasAsyncAwait else {
+            throw PapyrusPluginError("Function must either have `async throws` effects or an `@escaping` completion handler as the final argument.")
+        }
     }
 
     private var hasEscapingCompletion: Bool {
@@ -36,10 +39,6 @@ extension FunctionDeclSyntax {
         let isResult = type.hasPrefix("@escaping (Result<") && type.hasSuffix("Error>) -> Void")
         let isResponse = type == "@escaping (Response) -> Void"
         return isResult || isResponse
-    }
-
-    private var hasAsyncAwait: Bool {
-        effects.contains("async") && effects.contains("throws")
     }
 
     // MARK: Function effects & attributes
@@ -77,7 +76,6 @@ extension FunctionDeclSyntax {
         }
 
         let type = parameter.type.trimmedDescription
-        // This shouldn't be string based.
         if type == "@escaping (Response) -> Void" {
             return "Response"
         } else {
@@ -88,6 +86,10 @@ extension FunctionDeclSyntax {
     }
 
     // MARK: Return Data
+
+    var returnResponseOnly: Bool {
+        responseType == .type("Response")
+    }
 
     var responseType: ReturnType? {
         if style == .completionHandler, let callbackType {
@@ -107,9 +109,5 @@ extension FunctionDeclSyntax {
         } else {
             return .type(type.trimmedDescription)
         }
-    }
-
-    var returnResponseOnly: Bool {
-        responseType == .type("Response")
     }
 }
