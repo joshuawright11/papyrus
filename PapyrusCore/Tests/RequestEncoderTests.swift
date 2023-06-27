@@ -1,15 +1,9 @@
 import XCTest
-@testable import Papyrus
+@testable import PapyrusCore
 
 final class RequestEncoderTests: XCTestCase {
     func testWithKeyMappingDoesntMutate() throws {
         let encoder = JSONEncoder()
-
-        switch encoder.keyEncodingStrategy {
-        case .useDefaultKeys: break
-        default: XCTFail("Should be default keys")
-        }
-
         let snakeEncoder = encoder.with(keyMapping: .snakeCase)
 
         switch encoder.keyEncodingStrategy {

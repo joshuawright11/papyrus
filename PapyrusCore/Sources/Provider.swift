@@ -100,11 +100,9 @@ extension Provider {
 }
 
 extension Interceptor {
-    fileprivate func intercept(
-        req: Request,
-        completionHandler: @escaping (Response) -> Void,
-        next: @escaping (Request, @escaping (Response) -> Void) -> Void
-    ) {
+    fileprivate func intercept(req: Request,
+                               completionHandler: @escaping (Response) -> Void,
+                               next: @escaping (Request, @escaping (Response) -> Void) -> Void) {
         Task {
             do {
                 completionHandler(

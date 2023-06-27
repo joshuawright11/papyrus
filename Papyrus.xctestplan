@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "D8E6DA9B-B1A7-485A-9010-80C13E6B6629",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:",
+          "identifier" : "Papyrus",
+          "name" : "Papyrus"
+        },
+        {
+          "containerPath" : "container:",
+          "identifier" : "PapyrusCore",
+          "name" : "PapyrusCore"
+        }
+      ]
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "PapyrusCoreTests",
+        "name" : "PapyrusCoreTests"
+      }
+    }
+  ],
+  "version" : 1
+}
