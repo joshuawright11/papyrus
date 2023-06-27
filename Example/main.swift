@@ -96,12 +96,10 @@ t.todos(id: "foo", header1: "bar", header2: "baz") {
     }
 }
 
-let thing = [
-    "foo": Part(data: Data("Hello foo!".utf8), name: "foo", fileName: "foo.txt", mimeType: "text/plain"),
-    "bar": Part(data: Data("Hello bar!".utf8), name: "bar", fileName: "bar.txt", mimeType: "text/plain"),
-]
-
-let data = try MultipartEncoder().encode(thing)
+let data = try MultipartEncoder().encode([
+    "fooKey": Part(data: Data("Hello foo!".utf8), fileName: "foo.txt", mimeType: "text/plain"),
+    "barKey": Part(data: Data("Hello bar!".utf8), fileName: "bar.txt", mimeType: "text/plain"),
+])
 let string = String(data: data, encoding: .utf8)!
 print("""
 BODY:

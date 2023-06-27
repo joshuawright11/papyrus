@@ -6,7 +6,7 @@ public struct Part: Codable {
     public let fileName: String?
     public let mimeType: String?
 
-    public init(data: Data, name: String?, fileName: String? = nil, mimeType: String? = nil) {
+    public init(data: Data, name: String? = nil, fileName: String? = nil, mimeType: String? = nil) {
         self.data = data
         self.name = name
         self.fileName = fileName

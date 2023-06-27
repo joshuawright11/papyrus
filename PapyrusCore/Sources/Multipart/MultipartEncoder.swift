@@ -1,10 +1,9 @@
 import Foundation
 
-private let crlf = "\r\n"
-
 public struct MultipartEncoder: RequestEncoder {
-    public let contentType = "multipart/form-data"
+    public var contentType: String { "multipart/form-data; boundary=\(boundary)" }
     public let boundary: String
+    private let crlf = "\r\n"
 
     public init(boundary: String? = nil) {
         self.boundary = boundary ?? MultipartEncoder.randomBoundary()
@@ -12,7 +11,7 @@ public struct MultipartEncoder: RequestEncoder {
 
     public func encode(_ value: some Encodable) throws -> Data {
         guard let parts = value as? [String: Part] else {
-            preconditionFailure("Can only encode `Part` with `MultipartEncoder`.")
+            preconditionFailure("Can only encode `[String: Part]` with `MultipartEncoder`.")
         }
 
         let initialBoundary = Data("--\(boundary)\(crlf)".utf8)
@@ -45,7 +44,7 @@ public struct MultipartEncoder: RequestEncoder {
     }
 
     public func with(keyMapping: KeyMapping) -> MultipartEncoder {
-        // KeyMapping isn't relevant for since each part data is already encoded.
+        // KeyMapping isn't relevant since each part has already encoded data.
         self
     }
 
