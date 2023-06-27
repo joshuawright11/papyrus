@@ -1,5 +1,13 @@
 import Papyrus
 
+let multipart = MultipartEncoder()
+let data = try multipart.encode([
+    "fooKey": Part(data: Data("Hello foo!".utf8), fileName: "foo.txt", mimeType: "text/plain"),
+    "barKey": Part(data: Data("Hello bar!".utf8), fileName: "bar.txt", mimeType: "text/plain"),
+])
+let string = String(data: data, encoding: .utf8)!
+print("Content-Type: \(multipart.contentType)\n\n\(string)")
+
 public struct Todo: Codable {
     let id: Int
     let name: String
@@ -95,13 +103,3 @@ t.todos(id: "foo", header1: "bar", header2: "baz") {
         print("Result is \(todos.count).")
     }
 }
-
-let data = try MultipartEncoder().encode([
-    "fooKey": Part(data: Data("Hello foo!".utf8), fileName: "foo.txt", mimeType: "text/plain"),
-    "barKey": Part(data: Data("Hello bar!".utf8), fileName: "bar.txt", mimeType: "text/plain"),
-])
-let string = String(data: data, encoding: .utf8)!
-print("""
-BODY:
-\(string)
-""")
