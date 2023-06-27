@@ -4,7 +4,7 @@
 <a href="https://github.com/joshuawright11/papyrus/releases"><img src="https://img.shields.io/github/release/joshuawright11/papyrus.svg" alt="Latest Release"></a>
 <a href="https://github.com/joshuawright11/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/joshuawright11/papyrus.svg" alt="License"></a>
 
-Papyrus is a type-safe HTTP client for Swift. 
+Papyrus is a type-safe HTTP client for Swift.
 
 It turns your APIs into clean and concise Swift protocols.
 
@@ -77,7 +77,7 @@ While using concurrency is recommended, if you haven't yet migrated and need a c
 
 ### Swift on the Server
 
-Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).  
+Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
 
 If you're using Linux / Swift on Server, use [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
@@ -202,7 +202,9 @@ func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 
 ### Encoding the Body
 
-By default, all `@Body` and `@Field` parameters are encoded as `application/json`. You may encode them as `application/x-www-form-urlencoded` using `@URLForm`.
+By default, all `@Body` and `@Field` parameters are encoded as `application/json`.
+
+You may encode parameters as `application/x-www-form-urlencoded` using `@URLForm`.
 
 ```swift
 @URLForm
@@ -210,7 +212,15 @@ By default, all `@Body` and `@Field` parameters are encoded as `application/json
 func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-You can also attribute your protocol with `@URLForm` to form encode all request bodies.
+You can also encode parameters as `multipart/form-data` using `@Multipart`. If you do, all fields must be of type `Part`.
+
+```swift
+@Multipart
+@POST("/attachments")
+func uploadAttachments(file1: Part, file2: Part) async throws
+```
+
+For convenience, you can attribute your protocol with an encoding attribute to encode all requests as such.
 
 ```swift
 @API
