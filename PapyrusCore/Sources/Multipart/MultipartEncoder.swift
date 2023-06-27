@@ -9,6 +9,11 @@ public struct MultipartEncoder: RequestEncoder {
         self.boundary = boundary ?? MultipartEncoder.randomBoundary()
     }
 
+    public func with(keyMapping: KeyMapping) -> MultipartEncoder {
+        // KeyMapping isn't relevant since each part has already encoded data.
+        self
+    }
+
     public func encode(_ value: some Encodable) throws -> Data {
         guard let parts = value as? [String: Part] else {
             preconditionFailure("Can only encode `[String: Part]` with `MultipartEncoder`.")
@@ -41,11 +46,6 @@ public struct MultipartEncoder: RequestEncoder {
 
         let string = headers.map { "\($0): \($1)\(crlf)" }.joined() + crlf
         return Data(string.utf8)
-    }
-
-    public func with(keyMapping: KeyMapping) -> MultipartEncoder {
-        // KeyMapping isn't relevant since each part has already encoded data.
-        self
     }
 
     private static func randomBoundary() -> String {
