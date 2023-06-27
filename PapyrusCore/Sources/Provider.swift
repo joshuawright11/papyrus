@@ -1,14 +1,5 @@
 import Foundation
 
-public protocol Interceptor {
-    typealias Next = (Request) async throws -> Response
-    func intercept(req: Request, next: Next) async throws -> Response
-}
-
-public protocol RequestModifier {
-    func modify(req: inout RequestBuilder) throws
-}
-
 /// Makes URL requests.
 public final class Provider {
     public let baseURL: String
@@ -76,6 +67,15 @@ public final class Provider {
         let (body, headers) = try builder.bodyAndHeaders()
         return http.build(method: builder.method, url: url, headers: headers, body: body)
     }
+}
+
+public protocol Interceptor {
+    typealias Next = (Request) async throws -> Response
+    func intercept(req: Request, next: Next) async throws -> Response
+}
+
+public protocol RequestModifier {
+    func modify(req: inout RequestBuilder) throws
 }
 
 // MARK: Closure Based APIs

@@ -20,6 +20,9 @@ public macro JSON(encoder: JSONEncoder = JSONEncoder(), decoder: JSONDecoder = J
 public macro URLForm(_ encoder: URLEncodedFormEncoder = URLEncodedFormEncoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)
+public macro Multipart(_ encoder: MultipartEncoder = MultipartEncoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+@attached(peer, names: arbitrary)
 public macro Converter(encoder: RequestEncoder, decoder: ResponseDecoder) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer, names: arbitrary)

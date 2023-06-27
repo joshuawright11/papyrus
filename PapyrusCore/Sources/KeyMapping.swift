@@ -146,3 +146,58 @@ extension String {
         return result
     }
 }
+
+// MARK: JSONEncoder + KeyMapping
+
+extension KeyMapping {
+    private struct GenericCodingKey: CodingKey {
+        var stringValue: String
+        var intValue: Int?
+
+        init(_ string: String) {
+            self.stringValue = string
+        }
+
+        init?(stringValue: String) {
+            self.stringValue = stringValue
+        }
+
+        init?(intValue: Int) {
+            return nil
+        }
+    }
+
+    public var jsonEncodingStrategy: JSONEncoder.KeyEncodingStrategy {
+        switch self {
+        case .snakeCase:
+            return .convertToSnakeCase
+        case .useDefaultKeys:
+            return .useDefaultKeys
+        case .custom(let toMapper, _):
+            return .custom { keys in
+                guard let last = keys.last else {
+                    return GenericCodingKey("")
+                }
+
+                return GenericCodingKey(toMapper(last.stringValue))
+            }
+        }
+    }
+
+    public var jsonDecodingStrategy: JSONDecoder.KeyDecodingStrategy {
+        switch self {
+        case .snakeCase:
+            return .convertFromSnakeCase
+        case .useDefaultKeys:
+            return .useDefaultKeys
+        case .custom(_, let fromMapper):
+            return .custom { keys in
+                guard let last = keys.last else {
+                    return GenericCodingKey("")
+                }
+
+                return GenericCodingKey(fromMapper(last.stringValue))
+            }
+        }
+    }
+}

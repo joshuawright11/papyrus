@@ -47,10 +47,7 @@ public struct RequestBuilder {
             case .explicit(let value):
                 return value
             case .implicit(let value):
-                guard let keyMapping else {
-                    return value
-                }
-
+                guard let keyMapping else { return value }
                 return keyMapping.encode(value)
             }
         }
@@ -71,8 +68,8 @@ public struct RequestBuilder {
     }
 
     public enum Content {
-        case fields([ContentKey: ContentValue])
         case value(ContentValue)
+        case fields([ContentKey: ContentValue])
     }
 
     public static var defaultQueryEncoder: URLEncodedFormEncoder = URLEncodedFormEncoder()
@@ -121,8 +118,17 @@ public struct RequestBuilder {
         self.queries = [:]
         self.body = nil
     }
-    
+
     // MARK: Building
+
+    public mutating func addParameter<L: LosslessStringConvertible>(_ key: String, value: L) {
+        parameters[key] = value.description
+    }
+
+    public mutating func addQuery<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
+        let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
+        queries[key] = ContentValue(value)
+    }
 
     public mutating func addHeaders(_ headerDict: [String: String]) {
         for (key, value) in headerDict {
@@ -139,23 +145,14 @@ public struct RequestBuilder {
         headers["Authorization"] = header.value
     }
 
-    public mutating func addParameter<L: LosslessStringConvertible>(_ key: String, value: L) {
-        parameters[key] = value.description
-    }
-
     public mutating func setBody<E: Encodable>(_ value: E) {
         if let body = body {
             preconditionFailure("Tried to set a request @Body to type \(E.self), but it already had one: \(body).")
         }
-        
+
         body = .value(ContentValue(value))
     }
-    
-    public mutating func addQuery<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
-        let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
-        queries[key] = ContentValue(value)
-    }
-    
+
     public mutating func addField<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
         var fields: [ContentKey: ContentValue] = [:]
         if let body = body {
@@ -207,11 +204,8 @@ public struct RequestBuilder {
         case .value(let value):
             return try requestEncoder.encode(value)
         case .fields(let fields):
-            var dict: [String: ContentValue] = [:]
-            for (key, value) in fields {
-                dict[key.mapped(keyMapping)] = value
-            }
-
+            let pairs = fields.map { ($0.mapped(keyMapping), $1) }
+            let dict = Dictionary(uniqueKeysWithValues: pairs)
             return try requestEncoder.encode(dict)
         }
     }
@@ -226,21 +220,15 @@ public struct RequestBuilder {
             prefix = ""
         }
 
-        var dict: [String: ContentValue] = [:]
-        for (key, value) in queries {
-            dict[key.mapped(keyMapping)] = value
-        }
-
+        let pairs = queries.map { ($0.mapped(keyMapping), $1) }
+        let dict = Dictionary(uniqueKeysWithValues: pairs)
         return try prefix + queryEncoder.encode(dict)
     }
 }
 
 extension KeyMappable {
     fileprivate func with(keyMapping: KeyMapping?) -> Self {
-        guard let keyMapping else {
-            return self
-        }
-
+        guard let keyMapping else { return self }
         return with(keyMapping: keyMapping)
     }
 }

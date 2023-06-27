@@ -45,6 +45,10 @@ protocol Accounts {
 
     @PATCH("/accounts")
     func updateAccount(name: String, completionHandler: @escaping (Response) -> Void)
+
+    @Multipart
+    @POST("/attachment")
+    func upload(part1: Part, part2: Part) async throws
 }
 
 let provider = Provider(baseURL: "http://127.0.0.1:3000")
@@ -91,3 +95,15 @@ t.todos(id: "foo", header1: "bar", header2: "baz") {
         print("Result is \(todos.count).")
     }
 }
+
+let thing = [
+    "foo": Part(data: Data("Hello foo!".utf8), name: "foo", fileName: "foo.txt", mimeType: "text/plain"),
+    "bar": Part(data: Data("Hello bar!".utf8), name: "bar", fileName: "bar.txt", mimeType: "text/plain"),
+]
+
+let data = try MultipartEncoder().encode(thing)
+let string = String(data: data, encoding: .utf8)!
+print("""
+BODY:
+\(string)
+""")
