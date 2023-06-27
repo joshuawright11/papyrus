@@ -5,6 +5,29 @@ public protocol RequestEncoder: KeyMappable {
     func encode<E: Encodable>(_ value: E) throws -> Data
 }
 
+// MARK: application/json
+
+extension RequestEncoder where Self == JSONEncoder {
+    public static func json(_ encoder: JSONEncoder) -> Self {
+        encoder
+    }
+}
+
+extension JSONEncoder: RequestEncoder {
+    public var contentType: String { "application/json" }
+
+    public func with(keyMapping: KeyMapping) -> Self {
+        let new = JSONEncoder()
+        new.userInfo = userInfo
+        new.dataEncodingStrategy = dataEncodingStrategy
+        new.dateEncodingStrategy = dateEncodingStrategy
+        new.nonConformingFloatEncodingStrategy = nonConformingFloatEncodingStrategy
+        new.outputFormatting = outputFormatting
+        new.keyEncodingStrategy = keyMapping.jsonEncodingStrategy
+        return new as! Self
+    }
+}
+
 // MARK: application/x-www-form-urlencoded
 
 extension RequestEncoder where Self == URLEncodedFormEncoder {
@@ -32,44 +55,10 @@ extension URLEncodedFormEncoder: RequestEncoder {
     }
 }
 
-// MARK: application/json
+// MARK: multipart/form-data
 
-extension RequestEncoder where Self == JSONEncoder {
-    public static func json(_ encoder: JSONEncoder) -> Self {
+extension RequestEncoder where Self == MultipartEncoder {
+    public static func multipart(_ encoder: MultipartEncoder) -> Self {
         encoder
-    }
-}
-
-extension JSONEncoder: RequestEncoder {
-    public var contentType: String { "application/json" }
-
-    public func with(keyMapping: KeyMapping) -> Self {
-        let new = JSONEncoder()
-        new.userInfo = userInfo
-        new.dataEncodingStrategy = dataEncodingStrategy
-        new.dateEncodingStrategy = dateEncodingStrategy
-        new.nonConformingFloatEncodingStrategy = nonConformingFloatEncodingStrategy
-        new.outputFormatting = outputFormatting
-        new.keyEncodingStrategy = keyMapping.jsonEncodingStrategy
-        return new as! Self
-    }
-}
-
-extension KeyMapping {
-    public var jsonEncodingStrategy: JSONEncoder.KeyEncodingStrategy {
-        switch self {
-        case .snakeCase:
-            return .convertToSnakeCase
-        case .useDefaultKeys:
-            return .useDefaultKeys
-        case .custom(let toMapper, _):
-            return .custom { keys in
-                guard let last = keys.last else {
-                    return GenericCodingKey("")
-                }
-
-                return GenericCodingKey(toMapper(last.stringValue))
-            }
-        }
     }
 }

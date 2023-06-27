@@ -1,5 +1,13 @@
 import Papyrus
 
+let multipart = MultipartEncoder()
+let data = try multipart.encode([
+    "fooKey": Part(data: Data("Hello foo!".utf8), fileName: "foo.txt", mimeType: "text/plain"),
+    "barKey": Part(data: Data("Hello bar!".utf8), fileName: "bar.txt", mimeType: "text/plain"),
+])
+let string = String(data: data, encoding: .utf8)!
+print("Content-Type: \(multipart.contentType)\n\n\(string)")
+
 public struct Todo: Codable {
     let id: Int
     let name: String
@@ -45,6 +53,10 @@ protocol Accounts {
 
     @PATCH("/accounts")
     func updateAccount(name: String, completionHandler: @escaping (Response) -> Void)
+
+    @Multipart
+    @POST("/attachment")
+    func upload(part1: Part, part2: Part) async throws
 }
 
 let provider = Provider(baseURL: "http://127.0.0.1:3000")

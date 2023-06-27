@@ -3,7 +3,8 @@ import SwiftSyntax
 enum APIAttribute {
     /// Type or Function attributes
     case json(encoder: String, decoder: String)
-    case urlForm(value: String)
+    case urlForm(encoder: String)
+    case multipart(encoder: String)
     case converter(encoder: String, decoder: String)
     case keyMapping(value: String)
     case headers(value: String)
@@ -58,12 +59,13 @@ enum APIAttribute {
 
             self = .headers(value: firstArgument)
         case "JSON":
-            self = .json(
-                encoder: firstArgument ?? "JSONEncoder()",
-                decoder: secondArgument ?? "JSONDecoder()"
-            )
+            let encoder = firstArgument ?? "JSONEncoder()"
+            let decoder = secondArgument ?? "JSONDecoder()"
+            self = .json(encoder: encoder, decoder: decoder)
         case "URLForm":
-            self = .urlForm(value: firstArgument ?? "URLEncodedFormEncoder()")
+            self = .urlForm(encoder: firstArgument ?? "URLEncodedFormEncoder()")
+        case "Multipart":
+            self = .multipart(encoder: firstArgument ?? "MultipartEncoder()")
         case "Coder":
             guard let firstArgument, let secondArgument else {
                 return nil
@@ -138,9 +140,13 @@ enum APIAttribute {
             req.requestEncoder = .json(\(encoder))
             req.responseDecoder = .json(\(decoder))
             """
-        case .urlForm(let value):
+        case .urlForm(let encoder):
             return """
-            req.requestEncoder = .urlForm(\(value))
+            req.requestEncoder = .urlForm(\(encoder))
+            """
+        case .multipart(let encoder):
+            return """
+            req.requestEncoder = .multipart(\(encoder))
             """
         case .converter(let encoder, let decoder):
             return """
