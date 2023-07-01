@@ -43,7 +43,7 @@ protocol Users {
 
 -   [x] Turn REST APIs into Swift protocols
 -   [x] Generate Swift Concurrency _or_ completion handler based APIs
--   [x] JSON and URLForm encoding
+-   [x] JSON, URLForm and Multipart encoding
 -   [x] Easy to configure key mapping
 -   [x] Automatically decode responses with `Codable`
 -   [x] Custom Interceptors & Builders
