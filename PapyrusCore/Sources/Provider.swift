@@ -63,9 +63,9 @@ public final class Provider {
             try modifier.modify(req: &_builder)
         }
 
-        let url = try builder.fullURL()
-        let (body, headers) = try builder.bodyAndHeaders()
-        return http.build(method: builder.method, url: url, headers: headers, body: body)
+        let url = try _builder.fullURL()
+        let (body, headers) = try _builder.bodyAndHeaders()
+        return http.build(method: _builder.method, url: url, headers: headers, body: body)
     }
 }
 
