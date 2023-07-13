@@ -2,7 +2,7 @@
 public struct PapyrusError: Error {
     /// What went wrong.
     public let message: String
-    
+
     /// Create an error with the specified message.
     ///
     /// - Parameter message: What went wrong.

@@ -1,5 +1,5 @@
-import XCTest
 @testable import PapyrusCore
+import XCTest
 
 final class ParameterTests: XCTestCase {
     func testPath() {

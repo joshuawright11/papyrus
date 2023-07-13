@@ -47,7 +47,7 @@ let todos = try await api.getTodos()
 
 let mock = SampleMock()
 mock.mockGetTodos {
-    return [
+    [
         Todo(id: 1, name: "Foo"),
         Todo(id: 2, name: "Bar"),
     ]

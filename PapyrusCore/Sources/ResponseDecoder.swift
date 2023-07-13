@@ -6,8 +6,8 @@ public protocol ResponseDecoder: KeyMappable {
 
 // MARK: application/json
 
-extension ResponseDecoder where Self == JSONDecoder {
-    public static func json(_ decoder: JSONDecoder) -> Self {
+public extension ResponseDecoder where Self == JSONDecoder {
+    static func json(_ decoder: JSONDecoder) -> Self {
         decoder
     }
 }
@@ -19,13 +19,13 @@ extension JSONDecoder: ResponseDecoder {
         new.dataDecodingStrategy = dataDecodingStrategy
         new.dateDecodingStrategy = dateDecodingStrategy
         new.nonConformingFloatDecodingStrategy = nonConformingFloatDecodingStrategy
-#if os(Linux)
-#else
-        if #available(iOS 15.0, macOS 12.0, *) {
-            new.assumesTopLevelDictionary = assumesTopLevelDictionary
-            new.allowsJSON5 = allowsJSON5
-        }
-#endif
+        #if os(Linux)
+        #else
+            if #available(iOS 15.0, macOS 12.0, *) {
+                new.assumesTopLevelDictionary = assumesTopLevelDictionary
+                new.allowsJSON5 = allowsJSON5
+            }
+        #endif
         new.keyDecodingStrategy = keyMapping.jsonDecodingStrategy
         return new as! Self
     }

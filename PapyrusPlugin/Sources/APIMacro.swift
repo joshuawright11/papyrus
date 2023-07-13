@@ -3,8 +3,9 @@ import SwiftSyntaxMacros
 
 public struct APIMacro: PeerMacro {
     public static func expansion(of node: AttributeSyntax,
-                          providingPeersOf declaration: some DeclSyntaxProtocol,
-                          in context: some MacroExpansionContext) throws -> [DeclSyntax] {
+                                 providingPeersOf declaration: some DeclSyntaxProtocol,
+                                 in _: some MacroExpansionContext) throws -> [DeclSyntax]
+    {
         handleError {
             guard let type = declaration.as(ProtocolDeclSyntax.self) else {
                 throw PapyrusPluginError("@API can only be applied to protocols.")
@@ -18,7 +19,7 @@ public struct APIMacro: PeerMacro {
 
 extension ProtocolDeclSyntax {
     func createAPI(named apiName: String) throws -> String {
-        """
+        try """
         \(access)struct \(apiName): \(typeName) {
             private let provider: Provider
 
@@ -26,7 +27,7 @@ extension ProtocolDeclSyntax {
                 self.provider = provider
             }
 
-        \(try generateAPIFunctions())
+        \(generateAPIFunctions())
         }
         """
     }
@@ -43,18 +44,18 @@ extension ProtocolDeclSyntax {
         let globalBuilderStatements = apiAttributes.compactMap { $0.apiBuilderStatement() }
         let content = globalBuilderStatements.isEmpty
             ? """
-              provider.newBuilder(method: method, path: path)
-              """
-            : """
-              var req = provider.newBuilder(method: method, path: path)
-              \(globalBuilderStatements.joined(separator: "\n"))
-              return req
-              """
-        return """
-            private func builder(method: String, path: String) -> RequestBuilder {
-            \(content)
-            }
+            provider.newBuilder(method: method, path: path)
             """
+            : """
+            var req = provider.newBuilder(method: method, path: path)
+            \(globalBuilderStatements.joined(separator: "\n"))
+            return req
+            """
+        return """
+        private func builder(method: String, path: String) -> RequestBuilder {
+        \(content)
+        }
+        """
     }
 
     private var apiAttributes: [APIAttribute] {
@@ -72,8 +73,8 @@ extension FunctionDeclSyntax {
 
         let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
         var buildRequest = """
-            \(decl) req = builder(method: "\(method)", path: \(path))
-            """
+        \(decl) req = builder(method: "\(method)", path: \(path))
+        """
 
         for statement in apiAttributes.compactMap({ $0.apiBuilderStatement() }) {
             buildRequest.append("\n" + statement)
@@ -100,22 +101,22 @@ extension FunctionDeclSyntax {
 
             if returnResponseOnly {
                 return """
-                    provider.request(req) { res in
-                    \(callbackName)(res)
-                    }
-                    """
+                provider.request(req) { res in
+                \(callbackName)(res)
+                }
+                """
             } else {
                 return """
-                    provider.request(req) { res in
-                        do {
-                            try res.validate()
-                            \(resultExpression.map { "let res = \($0)" } ?? "")
-                            \(callbackName)(.success(res))
-                        } catch {
-                            \(callbackName)(.failure(error))
-                        }
+                provider.request(req) { res in
+                    do {
+                        try res.validate()
+                        \(resultExpression.map { "let res = \($0)" } ?? "")
+                        \(callbackName)(.success(res))
+                    } catch {
+                        \(callbackName)(.failure(error))
                     }
-                    """
+                }
+                """
             }
         case .concurrency:
             switch responseType {
@@ -127,9 +128,9 @@ extension FunctionDeclSyntax {
                 }
 
                 return """
-                    let res = try await provider.request(req)
-                    return \(resultExpression)
-                    """
+                let res = try await provider.request(req)
+                return \(resultExpression)
+                """
             case .none:
                 return "try await provider.request(req).validate()"
             }
@@ -186,7 +187,7 @@ extension FunctionDeclSyntax {
         }
 
         switch responseType {
-        case .tuple(let array):
+        case let .tuple(array):
             let elements = array
                 .map { element in
                     let expression = element.type == "Response" ? "res" : "try res.decode(\(element.type).self, using: req.responseDecoder)"
@@ -195,11 +196,11 @@ extension FunctionDeclSyntax {
                         .joined(separator: ": ")
                 }
             return """
-                (
-                    \(elements.joined(separator: ",\n"))
-                )
-                """
-        case .type(let string):
+            (
+                \(elements.joined(separator: ",\n"))
+            )
+            """
+        case let .type(string):
             return "try res.decode(\(string).self, using: req.responseDecoder)"
         default:
             return nil
@@ -213,13 +214,13 @@ extension FunctionDeclSyntax {
     }
 }
 
-extension FunctionParameterSyntax {
-    fileprivate func apiBuilderStatement() throws -> String? {
+private extension FunctionParameterSyntax {
+    func apiBuilderStatement() throws -> String? {
         guard !isClosure else {
             return nil
         }
 
-        var parameterAttribute: APIAttribute? = nil
+        var parameterAttribute: APIAttribute?
         for attribute in apiAttributes {
             switch attribute {
             case .body, .query, .header, .path, .field:
@@ -237,7 +238,7 @@ extension FunctionParameterSyntax {
         return attribute.apiBuilderStatement(input: variableName)
     }
 
-    fileprivate var apiAttributes: [APIAttribute] {
+    var apiAttributes: [APIAttribute] {
         attributes?
             .compactMap { $0.as(AttributeSyntax.self) }
             .compactMap(APIAttribute.init) ?? []

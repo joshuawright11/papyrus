@@ -7,9 +7,9 @@ public protocol Response {
     var error: Error? { get }
 }
 
-extension Response {
+public extension Response {
     @discardableResult
-    public func validate() throws -> Self {
+    func validate() throws -> Self {
         guard let error else {
             return self
         }
@@ -17,7 +17,7 @@ extension Response {
         throw error
     }
 
-    public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
+    func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
         try validate()
 
         guard let data = body else {
@@ -28,8 +28,8 @@ extension Response {
     }
 }
 
-extension Response where Self == ErrorResponse {
-    public static func error(_ error: Error) -> Response {
+public extension Response where Self == ErrorResponse {
+    static func error(_ error: Error) -> Response {
         ErrorResponse(error)
     }
 }
@@ -38,11 +38,11 @@ public struct ErrorResponse: Response {
     let _error: Error?
 
     public init(_ error: Error) {
-        self._error = error
+        _error = error
     }
 
     public var body: Data? { nil }
-    public var headers: [String : String]? { nil }
+    public var headers: [String: String]? { nil }
     public var statusCode: Int? { nil }
     public var error: Error? { _error }
 }

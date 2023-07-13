@@ -1,7 +1,6 @@
-import XCTest
 @testable import PapyrusPlugin
+import XCTest
 
 final class PluginTest: XCTestCase {
-    func testPlugin() throws {
-    }
+    func testPlugin() throws {}
 }

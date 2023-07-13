@@ -19,7 +19,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
     }
 
     var description: String {
-        self.encode("")
+        encode("")
     }
 
     /// Create `URLEncodedFormNode` from URL encoded form data
@@ -63,7 +63,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
         let keys = keys.dropFirst()
 
         switch (self, keyType) {
-        case (.map(let map), .map(let key)):
+        case let (.map(map), .map(key)):
             let key = keyMapping.decode(String(key))
             if keys.count == 0 {
                 guard map.values[key] == nil else { throw Error.failedToDecode() }
@@ -77,7 +77,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
                     try node.addValue(keys: keys, value: value, keyMapping: keyMapping)
                 }
             }
-        case (.array(let array), .array):
+        case let (.array(array), .array):
             if keys.count == 0 {
                 array.values.append(.leaf(value))
             } else {
@@ -94,13 +94,13 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
     /// - Returns: URL encoded string
     private func encode(_ prefix: String) -> String {
         switch self {
-        case .leaf(let string):
+        case let .leaf(string):
             return string.map { "\(prefix)=\($0.percentEncoded)" } ?? "\(prefix)"
-        case .array(let array):
+        case let .array(array):
             return array.values.map {
                 $0.encode("\(prefix)[]")
             }.joined(separator: "&")
-        case .map(let map):
+        case let .map(map):
             if prefix.count == 0 {
                 return map.values.map {
                     $0.value.encode("\($0.key)")
@@ -131,7 +131,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
         }
 
         var percentEncoded: String {
-            return self.value.addingPercentEncoding(withAllowedCharacters: URLEncodedForm.unreservedCharacters) ?? self.value
+            return value.addingPercentEncoding(withAllowedCharacters: URLEncodedForm.unreservedCharacters) ?? value
         }
 
         static func == (lhs: URLEncodedFormNode.NodeValue, rhs: URLEncodedFormNode.NodeValue) -> Bool {
@@ -142,9 +142,9 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
     final class Map: Equatable {
         var values: [String: URLEncodedFormNode]
         let keyMapping: KeyMapping
-        
+
         init(keyMapping: KeyMapping) {
-            self.values = [:]
+            values = [:]
             self.keyMapping = keyMapping
         }
 
@@ -158,7 +158,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
                 key = keyMapping.encode(key)
             }
 
-            self.values[key] = value
+            values[key] = value
         }
 
         static func == (lhs: URLEncodedFormNode.Map, rhs: URLEncodedFormNode.Map) -> Bool {
@@ -173,7 +173,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
         }
 
         func addChild(value: URLEncodedFormNode) {
-            self.values.append(value)
+            values.append(value)
         }
 
         static func == (lhs: URLEncodedFormNode.Array, rhs: URLEncodedFormNode.Array) -> Bool {
@@ -208,7 +208,7 @@ enum KeyParser {
             } else {
                 // an open bracket is unexpected
                 guard let bracketIndex = key[index...].firstIndex(of: "]") else { return nil }
-                values.append(.map(key[index..<bracketIndex]))
+                values.append(.map(key[index ..< bracketIndex]))
                 index = bracketIndex
                 index = key.index(after: index)
             }

@@ -1,5 +1,5 @@
-import XCTest
 @testable import PapyrusCore
+import XCTest
 
 final class ResponseDecoderTests: XCTestCase {
     func testWithKeyMappingDoesntMutate() throws {

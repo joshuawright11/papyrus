@@ -35,18 +35,18 @@ public struct RequestBuilder {
 
         public func hash(into hasher: inout Hasher) {
             switch self {
-            case .explicit(let value):
+            case let .explicit(value):
                 hasher.combine(value)
-            case .implicit(let value):
+            case let .implicit(value):
                 hasher.combine(value)
             }
         }
 
         fileprivate func mapped(_ keyMapping: KeyMapping?) -> String {
             switch self {
-            case .explicit(let value):
+            case let .explicit(value):
                 return value
-            case .implicit(let value):
+            case let .implicit(value):
                 guard let keyMapping else { return value }
                 return keyMapping.encode(value)
             }
@@ -72,7 +72,7 @@ public struct RequestBuilder {
         case fields([ContentKey: ContentValue])
     }
 
-    public static var defaultQueryEncoder: URLEncodedFormEncoder = URLEncodedFormEncoder()
+    public static var defaultQueryEncoder: URLEncodedFormEncoder = .init()
     public static var defaultRequestEncoder: RequestEncoder = JSONEncoder()
     public static var defaultResponseDecoder: ResponseDecoder = JSONDecoder()
 
@@ -113,10 +113,10 @@ public struct RequestBuilder {
         self.baseURL = baseURL
         self.method = method
         self.path = path
-        self.parameters = [:]
-        self.headers = [:]
-        self.queries = [:]
-        self.body = nil
+        parameters = [:]
+        headers = [:]
+        queries = [:]
+        body = nil
     }
 
     // MARK: Building
@@ -156,10 +156,10 @@ public struct RequestBuilder {
     public mutating func addField<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
         var fields: [ContentKey: ContentValue] = [:]
         if let body = body {
-            guard case .fields(let existingFields) = body else {
+            guard case let .fields(existingFields) = body else {
                 preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a @Body, \(body). @Body and @Field are mutually exclusive.")
             }
-            
+
             fields = existingFields
         }
 
@@ -167,7 +167,7 @@ public struct RequestBuilder {
         fields[key] = ContentValue(value)
         body = .fields(fields)
     }
-    
+
     // MARK: Creating Request Parts
 
     public func fullURL() throws -> URL {
@@ -201,15 +201,15 @@ public struct RequestBuilder {
         switch body {
         case .none:
             return nil
-        case .value(let value):
+        case let .value(value):
             return try requestEncoder.encode(value)
-        case .fields(let fields):
+        case let .fields(fields):
             let pairs = fields.map { ($0.mapped(keyMapping), $1) }
             let dict = Dictionary(uniqueKeysWithValues: pairs)
             return try requestEncoder.encode(dict)
         }
     }
-    
+
     private func queryString() throws -> String {
         guard !queries.isEmpty else {
             return ""
@@ -226,16 +226,16 @@ public struct RequestBuilder {
     }
 }
 
-extension KeyMappable {
-    fileprivate func with(keyMapping: KeyMapping?) -> Self {
+private extension KeyMappable {
+    func with(keyMapping: KeyMapping?) -> Self {
         guard let keyMapping else { return self }
         return with(keyMapping: keyMapping)
     }
 }
 
-extension String {
+private extension String {
     /// Converts a `camelCase` String to `Http-Header-Case`.
-    fileprivate func httpHeaderCase() -> String {
+    func httpHeaderCase() -> String {
         let snakeCase = KeyMapping.snakeCase.encode(self)
         let kebabCase = snakeCase
             .components(separatedBy: "_")

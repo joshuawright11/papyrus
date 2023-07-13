@@ -1,5 +1,5 @@
-import XCTest
 @testable import PapyrusCore
+import XCTest
 
 final class ProviderTests: XCTestCase {
     func testProvider() {
@@ -12,15 +12,13 @@ final class ProviderTests: XCTestCase {
 }
 
 private struct TestHTTPService: HTTPService {
-    func build(method: String, url: URL, headers: [String : String], body: Data?) -> Request {
+    func build(method _: String, url _: URL, headers _: [String: String], body _: Data?) -> Request {
         fatalError()
     }
-    
-    func request(_ req: Request) async -> Response {
-        fatalError()
-    }
-    
-    func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
 
+    func request(_: Request) async -> Response {
+        fatalError()
     }
+
+    func request(_: Request, completionHandler _: @escaping (Response) -> Void) {}
 }

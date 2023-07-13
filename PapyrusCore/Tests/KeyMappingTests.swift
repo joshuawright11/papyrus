@@ -1,12 +1,12 @@
-import XCTest
 @testable import PapyrusCore
+import XCTest
 
 final class KeyMappingTests: XCTestCase {
     private let pairs = [
         "fooBar": "foo_bar",
         "foo1": "foo1",
         "fooBarBaz": "foo_bar_baz",
-        "_bar_": "_bar_"
+        "_bar_": "_bar_",
     ]
 
     func testCustom() {

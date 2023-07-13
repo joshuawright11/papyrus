@@ -7,8 +7,8 @@ public protocol RequestEncoder: KeyMappable {
 
 // MARK: application/json
 
-extension RequestEncoder where Self == JSONEncoder {
-    public static func json(_ encoder: JSONEncoder) -> Self {
+public extension RequestEncoder where Self == JSONEncoder {
+    static func json(_ encoder: JSONEncoder) -> Self {
         encoder
     }
 }
@@ -30,8 +30,8 @@ extension JSONEncoder: RequestEncoder {
 
 // MARK: application/x-www-form-urlencoded
 
-extension RequestEncoder where Self == URLEncodedFormEncoder {
-    public static func urlForm(_ encoder: URLEncodedFormEncoder) -> Self {
+public extension RequestEncoder where Self == URLEncodedFormEncoder {
+    static func urlForm(_ encoder: URLEncodedFormEncoder) -> Self {
         encoder
     }
 }
@@ -57,8 +57,8 @@ extension URLEncodedFormEncoder: RequestEncoder {
 
 // MARK: multipart/form-data
 
-extension RequestEncoder where Self == MultipartEncoder {
-    public static func multipart(_ encoder: MultipartEncoder) -> Self {
+public extension RequestEncoder where Self == MultipartEncoder {
+    static func multipart(_ encoder: MultipartEncoder) -> Self {
         encoder
     }
 }

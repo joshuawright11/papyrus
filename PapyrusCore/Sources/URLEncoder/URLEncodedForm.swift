@@ -22,11 +22,11 @@ internal enum URLEncodedForm {
 
         init?(stringValue: String) {
             self.stringValue = stringValue
-            self.intValue = nil
+            intValue = nil
         }
 
         init?(intValue: Int) {
-            self.stringValue = "\(intValue)"
+            stringValue = "\(intValue)"
             self.intValue = intValue
         }
 
@@ -36,8 +36,8 @@ internal enum URLEncodedForm {
         }
 
         init(index: Int) {
-            self.stringValue = "\(index)"
-            self.intValue = index
+            stringValue = "\(index)"
+            intValue = index
         }
 
         fileprivate static let `super` = Key(stringValue: "super")!

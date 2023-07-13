@@ -40,7 +40,7 @@ public struct URLEncodedFormDecoder {
 
     /// The strategy to use in Encoding dates. Defaults to `.deferredToDate`.
     public var dateDecodingStrategy: DateDecodingStrategy
-    
+
     /// Custom mapping of key names
     public var keyMapping: KeyMapping
 
@@ -57,9 +57,9 @@ public struct URLEncodedFormDecoder {
     /// The options set on the top-level encoder.
     fileprivate var options: _Options {
         return _Options(
-            dateDecodingStrategy: self.dateDecodingStrategy,
-            keyMapping: self.keyMapping,
-            userInfo: self.userInfo
+            dateDecodingStrategy: dateDecodingStrategy,
+            keyMapping: keyMapping,
+            userInfo: userInfo
         )
     }
 
@@ -82,8 +82,8 @@ public struct URLEncodedFormDecoder {
     ///   - type: Type to decode to
     ///   - string: URL encoded form data
     public func decode<T: Decodable>(_ type: T.Type, from string: String) throws -> T {
-        let decoder = _URLEncodedFormDecoder(options: self.options)
-        let node = try URLEncodedFormNode(from: string, keyMapping: self.options.keyMapping)
+        let decoder = _URLEncodedFormDecoder(options: options)
+        let node = try URLEncodedFormNode(from: string, keyMapping: options.keyMapping)
         let value = try decoder.unbox(node, as: type)
         return value
     }
@@ -103,7 +103,7 @@ private class _URLEncodedFormDecoder: Decoder {
 
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any] {
-        return self.options.userInfo
+        return options.userInfo
     }
 
     // MARK: - Initialization
@@ -112,19 +112,19 @@ private class _URLEncodedFormDecoder: Decoder {
     fileprivate init(at codingPath: [CodingKey] = [], options: URLEncodedFormDecoder._Options) {
         self.codingPath = codingPath
         self.options = options
-        self.storage = .init()
+        storage = .init()
     }
 
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
-        guard case .map(let map) = self.storage.topContainer else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected a dictionary"))
+    func container<Key>(keyedBy _: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
+        guard case let .map(map) = storage.topContainer else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected a dictionary"))
         }
         return KeyedDecodingContainer(KDC(container: map, decoder: self))
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        guard case .array(let array) = self.storage.topContainer else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected an array"))
+        guard case let .array(array) = storage.topContainer else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected an array"))
         }
         return UKDC(container: array, decoder: self)
     }
@@ -134,7 +134,7 @@ private class _URLEncodedFormDecoder: Decoder {
     }
 
     struct KDC<Key: CodingKey>: KeyedDecodingContainerProtocol {
-        var codingPath: [CodingKey] { self.decoder.codingPath }
+        var codingPath: [CodingKey] { decoder.codingPath }
         let decoder: _URLEncodedFormDecoder
         let container: URLEncodedFormNode.Map
 
@@ -143,127 +143,127 @@ private class _URLEncodedFormDecoder: Decoder {
         init(container: URLEncodedFormNode.Map, decoder: _URLEncodedFormDecoder) {
             self.decoder = decoder
             self.container = container
-            self.allKeys = container.values.keys.compactMap { Key(stringValue: $0) }
+            allKeys = container.values.keys.compactMap { Key(stringValue: $0) }
         }
 
         func contains(_ key: Key) -> Bool {
-            return self.container.values[key.stringValue] != nil
+            return container.values[key.stringValue] != nil
         }
 
         func decodeNil(forKey key: Key) throws -> Bool {
             guard let node = container.values[key.stringValue] else { return true }
-            return try self.decoder.unboxNil(node)
+            return try decoder.unboxNil(node)
         }
 
-        func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Bool.self)
+        func decode(_: Bool.Type, forKey key: Key) throws -> Bool {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Bool.self)
         }
 
-        func decode(_ type: String.Type, forKey key: Key) throws -> String {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: String.self)
+        func decode(_: String.Type, forKey key: Key) throws -> String {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: String.self)
         }
 
-        func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Double.self)
+        func decode(_: Double.Type, forKey key: Key) throws -> Double {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Double.self)
         }
 
-        func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Float.self)
+        func decode(_: Float.Type, forKey key: Key) throws -> Float {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Float.self)
         }
 
-        func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Int.self)
+        func decode(_: Int.Type, forKey key: Key) throws -> Int {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Int.self)
         }
 
-        func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Int8.self)
+        func decode(_: Int8.Type, forKey key: Key) throws -> Int8 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Int8.self)
         }
 
-        func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Int16.self)
+        func decode(_: Int16.Type, forKey key: Key) throws -> Int16 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Int16.self)
         }
 
-        func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Int32.self)
+        func decode(_: Int32.Type, forKey key: Key) throws -> Int32 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Int32.self)
         }
 
-        func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: Int64.self)
+        func decode(_: Int64.Type, forKey key: Key) throws -> Int64 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: Int64.self)
         }
 
-        func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: UInt.self)
+        func decode(_: UInt.Type, forKey key: Key) throws -> UInt {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: UInt.self)
         }
 
-        func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: UInt8.self)
+        func decode(_: UInt8.Type, forKey key: Key) throws -> UInt8 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: UInt8.self)
         }
 
-        func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: UInt16.self)
+        func decode(_: UInt16.Type, forKey key: Key) throws -> UInt16 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: UInt16.self)
         }
 
-        func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: UInt32.self)
+        func decode(_: UInt32.Type, forKey key: Key) throws -> UInt32 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: UInt32.self)
         }
 
-        func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            return try self.decoder.unbox(node, as: UInt64.self)
+        func decode(_: UInt64.Type, forKey key: Key) throws -> UInt64 {
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            return try decoder.unbox(node, as: UInt64.self)
         }
 
         func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
-            self.decoder.codingPath.append(key)
+            decoder.codingPath.append(key)
             defer { self.decoder.codingPath.removeLast() }
 
             guard let node = container.values[key.stringValue] else {
                 if let t = type as? AnyOptional.Type { return t.nil as! T }
-                throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: ""))
+                throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: ""))
             }
-            return try self.decoder.unbox(node, as: T.self)
+            return try decoder.unbox(node, as: T.self)
         }
 
-        func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
-            self.decoder.codingPath.append(key)
+        func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
+            decoder.codingPath.append(key)
             defer { self.decoder.codingPath.removeLast() }
 
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            guard case .map(let map) = node else {
-                throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected a dictionary"))
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            guard case let .map(map) = node else {
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected a dictionary"))
             }
-            let container = KDC<NestedKey>(container: map, decoder: self.decoder)
+            let container = KDC<NestedKey>(container: map, decoder: decoder)
             return KeyedDecodingContainer(container)
         }
 
         func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
-            self.decoder.codingPath.append(key)
+            decoder.codingPath.append(key)
             defer { self.decoder.codingPath.removeLast() }
 
-            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: self.codingPath, debugDescription: "")) }
-            guard case .array(let array) = node else {
-                throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected a dictionary"))
+            guard let node = container.values[key.stringValue] else { throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "")) }
+            guard case let .array(array) = node else {
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected a dictionary"))
             }
-            return UKDC(container: array, decoder: self.decoder)
+            return UKDC(container: array, decoder: decoder)
         }
 
         func superDecoder() throws -> Decoder {
             fatalError()
         }
 
-        func superDecoder(forKey key: Key) throws -> Decoder {
+        func superDecoder(forKey _: Key) throws -> Decoder {
             fatalError()
         }
     }
@@ -271,130 +271,130 @@ private class _URLEncodedFormDecoder: Decoder {
     struct UKDC: UnkeyedDecodingContainer {
         let container: URLEncodedFormNode.Array
         let decoder: _URLEncodedFormDecoder
-        var codingPath: [CodingKey] { self.decoder.codingPath }
+        var codingPath: [CodingKey] { decoder.codingPath }
         let count: Int?
-        var isAtEnd: Bool { self.currentIndex == self.count }
+        var isAtEnd: Bool { currentIndex == count }
         var currentIndex: Int
 
         init(container: URLEncodedFormNode.Array, decoder: _URLEncodedFormDecoder) {
             self.container = container
             self.decoder = decoder
-            self.count = container.values.count
-            self.currentIndex = 0
+            count = container.values.count
+            currentIndex = 0
         }
 
         mutating func decodeNil() throws -> Bool {
-            let node = self.container.values[self.currentIndex]
-            return try self.decoder.unboxNil(node)
+            let node = container.values[currentIndex]
+            return try decoder.unboxNil(node)
         }
 
         mutating func decode(_: Bool.Type) throws -> Bool {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Bool.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Bool.self)
         }
 
         mutating func decode(_: String.Type) throws -> String {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: String.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: String.self)
         }
 
         mutating func decode(_: Double.Type) throws -> Double {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Double.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Double.self)
         }
 
         mutating func decode(_: Float.Type) throws -> Float {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Float.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Float.self)
         }
 
         mutating func decode(_: Int.Type) throws -> Int {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Int.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Int.self)
         }
 
         mutating func decode(_: Int8.Type) throws -> Int8 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Int8.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Int8.self)
         }
 
         mutating func decode(_: Int16.Type) throws -> Int16 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Int16.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Int16.self)
         }
 
         mutating func decode(_: Int32.Type) throws -> Int32 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Int32.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Int32.self)
         }
 
         mutating func decode(_: Int64.Type) throws -> Int64 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: Int64.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: Int64.self)
         }
 
         mutating func decode(_: UInt.Type) throws -> UInt {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: UInt.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: UInt.self)
         }
 
         mutating func decode(_: UInt8.Type) throws -> UInt8 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: UInt8.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: UInt8.self)
         }
 
         mutating func decode(_: UInt16.Type) throws -> UInt16 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: UInt16.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: UInt16.self)
         }
 
         mutating func decode(_: UInt32.Type) throws -> UInt32 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: UInt32.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: UInt32.self)
         }
 
         mutating func decode(_: UInt64.Type) throws -> UInt64 {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: UInt64.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: UInt64.self)
         }
 
         mutating func decode<T>(_: T.Type) throws -> T where T: Decodable {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            return try self.decoder.unbox(node, as: T.self)
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            return try decoder.unbox(node, as: T.self)
         }
 
-        mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
-            let node = container.values[self.currentIndex]
-            self.currentIndex += 1
-            guard case .map(let map) = node else {
-                throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected a dictionary"))
+        mutating func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            guard case let .map(map) = node else {
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected a dictionary"))
             }
-            let container = KDC<NestedKey>(container: map, decoder: self.decoder)
+            let container = KDC<NestedKey>(container: map, decoder: decoder)
             return KeyedDecodingContainer(container)
         }
 
         mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
-            let node = self.container.values[self.currentIndex]
-            self.currentIndex += 1
-            guard case .array(let array) = node else {
-                throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected a dictionary"))
+            let node = container.values[currentIndex]
+            currentIndex += 1
+            guard case let .array(array) = node else {
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected a dictionary"))
             }
-            return UKDC(container: array, decoder: self.decoder)
+            return UKDC(container: array, decoder: decoder)
         }
 
         mutating func superDecoder() throws -> Decoder {
@@ -405,191 +405,191 @@ private class _URLEncodedFormDecoder: Decoder {
 
 extension _URLEncodedFormDecoder: SingleValueDecodingContainer {
     func decodeNil() -> Bool {
-        (try? self.unboxNil(self.storage.topContainer)) ?? false
+        (try? unboxNil(storage.topContainer)) ?? false
     }
 
     func decode(_: Bool.Type) throws -> Bool {
-        try self.unbox(self.storage.topContainer, as: Bool.self)
+        try unbox(storage.topContainer, as: Bool.self)
     }
 
     func decode(_: String.Type) throws -> String {
-        try self.unbox(self.storage.topContainer, as: String.self)
+        try unbox(storage.topContainer, as: String.self)
     }
 
     func decode(_: Double.Type) throws -> Double {
-        try self.unbox(self.storage.topContainer, as: Double.self)
+        try unbox(storage.topContainer, as: Double.self)
     }
 
     func decode(_: Float.Type) throws -> Float {
-        try self.unbox(self.storage.topContainer, as: Float.self)
+        try unbox(storage.topContainer, as: Float.self)
     }
 
     func decode(_: Int.Type) throws -> Int {
-        try self.unbox(self.storage.topContainer, as: Int.self)
+        try unbox(storage.topContainer, as: Int.self)
     }
 
     func decode(_: Int8.Type) throws -> Int8 {
-        try self.unbox(self.storage.topContainer, as: Int8.self)
+        try unbox(storage.topContainer, as: Int8.self)
     }
 
     func decode(_: Int16.Type) throws -> Int16 {
-        try self.unbox(self.storage.topContainer, as: Int16.self)
+        try unbox(storage.topContainer, as: Int16.self)
     }
 
     func decode(_: Int32.Type) throws -> Int32 {
-        try self.unbox(self.storage.topContainer, as: Int32.self)
+        try unbox(storage.topContainer, as: Int32.self)
     }
 
     func decode(_: Int64.Type) throws -> Int64 {
-        try self.unbox(self.storage.topContainer, as: Int64.self)
+        try unbox(storage.topContainer, as: Int64.self)
     }
 
     func decode(_: UInt.Type) throws -> UInt {
-        try self.unbox(self.storage.topContainer, as: UInt.self)
+        try unbox(storage.topContainer, as: UInt.self)
     }
 
     func decode(_: UInt8.Type) throws -> UInt8 {
-        try self.unbox(self.storage.topContainer, as: UInt8.self)
+        try unbox(storage.topContainer, as: UInt8.self)
     }
 
     func decode(_: UInt16.Type) throws -> UInt16 {
-        try self.unbox(self.storage.topContainer, as: UInt16.self)
+        try unbox(storage.topContainer, as: UInt16.self)
     }
 
     func decode(_: UInt32.Type) throws -> UInt32 {
-        try self.unbox(self.storage.topContainer, as: UInt32.self)
+        try unbox(storage.topContainer, as: UInt32.self)
     }
 
     func decode(_: UInt64.Type) throws -> UInt64 {
-        try self.unbox(self.storage.topContainer, as: UInt64.self)
+        try unbox(storage.topContainer, as: UInt64.self)
     }
 
     func decode<T>(_: T.Type) throws -> T where T: Decodable {
-        try self.unbox(self.storage.topContainer, as: T.self)
+        try unbox(storage.topContainer, as: T.self)
     }
 }
 
 extension _URLEncodedFormDecoder {
     func unboxNil(_ node: URLEncodedFormNode) throws -> Bool {
-        guard case .leaf(let value) = node else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expect value not array or dictionary"))
+        guard case let .leaf(value) = node else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expect value not array or dictionary"))
         }
         return value == nil
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Bool.Type) throws -> Bool {
-        guard case .leaf(let value) = node else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expect value not array or dictionary"))
+    func unbox(_ node: URLEncodedFormNode, as _: Bool.Type) throws -> Bool {
+        guard case let .leaf(value) = node else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expect value not array or dictionary"))
         }
         if let value2 = value {
             if let unboxValue = Bool(value2.value) {
                 return unboxValue
             } else {
-                throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Bool"))
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Bool"))
             }
         } else {
             return false
         }
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: String.Type) throws -> String {
-        guard case .leaf(let value) = node else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expect value not array or dictionary"))
+    func unbox(_ node: URLEncodedFormNode, as _: String.Type) throws -> String {
+        guard case let .leaf(value) = node else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expect value not array or dictionary"))
         }
         guard let value2 = value else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected value not empty string"))
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected value not empty string"))
         }
         return value2.value
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Double.Type) throws -> Double {
-        guard let unboxValue = Double(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Double"))
+    func unbox(_ node: URLEncodedFormNode, as _: Double.Type) throws -> Double {
+        guard let unboxValue = try Double(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Double"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Float.Type) throws -> Float {
-        guard let unboxValue = Float(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Float"))
+    func unbox(_ node: URLEncodedFormNode, as _: Float.Type) throws -> Float {
+        guard let unboxValue = try Float(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Float"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Int.Type) throws -> Int {
-        guard let unboxValue = Int(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Int"))
+    func unbox(_ node: URLEncodedFormNode, as _: Int.Type) throws -> Int {
+        guard let unboxValue = try Int(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Int"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Int8.Type) throws -> Int8 {
-        guard let unboxValue = Int8(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Int8"))
+    func unbox(_ node: URLEncodedFormNode, as _: Int8.Type) throws -> Int8 {
+        guard let unboxValue = try Int8(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Int8"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Int16.Type) throws -> Int16 {
-        guard let unboxValue = Int16(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Int16"))
+    func unbox(_ node: URLEncodedFormNode, as _: Int16.Type) throws -> Int16 {
+        guard let unboxValue = try Int16(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Int16"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Int32.Type) throws -> Int32 {
-        guard let unboxValue = Int32(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Int32"))
+    func unbox(_ node: URLEncodedFormNode, as _: Int32.Type) throws -> Int32 {
+        guard let unboxValue = try Int32(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Int32"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Int64.Type) throws -> Int64 {
-        guard let unboxValue = Int64(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected Int64"))
+    func unbox(_ node: URLEncodedFormNode, as _: Int64.Type) throws -> Int64 {
+        guard let unboxValue = try Int64(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected Int64"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: UInt.Type) throws -> UInt {
-        guard let unboxValue = UInt(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected UInt"))
+    func unbox(_ node: URLEncodedFormNode, as _: UInt.Type) throws -> UInt {
+        guard let unboxValue = try UInt(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected UInt"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: UInt8.Type) throws -> UInt8 {
-        guard let unboxValue = UInt8(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected UInt8"))
+    func unbox(_ node: URLEncodedFormNode, as _: UInt8.Type) throws -> UInt8 {
+        guard let unboxValue = try UInt8(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected UInt8"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: UInt16.Type) throws -> UInt16 {
-        guard let unboxValue = UInt16(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected UInt16"))
+    func unbox(_ node: URLEncodedFormNode, as _: UInt16.Type) throws -> UInt16 {
+        guard let unboxValue = try UInt16(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected UInt16"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: UInt32.Type) throws -> UInt32 {
-        guard let unboxValue = UInt32(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected UInt32"))
+    func unbox(_ node: URLEncodedFormNode, as _: UInt32.Type) throws -> UInt32 {
+        guard let unboxValue = try UInt32(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected UInt32"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: UInt64.Type) throws -> UInt64 {
-        guard let unboxValue = UInt64(try unbox(node, as: String.self)) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Expected UInt64"))
+    func unbox(_ node: URLEncodedFormNode, as _: UInt64.Type) throws -> UInt64 {
+        guard let unboxValue = try UInt64(unbox(node, as: String.self)) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Expected UInt64"))
         }
         return unboxValue
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Date.Type) throws -> Date {
-        switch self.options.dateDecodingStrategy {
+    func unbox(_ node: URLEncodedFormNode, as _: Date.Type) throws -> Date {
+        switch options.dateDecodingStrategy {
         case .deferredToDate:
-            self.storage.push(container: node)
+            storage.push(container: node)
             defer { self.storage.popContainer() }
             return try .init(from: self)
         case .millisecondsSince1970:
@@ -608,38 +608,38 @@ extension _URLEncodedFormDecoder {
             } else {
                 preconditionFailure("ISO8601DateFormatter is unavailable on this platform")
             }
-        case .formatted(let formatter):
+        case let .formatted(formatter):
             let dateString = try unbox(node, as: String.self)
             guard let date = formatter.date(from: dateString) else {
-                throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Invalid date format"))
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: "Invalid date format"))
             }
             return date
-        case .custom(let closure):
-            self.storage.push(container: node)
+        case let .custom(closure):
+            storage.push(container: node)
             defer { self.storage.popContainer() }
             return try closure(self)
         }
     }
 
-    func unbox(_ node: URLEncodedFormNode, as type: Data.Type) throws -> Data {
+    func unbox(_ node: URLEncodedFormNode, as _: Data.Type) throws -> Data {
         let string = try unbox(node, as: String.self)
         guard let data = Data(base64Encoded: string) else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Encountered Data is not valid Base64."))
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: "Encountered Data is not valid Base64."))
         }
         return data
     }
 
-    func unbox<T>(_ node: URLEncodedFormNode, as type: T.Type) throws -> T where T: Decodable {
-        return try self.unbox_(node, as: T.self) as! T
+    func unbox<T>(_ node: URLEncodedFormNode, as _: T.Type) throws -> T where T: Decodable {
+        return try unbox_(node, as: T.self) as! T
     }
 
     func unbox_(_ node: URLEncodedFormNode, as type: Decodable.Type) throws -> Any {
         if type == Data.self {
-            return try self.unbox(node, as: Data.self)
+            return try unbox(node, as: Data.self)
         } else if type == Date.self {
-            return try self.unbox(node, as: Date.self)
+            return try unbox(node, as: Date.self)
         } else {
-            self.storage.push(container: node)
+            storage.push(container: node)
             defer { self.storage.popContainer() }
             return try type.init(from: self)
         }
@@ -657,10 +657,10 @@ private struct URLEncodedFormDecodingStorage {
     var topContainer: URLEncodedFormNode { return containers.last! }
 
     /// push a new container onto the storage
-    mutating func push(container: URLEncodedFormNode) { self.containers.append(container) }
+    mutating func push(container: URLEncodedFormNode) { containers.append(container) }
 
     /// pop a container from the storage
-    @discardableResult mutating func popContainer() -> URLEncodedFormNode { self.containers.removeLast() }
+    @discardableResult mutating func popContainer() -> URLEncodedFormNode { containers.removeLast() }
 }
 
 protocol AnyOptional {
@@ -669,6 +669,6 @@ protocol AnyOptional {
 }
 
 extension Optional: AnyOptional {
-    static var `nil`: Optional<Wrapped> { nil }
+    static var `nil`: Wrapped? { nil }
     var isNil: Bool { self == nil }
 }

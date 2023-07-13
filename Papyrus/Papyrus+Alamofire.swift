@@ -2,11 +2,12 @@
 @_exported import Foundation
 @_exported import PapyrusCore
 
-extension Provider {
-    public convenience init(baseURL: String,
-                            session: Session = Session.default,
-                            modifiers: [RequestModifier] = [],
-                            interceptors: [PapyrusCore.Interceptor] = []) {
+public extension Provider {
+    convenience init(baseURL: String,
+                     session: Session = Session.default,
+                     modifiers: [RequestModifier] = [],
+                     interceptors: [PapyrusCore.Interceptor] = [])
+    {
         self.init(baseURL: baseURL, http: session, modifiers: modifiers, interceptors: interceptors)
     }
 }
@@ -35,18 +36,18 @@ extension Session: HTTPService {
 
 extension DataResponse: Response {
     public var body: Data? { data }
-    public var headers: [String : String]? { response?.headers.dictionary }
+    public var headers: [String: String]? { response?.headers.dictionary }
     public var statusCode: Int? { response?.statusCode }
     public var error: Error? {
-        guard case .failure(let error) = result else { return nil }
+        guard case let .failure(error) = result else { return nil }
         return error
     }
 }
 
-extension Response {
-    public var response: HTTPURLResponse? { alamofire.response }
-    public var request: URLRequest? { alamofire.request }
-    public var alamofire: DataResponse<Data, AFError> {
+public extension Response {
+    var response: HTTPURLResponse? { alamofire.response }
+    var request: URLRequest? { alamofire.request }
+    var alamofire: DataResponse<Data, AFError> {
         self as! DataResponse<Data, AFError>
     }
 }
@@ -77,8 +78,8 @@ private struct RequestProxy: PapyrusCore.Request {
     }
 }
 
-extension PapyrusCore.Request {
-    public var request: URLRequest {
+public extension PapyrusCore.Request {
+    var request: URLRequest {
         (self as! RequestProxy).request
     }
 }

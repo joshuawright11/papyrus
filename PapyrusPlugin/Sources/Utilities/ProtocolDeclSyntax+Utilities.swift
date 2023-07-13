@@ -4,7 +4,7 @@ extension ProtocolDeclSyntax {
     var typeName: String {
         identifier.text
     }
-    
+
     var access: String {
         modifiers?.first.map { "\($0.trimmedDescription) " } ?? ""
     }

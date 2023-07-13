@@ -80,8 +80,8 @@ public protocol RequestModifier {
 
 // MARK: Closure Based APIs
 
-extension Provider {
-    public func request(_ builder: RequestBuilder, completionHandler: @escaping (Response) -> Void) {
+public extension Provider {
+    func request(_ builder: RequestBuilder, completionHandler: @escaping (Response) -> Void) {
         do {
             let request = try createRequest(builder)
             var next = http.request
@@ -99,15 +99,16 @@ extension Provider {
     }
 }
 
-extension Interceptor {
-    fileprivate func intercept(req: Request,
-                               completionHandler: @escaping (Response) -> Void,
-                               next: @escaping (Request, @escaping (Response) -> Void) -> Void) {
+private extension Interceptor {
+    func intercept(req: Request,
+                   completionHandler: @escaping (Response) -> Void,
+                   next: @escaping (Request, @escaping (Response) -> Void) -> Void)
+    {
         Task {
             do {
-                completionHandler(
-                    try await intercept(req: req) { req in
-                        return try await withCheckedThrowingContinuation {
+                try completionHandler(
+                    await intercept(req: req) { req in
+                        try await withCheckedThrowingContinuation {
                             next(req, $0.resume)
                         }
                     }

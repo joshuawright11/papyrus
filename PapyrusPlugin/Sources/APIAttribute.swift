@@ -135,33 +135,33 @@ enum APIAttribute {
             return """
             req.addField("\(key ?? input)", value: \(input)\(mapParameter))
             """
-        case .json(let encoder, let decoder):
+        case let .json(encoder, decoder):
             return """
             req.requestEncoder = .json(\(encoder))
             req.responseDecoder = .json(\(decoder))
             """
-        case .urlForm(let encoder):
+        case let .urlForm(encoder):
             return """
             req.requestEncoder = .urlForm(\(encoder))
             """
-        case .multipart(let encoder):
+        case let .multipart(encoder):
             return """
             req.requestEncoder = .multipart(\(encoder))
             """
-        case .converter(let encoder, let decoder):
+        case let .converter(encoder, decoder):
             return """
             req.requestEncoder = \(encoder)
             req.responseDecoder = \(decoder)
             """
-        case .headers(let value):
+        case let .headers(value):
             return """
             req.addHeaders(\(value))
             """
-        case .keyMapping(let value):
+        case let .keyMapping(value):
             return """
             req.keyMapping = \(value)
             """
-        case .authorization(value: let value):
+        case let .authorization(value: value):
             return """
             req.addAuthorization(\(value))
             """

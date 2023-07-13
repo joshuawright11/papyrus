@@ -9,15 +9,15 @@ public protocol KeyMappable {
 public enum KeyMapping {
     /// Use the literal name for all properties on a type as its field key.
     case useDefaultKeys
-    
+
     /// Convert property names from camelCase to snake_case for field keys.
     ///
     /// e.g. `someGreatString` -> `some_great_string`
     case snakeCase
-    
+
     /// A custom key mapping.
     case custom(to: (String) -> String, from: (String) -> String)
-    
+
     /// Encode String from camelCase to this KeyMapping strategy.
     public func encode(_ string: String) -> String {
         switch self {
@@ -25,7 +25,7 @@ public enum KeyMapping {
             return string.camelCaseToSnakeCase()
         case .useDefaultKeys:
             return string
-        case .custom(let toMapper, _):
+        case let .custom(toMapper, _):
             return toMapper(string)
         }
     }
@@ -37,69 +37,69 @@ public enum KeyMapping {
             return string.camelCaseFromSnakeCase()
         case .useDefaultKeys:
             return string
-        case .custom(_, let fromMapper):
+        case let .custom(_, fromMapper):
             return fromMapper(string)
         }
     }
 }
 
-extension String {
+private extension String {
     /// Map camelCase to snake_case. Assumes `self` is already in
     /// camelCase. Copied from `Foundation`.
     ///
     /// - Returns: The snake_cased version of `self`.
-    fileprivate func camelCaseToSnakeCase() -> String {
-        guard !self.isEmpty else { return self }
-    
-        var words : [Range<String.Index>] = []
+    func camelCaseToSnakeCase() -> String {
+        guard !isEmpty else { return self }
+
+        var words: [Range<String.Index>] = []
         // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
         //
         // myProperty -> my_property
         // myURLProperty -> my_url_property
         //
         // We assume, per Swift naming conventions, that the first character of the key is lowercase.
-        var wordStart = self.startIndex
-        var searchRange = self.index(after: wordStart)..<self.endIndex
-    
+        var wordStart = startIndex
+        var searchRange = index(after: wordStart) ..< endIndex
+
         // Find next uppercase character
-        while let upperCaseRange = self.rangeOfCharacter(from: CharacterSet.uppercaseLetters, options: [], range: searchRange) {
-            let untilUpperCase = wordStart..<upperCaseRange.lowerBound
+        while let upperCaseRange = rangeOfCharacter(from: CharacterSet.uppercaseLetters, options: [], range: searchRange) {
+            let untilUpperCase = wordStart ..< upperCaseRange.lowerBound
             words.append(untilUpperCase)
-            
+
             // Find next lowercase character
-            searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
-            guard let lowerCaseRange = self.rangeOfCharacter(from: CharacterSet.lowercaseLetters, options: [], range: searchRange) else {
+            searchRange = upperCaseRange.lowerBound ..< searchRange.upperBound
+            guard let lowerCaseRange = rangeOfCharacter(from: CharacterSet.lowercaseLetters, options: [], range: searchRange) else {
                 // There are no more lower case letters. Just end here.
                 wordStart = searchRange.lowerBound
                 break
             }
-            
+
             // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
-            let nextCharacterAfterCapital = self.index(after: upperCaseRange.lowerBound)
+            let nextCharacterAfterCapital = index(after: upperCaseRange.lowerBound)
             if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
                 // The next character after capital is a lower case character and therefore not a word boundary.
                 // Continue searching for the next upper case for the boundary.
                 wordStart = upperCaseRange.lowerBound
             } else {
                 // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
-                let beforeLowerIndex = self.index(before: lowerCaseRange.lowerBound)
-                words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
-                
+                let beforeLowerIndex = index(before: lowerCaseRange.lowerBound)
+                words.append(upperCaseRange.lowerBound ..< beforeLowerIndex)
+
                 // Next word starts at the capital before the lowercase we just found
                 wordStart = beforeLowerIndex
             }
-            searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
+            searchRange = lowerCaseRange.upperBound ..< searchRange.upperBound
         }
 
-        words.append(wordStart..<searchRange.upperBound)
+        words.append(wordStart ..< searchRange.upperBound)
         return words
             .map { range in
                 self[range].lowercased()
             }
             .joined(separator: "_")
     }
-    
-    fileprivate func camelCaseFromSnakeCase() -> String {
+
+    func camelCaseFromSnakeCase() -> String {
         let stringKey = self
         guard !stringKey.isEmpty else { return stringKey }
 
@@ -115,9 +115,9 @@ extension String {
             stringKey.formIndex(before: &lastNonUnderscore)
         }
 
-        let keyRange = firstNonUnderscore...lastNonUnderscore
-        let leadingUnderscoreRange = stringKey.startIndex..<firstNonUnderscore
-        let trailingUnderscoreRange = stringKey.index(after: lastNonUnderscore)..<stringKey.endIndex
+        let keyRange = firstNonUnderscore ... lastNonUnderscore
+        let leadingUnderscoreRange = stringKey.startIndex ..< firstNonUnderscore
+        let trailingUnderscoreRange = stringKey.index(after: lastNonUnderscore) ..< stringKey.endIndex
 
         let components = stringKey[keyRange].split(separator: "_")
         let joinedString: String
@@ -130,12 +130,12 @@ extension String {
 
         // Do a cheap isEmpty check before creating and appending potentially empty strings
         let result: String
-        if (leadingUnderscoreRange.isEmpty && trailingUnderscoreRange.isEmpty) {
+        if leadingUnderscoreRange.isEmpty && trailingUnderscoreRange.isEmpty {
             result = joinedString
-        } else if (!leadingUnderscoreRange.isEmpty && !trailingUnderscoreRange.isEmpty) {
+        } else if !leadingUnderscoreRange.isEmpty && !trailingUnderscoreRange.isEmpty {
             // Both leading and trailing underscores
             result = String(stringKey[leadingUnderscoreRange]) + joinedString + String(stringKey[trailingUnderscoreRange])
-        } else if (!leadingUnderscoreRange.isEmpty) {
+        } else if !leadingUnderscoreRange.isEmpty {
             // Just leading
             result = String(stringKey[leadingUnderscoreRange]) + joinedString
         } else {
@@ -155,14 +155,14 @@ extension KeyMapping {
         var intValue: Int?
 
         init(_ string: String) {
-            self.stringValue = string
+            stringValue = string
         }
 
         init?(stringValue: String) {
             self.stringValue = stringValue
         }
 
-        init?(intValue: Int) {
+        init?(intValue _: Int) {
             return nil
         }
     }
@@ -173,7 +173,7 @@ extension KeyMapping {
             return .convertToSnakeCase
         case .useDefaultKeys:
             return .useDefaultKeys
-        case .custom(let toMapper, _):
+        case let .custom(toMapper, _):
             return .custom { keys in
                 guard let last = keys.last else {
                     return GenericCodingKey("")
@@ -190,7 +190,7 @@ extension KeyMapping {
             return .convertFromSnakeCase
         case .useDefaultKeys:
             return .useDefaultKeys
-        case .custom(_, let fromMapper):
+        case let .custom(_, fromMapper):
             return .custom { keys in
                 guard let last = keys.last else {
                     return GenericCodingKey("")

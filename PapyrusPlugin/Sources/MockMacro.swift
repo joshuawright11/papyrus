@@ -3,8 +3,9 @@ import SwiftSyntaxMacros
 
 public struct MockMacro: PeerMacro {
     public static func expansion(of node: AttributeSyntax,
-                          providingPeersOf declaration: some DeclSyntaxProtocol,
-                          in context: some MacroExpansionContext) throws -> [DeclSyntax] {
+                                 providingPeersOf declaration: some DeclSyntaxProtocol,
+                                 in _: some MacroExpansionContext) throws -> [DeclSyntax]
+    {
         handleError {
             guard let type = declaration.as(ProtocolDeclSyntax.self) else {
                 throw PapyrusPluginError("@Mock can only be applied to protocols.")
@@ -18,7 +19,7 @@ public struct MockMacro: PeerMacro {
 
 extension ProtocolDeclSyntax {
     fileprivate func createMock(named mockName: String) throws -> String {
-        """
+        try """
         \(access)final class \(mockName): \(typeName) {
             private let notMockedError: Error
             private var mocks: [String: Any]
@@ -28,7 +29,7 @@ extension ProtocolDeclSyntax {
                 mocks = [:]
             }
 
-        \(try generateMockFunctions())
+        \(generateMockFunctions())
         }
         """
     }
@@ -41,8 +42,8 @@ extension ProtocolDeclSyntax {
     }
 }
 
-extension FunctionDeclSyntax {
-    fileprivate func mockImplementation() throws -> String {
+private extension FunctionDeclSyntax {
+    func mockImplementation() throws -> String {
         try validateSignature()
 
         let notFoundExpression: String
@@ -56,32 +57,33 @@ extension FunctionDeclSyntax {
 
             let unimplementedError = returnResponseOnly ? ".error(notMockedError)" : ".failure(notMockedError)"
             notFoundExpression = """
-                \(callbackName)(\(unimplementedError))
-                return
-                """
+            \(callbackName)(\(unimplementedError))
+            return
+            """
         }
 
         let mockerArguments = parameters.map(\.variableName).joined(separator: ", ")
         let matchExpression: String =
-            switch style {
-            case .concurrency:
-                "return try await mocker(\(mockerArguments))"
-            case .completionHandler:
-                "mocker(\(mockerArguments))"
-            }
+            switch style
+        {
+        case .concurrency:
+            "return try await mocker(\(mockerArguments))"
+        case .completionHandler:
+            "mocker(\(mockerArguments))"
+        }
 
         return """
-            func \(functionName)\(signature) {
-                guard let mocker = mocks["\(functionName)"] as? \(mockClosureType) else {
-                    \(notFoundExpression)
-                }
-
-                \(matchExpression)
+        func \(functionName)\(signature) {
+            guard let mocker = mocks["\(functionName)"] as? \(mockClosureType) else {
+                \(notFoundExpression)
             }
-            """
+
+            \(matchExpression)
+        }
+        """
     }
 
-    fileprivate var mockerFunction: String {
+    var mockerFunction: String {
         """
         func mock\(functionName.capitalizeFirst)(result: @escaping \(mockClosureType)) {
             mocks["\(functionName)"] = result
@@ -97,14 +99,14 @@ extension FunctionDeclSyntax {
     }
 }
 
-extension FunctionParameterSyntax {
-    fileprivate var typeString: String {
+private extension FunctionParameterSyntax {
+    var typeString: String {
         trimmed.type.description
     }
 }
 
-extension String {
-    fileprivate var capitalizeFirst: String {
+private extension String {
+    var capitalizeFirst: String {
         prefix(1).capitalized + dropFirst()
     }
 }

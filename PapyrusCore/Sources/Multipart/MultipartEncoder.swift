@@ -9,7 +9,7 @@ public struct MultipartEncoder: RequestEncoder {
         self.boundary = boundary ?? MultipartEncoder.randomBoundary()
     }
 
-    public func with(keyMapping: KeyMapping) -> MultipartEncoder {
+    public func with(keyMapping _: KeyMapping) -> MultipartEncoder {
         // KeyMapping isn't relevant since each part has already encoded data.
         self
     }
@@ -49,8 +49,8 @@ public struct MultipartEncoder: RequestEncoder {
     }
 
     private static func randomBoundary() -> String {
-        let first = UInt32.random(in: UInt32.min...UInt32.max)
-        let second = UInt32.random(in: UInt32.min...UInt32.max)
+        let first = UInt32.random(in: UInt32.min ... UInt32.max)
+        let second = UInt32.random(in: UInt32.min ... UInt32.max)
 
         return String(format: "papyrus.boundary.%08x%08x", first, second)
     }
