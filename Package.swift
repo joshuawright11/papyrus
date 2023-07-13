@@ -38,6 +38,11 @@ let package = Package(
             ],
             path: "PapyrusCore/Sources"
         ),
+        .testTarget(
+            name: "PapyrusCoreTests",
+            dependencies: ["PapyrusCore"],
+            path: "PapyrusCore/Tests"
+        ),
         .macro(
             name: "PapyrusPlugin",
             dependencies: [
@@ -49,11 +54,6 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ],
             path: "PapyrusPlugin/Sources"
-        ),
-        .testTarget(
-            name: "PapyrusCoreTests",
-            dependencies: ["PapyrusCore"],
-            path: "PapyrusCore/Tests"
         ),
         .testTarget(
             name: "PapyrusPluginTests",
