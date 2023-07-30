@@ -113,7 +113,7 @@ The `@Path` attribute replaces a named parameter in the path. Parameters are den
 
 ```swift
 @GET("/users/:username/repos/:id")
-func getRepository(@Path userId: Int, @Path id: Int) async throws -> [Repository]
+func getRepository(@Path username: String, @Path id: Int) async throws -> [Repository]
 ```
 
 #### Adding Query Parameters
