@@ -164,7 +164,7 @@ protocol Users {
     func getUser() async throws -> User
 
     @PATCH("/user/:id")
-    func updateUser(@Path id: Int, name: String) async throws
+    func updateUser(id: Int, name: String) async throws
 }
 ```
 
