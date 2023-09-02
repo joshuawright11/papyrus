@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": ["swift"],
+            "name": "Debug Example",
+            "program": "${workspaceFolder:papyrus}/.build/debug/Example",
+            "args": [],
+            "cwd": "${workspaceFolder:papyrus}",
+            "preLaunchTask": "swift: Build Debug Example"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": ["swift"],
+            "name": "Release Example",
+            "program": "${workspaceFolder:papyrus}/.build/release/Example",
+            "args": [],
+            "cwd": "${workspaceFolder:papyrus}",
+            "preLaunchTask": "swift: Build Release Example"
+        }
+    ]
+}
