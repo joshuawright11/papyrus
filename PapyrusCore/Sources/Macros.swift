@@ -65,17 +65,32 @@ public macro CONNECT(_ path: String) = #externalMacro(module: "PapyrusPlugin", t
 
 // MARK: Parameter attributes
 
-@attached(accessor)
-public macro Header(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+/*
 
-@attached(accessor)
-public macro Query(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+ Macros are no longer allowed on function parameters. We'll have to use the
+ typealiases below until they are again.
 
-@attached(accessor)
-public macro Path(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+ https://forums.swift.org/t/accessor-macro-cannot-be-attached-to-a-parameter/66669/6
 
-@attached(accessor)
-public macro Field(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+ @attached(accessor)
+ public macro Header(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
-@attached(accessor)
-public macro Body() = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+ @attached(accessor)
+ public macro Query(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+ @attached(accessor)
+ public macro Path(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+ @attached(accessor)
+ public macro Field(_ key: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+ @attached(accessor)
+ public macro Body() = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+ */
+
+public typealias Path<T> = T
+public typealias Header<T> = T
+public typealias Query<T> = T
+public typealias Field<T> = T
+public typealias Body<T> = T

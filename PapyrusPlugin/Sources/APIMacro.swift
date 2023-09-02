@@ -67,8 +67,14 @@ extension ProtocolDeclSyntax {
 extension FunctionDeclSyntax {
     fileprivate func apiFunction() throws -> String {
         let (method, path) = try apiMethodAndPath()
+        let pathParameters = path.components(separatedBy: "/")
+            .filter { $0.hasPrefix(":") }
+            .map { String($0.dropFirst()) }
+        
         try validateSignature()
-        try validateBody()
+
+        let attributes = parameters.compactMap({ $0.apiAttribute(httpMethod: method, pathParameters: pathParameters) })
+        try validateAttributes(attributes)
 
         let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
         var buildRequest = """
@@ -79,7 +85,7 @@ extension FunctionDeclSyntax {
             buildRequest.append("\n" + statement)
         }
 
-        for statement in try parameters.compactMap({ try $0.apiBuilderStatement() }) {
+        for statement in try parameters.compactMap({ try $0.apiBuilderStatement(httpMethod: method, pathParameters: pathParameters) }) {
             buildRequest.append("\n" + statement)
         }
 
@@ -158,9 +164,9 @@ extension FunctionDeclSyntax {
         return (method, path)
     }
 
-    private func validateBody() throws {
+    private func validateAttributes(_ apiAttributes: [APIAttribute]) throws {
         var bodies = 0, fields = 0
-        for attribute in parameters.flatMap(\.apiAttributes) {
+        for attribute in apiAttributes {
             switch attribute {
             case .body:
                 bodies += 1
@@ -214,33 +220,44 @@ extension FunctionDeclSyntax {
 }
 
 extension FunctionParameterSyntax {
-    fileprivate func apiBuilderStatement() throws -> String? {
+    fileprivate func apiBuilderStatement(httpMethod: String, pathParameters: [String]) throws -> String? {
         guard !isClosure else {
             return nil
         }
 
-        var parameterAttribute: APIAttribute? = nil
-        for attribute in apiAttributes {
-            switch attribute {
-            case .body, .query, .header, .path, .field:
-                guard parameterAttribute == nil else {
-                    throw PapyrusPluginError("Only one attribute is allowed per parameter!")
-                }
-
-                parameterAttribute = attribute
-            default:
-                break
-            }
-        }
-
-        let attribute = parameterAttribute ?? .field(key: nil)
-        return attribute.apiBuilderStatement(input: variableName)
+        return apiAttribute(httpMethod: httpMethod, pathParameters: pathParameters)
+            .apiBuilderStatement(input: variableName)
     }
 
-    fileprivate var apiAttributes: [APIAttribute] {
-        attributes?
-            .compactMap { $0.as(AttributeSyntax.self) }
-            .compactMap(APIAttribute.init) ?? []
+    func apiAttribute(httpMethod: String, pathParameters: [String]) -> APIAttribute {
+        if let explicitAPIAttribute {
+            // If user specifies the attribute, use that.
+            return explicitAPIAttribute
+        } else if pathParameters.contains(variableName) {
+            // If matches a path param, roll with that
+            return .path(key: nil)
+        } else if ["GET", "HEAD", "DELETE"].contains(httpMethod) {
+            // If method is GET, HEAD, DELETE
+            return .query(key: nil)
+        } else {
+            // Else field
+            return .field(key: nil)
+        }
+    }
+
+    fileprivate var explicitAPIAttribute: APIAttribute? {
+        switch type.as(SimpleTypeIdentifierSyntax.self)?.name.text {
+        case "Path":
+            return .path(key: nil)
+        case "Body":
+            return .body
+        case "Header":
+            return .header(key: nil)
+        case "Field":
+            return .field(key: nil)
+        default:
+            return nil
+        }
     }
 
     private var isClosure: Bool {
