@@ -88,7 +88,7 @@ You can install Papyrus using the [Swift Package Manager](https://www.swift.org/
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/joshuawright11/papyrus.git", branch: "main")
+    .package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.5.0")
 ]
 ```
 
