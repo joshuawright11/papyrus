@@ -12,7 +12,7 @@ It turns your APIs into clean and concise Swift protocols.
 @API
 protocol GitHub {
     @GET("/users/:username/repos")
-    func getRepositories(@Path username: String) async throws -> [Repository]
+    func getRepositories(username: String) async throws -> [Repository]
 }
 ```
 
@@ -24,7 +24,7 @@ let repos = try await github.getRepositories(username: "alchemy-swift")
 
 Each function on your protocol represents an endpoint on your API.
 
-Annotations on the protocol, functions, and parameters help construct requests and decode responses.
+Annotations on the protocol, functions, and types on the parameters help construct requests and decode responses.
 
 ```swift
 @API
@@ -35,7 +35,7 @@ protocol Users {
 
     @URLForm
     @POST("/user")
-    func createUser(@Field email: String, @Field password: String) async throws -> User
+    func createUser(email: Field<String>, password: Field<String>) async throws -> User
 }
 ```
 
@@ -45,6 +45,7 @@ protocol Users {
 -   [x] Generate Swift Concurrency _or_ completion handler based APIs
 -   [x] JSON, URLForm and Multipart encoding
 -   [x] Easy to configure key mapping
+-   [x] Sensible parameter defaults so you can write less code
 -   [x] Automatically decode responses with `Codable`
 -   [x] Custom Interceptors & Builders
 -   [x] Generate mock APIs for testing
@@ -109,26 +110,40 @@ Set the request method and path as an attribute on the function. Available metho
 
 ### Configuring the URL
 
-The `@Path` attribute replaces a named parameter in the path. Parameters are denoted with a leading `:`.
+The `Path` type replaces a named parameter in the path. Parameters are denoted with a leading `:`.
 
 ```swift
 @GET("/users/:username/repos/:id")
-func getRepository(@Path username: String, @Path id: Int) async throws -> [Repository]
+func getRepository(username: Path<String>, id: Path<Int>) async throws -> [Repository]
+```
+
+Note that you don't actually need to include the `Path<...>` wrapper if the path parameter matches the function parameter. It will be inferred.
+
+```swift
+@GET("/users/:username/repos/:id")
+func getRepository(username: String, id: Int) async throws -> [Repository]
 ```
 
 #### Adding Query Parameters
 
-You may set url queries with the `@Query` parameter.
+You may set url queries with the `Query` type.
 
 ```swift
 @GET("/transactions")
-func getTransactions(@Query merchant: String) async throws -> [Transaction]
+func getTransactions(merchant: Query<String>) async throws -> [Transaction]
 ```
 
 You can also set static queries directly in the path string.
 
 ```swift
 @GET("/transactions?merchant=Apple")
+```
+
+For convenience, a unattributed function parameter on a `@GET`, `@HEAD`, or `@DELETE` request is inferred to be a `Query`.
+
+```swift
+@GET("/transactions")
+func getTransactions(merchant: String) async throws -> [Transaction]
 ```
 
 ### Headers
@@ -162,18 +177,18 @@ protocol Users {
 }
 ```
 
-A variable header can be set with the `@Header` attribute.
+A variable header can be set with the `Header` type.
 
 ```swift
 @GET("/accounts")
-func getRepository(@Header customHeader: String) async throws
+func getRepository(customHeader: Header<String>) async throws
 ```
 
-Note that variable headers are automatically mapped to Capital-Kebab-Case. In this case, `Custom-Header`. If you'd like to set a different header key, see the section on [Custom Keys](#custom-keys).
+Note that variable headers are automatically mapped to Capital-Kebab-Case. In this case, `Custom-Header`.
 
 ### Setting a Body
 
-The request body can be set using `@Body` on a `Codable` parameter. A function can only have one `@Body` parameter.
+The request body can be set using `Body` on a `Codable` parameter. A function can only have one `Body` parameter.
 
 ```swift
 struct Todo: Codable {
@@ -183,17 +198,17 @@ struct Todo: Codable {
 }
 
 @POST("/todo")
-func createTodo(@Body todo: Todo) async throws
+func createTodo(todo: Body<Todo>) async throws
 ```
 
-Alternatively, you can set individual fields on the body `@Field`. These are mutually exclusive with `@Body`.
+Alternatively, you can set individual fields on the body `Field`. These are mutually exclusive with `Body`.
 
 ```swift
 @POST("/todo")
-func createTodo(@Field name: String, @Field isDone: Bool, @Field tags: [String]) async throws
+func createTodo(name: Field<String>, isDone: Field<Bool>, tags: Field<[String]>) async throws
 ```
 
-For convenience, a parameter with no attribute is treated as a `@Field`.
+For convenience, an unattributed parameter on a request that _isn't_ a `@GET`, `@HEAD`, or `@DELETE` is inferred to be a `Field`.
 
 ```swift
 @POST("/todo")
@@ -202,7 +217,7 @@ func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 
 ### Encoding the Body
 
-By default, all `@Body` and `@Field` parameters are encoded as `application/json`.
+By default, all `Body` and `Field` parameters are encoded as `application/json`.
 
 You may encode parameters as `application/x-www-form-urlencoded` using `@URLForm`.
 
@@ -212,7 +227,7 @@ You may encode parameters as `application/x-www-form-urlencoded` using `@URLForm
 func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-You can also encode parameters as `multipart/form-data` using `@Multipart`. If you do, all fields must be of type `Part`.
+You can also encode parameters as `multipart/form-data` using `@Multipart`. If you do, all non-path parameter fields must be of type `Part`.
 
 ```swift
 @Multipart
@@ -220,7 +235,7 @@ You can also encode parameters as `multipart/form-data` using `@Multipart`. If y
 func uploadAttachments(file1: Part, file2: Part) async throws
 ```
 
-For convenience, you can attribute your protocol with an encoding attribute to encode all requests as such.
+You can attribute your protocol with an encoding attribute to encode all requests as such.
 
 ```swift
 @API
@@ -230,7 +245,7 @@ protocol Todos {
     func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 
     @PATCH("/todo/:id")
-    func updateTodo(@Path id: Int, name: String, isDone: Bool, tags: [String]) async throws
+    func updateTodo(id: Int, name: String, isDone: Bool, tags: [String]) async throws
 }
 ```
 
@@ -311,21 +326,14 @@ If you use two labels for a function parameter, the second one will be inferred 
 
 ```swift
 @GET("/posts/:postId")
-func getPost(@Path id postId: Int) async throws -> Post
-```
-
-If you'd like a custom key for `@Path`, `@Header`, `@Field` or `@Query`, you can add a parameter to the attribute.
-
-```swift
-@GET("/repositories/:id")
-func getRepository(@Path("id") repositoryId: Int) async throws -> Repository
+func getPost(id postId: Int) async throws -> Post
 ```
 
 #### Key Mapping
 
 Often, you'll want to encode request fields and decode response fields using something other than camelCase. Instead of setting a custom key for each individual attribute, you can use `@KeyMapping` at the function or protocol level.
 
-Note that this affects `@Query`, `@Body`, and `@Field` parameters on requests as well as decoding content from the `Response`.
+Note that this affects `Query`, `Body`, and `Field` parameters on requests as well as decoding content from the `Response`.
 
 ```swift
 @API
@@ -338,16 +346,6 @@ protocol Todos {
 ### Customizing the Generated Type
 
 When you use `@API` or [`@Mock`](#mocking-with-mock), Papyrus will generate an implementation named `<protocol>API` or `<protocol>Mock` respectively. The [access level](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/accesscontrol/) will match the access level of the protocol.
-
-If you'd like to customize the name of the generated type, you may pass an argument to `@API` or `@Mock`.
-
-```swift
-@API("RedditAPI") // Generates `public struct RedditAPI: RedditService`
-@Mock("RedditMock") // Generates `public struct RedditMock: RedditService`
-public protocol RedditService {
-    ...
-}
-```
 
 ### Alamofire
 
@@ -431,17 +429,17 @@ func getResponse(completion: @escaping (Response) -> Void)
 
 Because APIs defined with Papyrus are protocols, they're simple to mock in tests; just implement the protocol.
 
-Note that you don't need to include any attributes when conforming to the protocol.
+Note that the `Path`, `Header`, `Field`, and `Body` types are just typealiases for whever they wrap so you don't need to include them when conforming to the protocol.
 
 ```swift
 @API
 protocol GitHub {
     @GET("/users/:username/repos")
-    func getRepositories(@Path username: String) async throws -> [Repository]
+    func getRepositories(username: String, specialHeader: Header<String>) async throws -> [Repository]
 }
 
 struct GitHubMock: GitHub {
-    func getRepositories(username: String) async throws -> [Repository] {
+    func getRepositories(username: String, specialHeader: String) async throws -> [Repository] {
         return [
             Repository(name: "papyrus"),
             Repository(name: "alchemy")
@@ -471,16 +469,16 @@ func testCounting() {
 
 ### Mocking with @Mock
 
-For your convenience, a mock implementation can be automatically generated with the `@Mock` attribute. Like `@API`, this generates an implementation of your protocol.
+A mock implementation can be automatically generated with the `@Mock` attribute. Like `@API`, this generates an implementation of your protocol.
 
-In addition to conforming to your protocol, a generated `Mock` type has `mock` functions to easily verify request parameters and mock their responses.
+A generated `Mock` type has `mock` functions to easily verify request parameters and mock their responses.
 
 ```swift
 @API  // Generates `GitHubAPI: GitHub`
 @Mock // Generates `GitHubMock: GitHub`
 protocol GitHub {
     @GET("/users/:username/repos")
-    func getRepositories(@Path username: String) async throws -> [Repository]
+    func getRepositories(username: String) async throws -> [Repository]
 }
 
 func testCounting() {
@@ -504,6 +502,8 @@ func testCounting() {
 👋 Thanks for checking out Papyrus!
 
 If you'd like to contribute please [file an issue](https://github.com/joshuawright11/papyrus/issues), [open a pull request](https://github.com/joshuawright11/papyrus/issues) or [start a discussion](https://github.com/joshuawright11/papyrus/discussions).
+
+⭐️ If you'd like to help support this library please star it on GitHub!
 
 ## Acknowledgements
 

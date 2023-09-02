@@ -15,11 +15,11 @@ protocol Sample {
 
     @URLForm
     @POST("/todos/:id/tags")
-    func createTag(@Path id: Int) async throws
+    func createTag(id: Int) async throws
 
     @Multipart
     @POST("/todo/:id/attachment")
-    func upload(@Path id: Int, part1: Part, part2: Part) async throws
+    func upload(id: Int, part1: Part, part2: Part) async throws
 }
 
 public struct Todo: Codable {
