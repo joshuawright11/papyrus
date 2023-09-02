@@ -6,3 +6,4 @@ xcuserdata/
 .swiftpm
 .vscode/
 default.profraw
+Package.resolved
