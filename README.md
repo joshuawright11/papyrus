@@ -1,4 +1,4 @@
-# Papyrus 📜
+# 📜 Papyrus
 
 <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version"></a>
 <a href="https://github.com/joshuawright11/papyrus/releases"><img src="https://img.shields.io/github/release/joshuawright11/papyrus.svg" alt="Latest Release"></a>
