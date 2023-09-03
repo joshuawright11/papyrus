@@ -35,7 +35,7 @@ protocol Users {
 
     @URLForm
     @POST("/user")
-    func createUser(email: Field<String>, password: Field<String>) async throws -> User
+    func createUser(email: String, password: String) async throws -> User
 }
 ```
 
