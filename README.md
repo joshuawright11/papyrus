@@ -24,7 +24,7 @@ let repos = try await github.getRepositories(username: "alchemy-swift")
 
 Each function on your protocol represents an endpoint on your API.
 
-Annotations on the protocol, functions, and types on the parameters help construct requests and decode responses.
+Annotations on the protocol, functions, and parameters help construct requests and decode responses.
 
 ```swift
 @API
