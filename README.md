@@ -503,8 +503,6 @@ func testCounting() {
 
 If you'd like to contribute please [file an issue](https://github.com/joshuawright11/papyrus/issues), [open a pull request](https://github.com/joshuawright11/papyrus/issues) or [start a discussion](https://github.com/joshuawright11/papyrus/discussions).
 
-⭐️ If you'd like to help support this library please star it on GitHub!
-
 ## Acknowledgements
 
 Papyrus was heavily inspired by [Retrofit](https://github.com/square/retrofit).
