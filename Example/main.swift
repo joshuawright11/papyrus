@@ -27,7 +27,7 @@ public struct Todo: Codable {
     let name: String
 }
 
-// MARK: 2. Create a Provider with any custom configuration.
+// MARK: 1. Create a Provider with any custom configuration.
 
 let provider = Provider(baseURL: "http://127.0.0.1:3000")
     .intercept { req, next in
@@ -38,12 +38,12 @@ let provider = Provider(baseURL: "http://127.0.0.1:3000")
         return res
     }
 
-// MARK: 3. Initialize an API instance & call an endpoint.
+// MARK: 2. Initialize an API instance & call an endpoint.
 
 let api: Sample = SampleAPI(provider: provider)
 let todos = try await api.getTodos()
 
-// MARK: 4. Easily mock endpoints for tests.
+// MARK: 3. Easily mock endpoints for tests.
 
 let mock = SampleMock()
 mock.mockGetTodos {
