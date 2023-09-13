@@ -68,7 +68,7 @@ protocol Users {
 
 Supports iOS 13+ / macOS 10.15+.
 
-Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 [(currently in beta)](https://developer.apple.com/xcode/) to compile.
+Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 to compile.
 
 ### Swift Concurrency
 
