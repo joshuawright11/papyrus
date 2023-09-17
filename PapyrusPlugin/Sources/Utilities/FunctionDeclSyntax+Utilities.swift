@@ -44,7 +44,7 @@ extension FunctionDeclSyntax {
     // MARK: Function effects & attributes
 
     var functionName: String {
-        identifier.text
+        name.text
     }
 
     var effects: [String] {
@@ -55,8 +55,8 @@ extension FunctionDeclSyntax {
 
     var parameters: [FunctionParameterSyntax] {
         signature
-            .input
-            .parameterList
+            .parameterClause
+            .parameters
             .compactMap { $0.as(FunctionParameterSyntax.self) }
     }
 
@@ -100,12 +100,12 @@ extension FunctionDeclSyntax {
     }
 
     private var returnType: ReturnType? {
-        guard let type = signature.output?.returnType else {
+        guard let type = signature.returnClause?.type else {
             return nil
         }
 
         if let type = type.as(TupleTypeSyntax.self) {
-            return .tuple(type.elements.map { .init(label: $0.name?.text, type: $0.type.trimmedDescription) })
+            return .tuple(type.elements.map { .init(label: $0.firstName?.text, type: $0.type.trimmedDescription) })
         } else {
             return .type(type.trimmedDescription)
         }

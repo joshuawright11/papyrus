@@ -23,7 +23,7 @@ enum APIAttribute {
     init?(syntax: AttributeSyntax) {
         var firstArgument: String?
         var secondArgument: String?
-        if case let .argumentList(list) = syntax.argument {
+        if case let .argumentList(list) = syntax.arguments {
             firstArgument = list.first?.expression.description
             secondArgument = list.dropFirst().first?.expression.description
         }

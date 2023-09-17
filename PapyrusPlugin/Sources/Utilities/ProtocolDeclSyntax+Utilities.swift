@@ -2,11 +2,11 @@ import SwiftSyntax
 
 extension ProtocolDeclSyntax {
     var typeName: String {
-        identifier.text
+        name.text
     }
     
     var access: String {
-        modifiers?.first.map { "\($0.trimmedDescription) " } ?? ""
+        modifiers.first.map { "\($0.trimmedDescription) " } ?? ""
     }
 
     var functions: [FunctionDeclSyntax] {

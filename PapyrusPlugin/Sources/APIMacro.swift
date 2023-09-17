@@ -58,9 +58,9 @@ extension ProtocolDeclSyntax {
     }
 
     private var apiAttributes: [APIAttribute] {
-        attributes?
+        attributes
             .compactMap { $0.as(AttributeSyntax.self) }
-            .compactMap(APIAttribute.init) ?? []
+            .compactMap(APIAttribute.init)
     }
 }
 
@@ -213,9 +213,9 @@ extension FunctionDeclSyntax {
     }
 
     private var apiAttributes: [APIAttribute] {
-        attributes?
+        attributes
             .compactMap { $0.as(AttributeSyntax.self) }
-            .compactMap(APIAttribute.init) ?? []
+            .compactMap(APIAttribute.init)
     }
 }
 
@@ -246,7 +246,7 @@ extension FunctionParameterSyntax {
     }
 
     fileprivate var explicitAPIAttribute: APIAttribute? {
-        switch type.as(SimpleTypeIdentifierSyntax.self)?.name.text {
+        switch type.as(IdentifierTypeSyntax.self)?.name.text {
         case "Path":
             return .path(key: nil)
         case "Body":

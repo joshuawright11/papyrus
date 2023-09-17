@@ -92,7 +92,7 @@ extension FunctionDeclSyntax {
     private var mockClosureType: String {
         let parameterTypes = parameters.map(\.typeString).joined(separator: ", ")
         let effects = effects.isEmpty ? "" : " \(effects.joined(separator: " "))"
-        let returnType = signature.output?.returnType.trimmedDescription ?? "Void"
+        let returnType = signature.returnClause?.type.trimmedDescription ?? "Void"
         return "(\(parameterTypes))\(effects) -> \(returnType)"
     }
 }
