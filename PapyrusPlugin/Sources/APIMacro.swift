@@ -255,6 +255,8 @@ extension FunctionParameterSyntax {
             return .header(key: nil)
         case "Field":
             return .field(key: nil)
+        case "Query":
+            return .query(key: nil)
         default:
             return nil
         }
