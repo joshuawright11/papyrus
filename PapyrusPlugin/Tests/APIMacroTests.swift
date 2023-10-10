@@ -3,7 +3,7 @@ import MacroTesting
 import PapyrusPlugin
 import XCTest
 
-final class PluginTest: XCTestCase {
+final class APIMacroTests: XCTestCase {
     func testOnlyProtocols() throws {
         assertMacro(["API": APIMacro.self]) {
             """
@@ -22,7 +22,54 @@ final class PluginTest: XCTestCase {
         }
     }
 
-    func testDefaultsToQuery() throws {
+    func testVoidReturn() {
+        assertMacro(["API": APIMacro.self]) {
+            """
+            @API
+            protocol Foo {
+                @GET("/bar")
+                func bar() async throws
+
+                @GET("/baz")
+                func baz() async throws -> Void
+            }
+            """
+        } expansion: {
+            """
+            protocol Foo {
+                @GET("/bar")
+                func bar() async throws
+
+                @GET("/baz")
+                func baz() async throws -> Void
+            }
+
+            struct FooAPI: Foo {
+                private let provider: Provider
+
+                init(provider: Provider) {
+                    self.provider = provider
+                }
+
+                func bar() async throws {
+                    let req = builder(method: "GET", path: "/bar")
+                    try await provider.request(req).validate()
+                }
+
+                func baz() async throws -> Void {
+                    let req = builder(method: "GET", path: "/baz")
+                    try await provider.request(req).validate()
+                }
+
+                private func builder(method: String, path: String) -> RequestBuilder {
+                    provider.newBuilder(method: method, path: path)
+                }
+            }
+            """
+        }
+    }
+
+    func testGetInfersQuery() {
         assertMacro(["API": APIMacro.self]) {
             """
             @API
@@ -60,7 +107,7 @@ final class PluginTest: XCTestCase {
         }
     }
 
-    func testOverrideToField() throws {
+    func testGetExplicitField() {
         assertMacro(["API": APIMacro.self]) {
             """
             @API
@@ -98,7 +145,7 @@ final class PluginTest: XCTestCase {
         }
     }
 
-    func testQuery_GET() throws {
+    func testQuery_GET() {
         assertMacro(["API": APIMacro.self]) {
             """
             enum Since: String, Codable {
@@ -143,7 +190,7 @@ final class PluginTest: XCTestCase {
         }
     }
 
-    func testQuery_POST() throws {
+    func testQuery_POST() {
         assertMacro(["API": APIMacro.self]) {
             """
             enum Since: String, Codable {

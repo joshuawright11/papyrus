@@ -125,6 +125,8 @@ extension FunctionDeclSyntax {
             }
         case .concurrency:
             switch responseType {
+            case .none, .type("Void"):
+                return "try await provider.request(req).validate()"
             case .type where returnResponseOnly:
                 return "return try await provider.request(req)"
             case .type, .tuple:
@@ -136,8 +138,6 @@ extension FunctionDeclSyntax {
                     let res = try await provider.request(req)
                     return \(resultExpression)
                     """
-            case .none:
-                return "try await provider.request(req).validate()"
             }
         }
     }
