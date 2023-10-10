@@ -11,12 +11,13 @@ final class PluginTest: XCTestCase {
             struct MyService {
             }
             """
-        } expansion: {
+        } diagnostics: {
             """
+            @API
+            ┬───
+            ╰─ 🛑 @API can only be applied to protocols.
             struct MyService {
             }
-
-            PapyrusPluginError(message: "@API can only be applied to protocols.")
             """
         }
     }
@@ -142,10 +143,6 @@ final class PluginTest: XCTestCase {
         }
     }
 
-    // This test currently fails
-    // Actual output (+) differed from expected output (−).
-    // −       req.addQuery("since", value: since)
-    // +       req.addField("since", value: since)
     func testQuery_POST() throws {
         assertMacro(["API": APIMacro.self]) {
             """

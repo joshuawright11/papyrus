@@ -5,7 +5,7 @@ public struct APIMacro: PeerMacro {
     public static func expansion(of node: AttributeSyntax,
                           providingPeersOf declaration: some DeclSyntaxProtocol,
                           in context: some MacroExpansionContext) throws -> [DeclSyntax] {
-        handleError {
+        try handleError {
             guard let type = declaration.as(ProtocolDeclSyntax.self) else {
                 throw PapyrusPluginError("@API can only be applied to protocols.")
             }
