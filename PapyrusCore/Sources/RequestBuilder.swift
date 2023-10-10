@@ -171,7 +171,8 @@ public struct RequestBuilder {
     // MARK: Creating Request Parts
 
     public func fullURL() throws -> URL {
-        let urlString = try baseURL + parameterizedPath() + queryString()
+        let trailingSlash = baseURL.last == "/" ? "" : "/"
+        let urlString = try baseURL + trailingSlash + parameterizedPath() + queryString()
         guard let url = URL(string: urlString) else {
             throw PapyrusError("Invalid URL: \(urlString)")
         }
