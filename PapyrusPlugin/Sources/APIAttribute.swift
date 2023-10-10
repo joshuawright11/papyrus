@@ -23,7 +23,14 @@ enum APIAttribute {
     init?(syntax: AttributeSyntax) {
         var firstArgument: String?
         var secondArgument: String?
+        var labeledArguments: [String: String] = [:]
         if case let .argumentList(list) = syntax.arguments {
+            for argument in list {
+                if let label = argument.label {
+                    labeledArguments[label.description] = argument.expression.description
+                }
+            }
+
             firstArgument = list.first?.expression.description
             secondArgument = list.dropFirst().first?.expression.description
         }
@@ -59,14 +66,14 @@ enum APIAttribute {
 
             self = .headers(value: firstArgument)
         case "JSON":
-            let encoder = firstArgument ?? "JSONEncoder()"
-            let decoder = secondArgument ?? "JSONDecoder()"
+            let encoder = labeledArguments["encoder"] ?? "JSONEncoder()"
+            let decoder = labeledArguments["decoder"] ?? "JSONDecoder()"
             self = .json(encoder: encoder, decoder: decoder)
         case "URLForm":
             self = .urlForm(encoder: firstArgument ?? "URLEncodedFormEncoder()")
         case "Multipart":
             self = .multipart(encoder: firstArgument ?? "MultipartEncoder()")
-        case "Coder":
+        case "Converter":
             guard let firstArgument, let secondArgument else {
                 return nil
             }
