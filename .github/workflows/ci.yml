@@ -16,15 +16,7 @@ jobs:
             - name: Build
               run: swift build -v
             - name: Test
-              run: swift test -v --enable-code-coverage
-            - name: Coverage
-              uses: Nef10/spm-lcov-action@macOS12Runner
-              with:
-                  output-file: ./coverage/lcov.info
-            - name: Report Coverage
-              uses: romeovs/lcov-reporter-action@v0.2.16
-              with:
-                  lcov-file: ./coverage/lcov.info
+              run: swift test -v
     test-linux:
         runs-on: ubuntu-22.04
         strategy:
