@@ -15,8 +15,16 @@ jobs:
             - uses: actions/checkout@v3
             - name: Build
               run: swift build -v
-            - name: Run tests
-              run: swift test -v
+            - name: Test
+              run: swift test -v --enable-code-coverage
+            - name: Coverage
+              uses: maxep/spm-lcov-action@0.3.0
+              with:
+                  output-file: ./coverage/lcov.info
+            - name: Report Coverage
+              uses: romeovs/lcov-reporter-action@v0.2.16
+              with:
+                  lcov-file: ./coverage/lcov.info
     test-linux:
         runs-on: ubuntu-22.04
         strategy:
