@@ -21,7 +21,7 @@ extension JSONDecoder: ResponseDecoder {
         new.nonConformingFloatDecodingStrategy = nonConformingFloatDecodingStrategy
 #if os(Linux)
 #else
-        if #available(iOS 15.0, macOS 12.0, *) {
+        if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
             new.assumesTopLevelDictionary = assumesTopLevelDictionary
             new.allowsJSON5 = allowsJSON5
         }
