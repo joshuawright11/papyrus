@@ -1,5 +1,5 @@
-import Foundation
-import PapyrusCore
+@_exported import Foundation
+@_exported import PapyrusCore
 
 extension Provider {
     public convenience init(baseURL: String,
