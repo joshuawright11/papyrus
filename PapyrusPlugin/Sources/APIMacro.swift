@@ -20,9 +20,9 @@ extension ProtocolDeclSyntax {
     func createAPI(named apiName: String) throws -> String {
         """
         \(access)struct \(apiName): \(typeName) {
-            private let provider: Provider
+            private let provider: Papyrus.Provider
 
-            \(access)init(provider: Provider) {
+            \(access)init(provider: Papyrus.Provider) {
                 self.provider = provider
             }
 

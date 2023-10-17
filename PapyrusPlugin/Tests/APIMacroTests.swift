@@ -45,9 +45,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct FooAPI: Foo {
-                private let provider: Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -88,9 +88,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -129,9 +129,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -167,9 +167,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -211,9 +211,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -257,9 +257,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
