@@ -4,7 +4,7 @@
 
 extension Provider {
     public convenience init(baseURL: String,
-                            session: Session,
+                            session: Session = .default,
                             modifiers: [RequestModifier] = [],
                             interceptors: [PapyrusCore.Interceptor] = []) {
         self.init(baseURL: baseURL, http: session, modifiers: modifiers, interceptors: interceptors)
@@ -19,19 +19,27 @@ extension Session: HTTPService {
         request.httpMethod = method
         request.httpBody = body
         request.allHTTPHeaderFields = headers
-        return AnyRequest(request: request)
+        return _Request(request: request)
     }
 
     public func request(_ req: PapyrusCore.Request) async -> Response {
-        await request(req.urlRequest).validate().serializingData().response
+        await request(req.urlRequest).serializingData().response
     }
 
     public func request(_ req: PapyrusCore.Request, completionHandler: @escaping (Response) -> Void) {
-        request(req.urlRequest).validate().response(completionHandler: completionHandler)
+        request(req.urlRequest).response(completionHandler: completionHandler)
     }
 }
 
 // MARK: `Response` Conformance
+
+extension Response {
+    public var urlRequest: URLRequest? { alamofire.request }
+    public var urlResponse: HTTPURLResponse? { alamofire.response }
+    public var alamofire: DataResponse<Data, AFError> {
+        self as! DataResponse<Data, AFError>
+    }
+}
 
 extension DataResponse: Response {
     public var body: Data? { data }
@@ -43,17 +51,15 @@ extension DataResponse: Response {
     }
 }
 
-extension Response {
-    public var response: HTTPURLResponse? { alamofire.response }
-    public var request: URLRequest? { alamofire.request }
-    public var alamofire: DataResponse<Data, AFError> {
-        self as! DataResponse<Data, AFError>
+// MARK: `Request` Conformance
+
+extension PapyrusCore.Request {
+    public var urlRequest: URLRequest {
+        (self as! _Request).request
     }
 }
 
-// MARK: `Request` Conformance
-
-struct AnyRequest: PapyrusCore.Request {
+private struct _Request: PapyrusCore.Request {
     var request: URLRequest
 
     public var url: URL {
@@ -74,15 +80,5 @@ struct AnyRequest: PapyrusCore.Request {
     public var headers: [String: String] {
         get { request.allHTTPHeaderFields ?? [:] }
         set { request.allHTTPHeaderFields = newValue }
-    }
-}
-
-extension PapyrusCore.Request {
-    var urlRequest: URLRequest {
-        var request = URLRequest(url: url)
-        request.httpBody = body
-        request.httpMethod = method
-        request.allHTTPHeaderFields = headers
-        return request
     }
 }

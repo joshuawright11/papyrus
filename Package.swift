@@ -11,26 +11,40 @@ let package = Package(
     products: [
         .executable(name: "Example", targets: ["Example"]),
         .library(name: "Papyrus", targets: ["Papyrus"]),
+        .library(name: "PapyrusAlamofire", targets: ["PapyrusAlamofire"]),
         .library(name: "PapyrusCore", targets: ["PapyrusCore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0"),
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.7.1")),
+        .package(url: "https://github.com/apple/swift-syntax", from: "509.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.1.0"),
     ],
     targets: [
+        
+        // MARK: Demo
+        
         .executableTarget(
             name: "Example",
             dependencies: ["Papyrus"],
             path: "Example"
         ),
+        
+        // MARK: Libraries
+        
         .target(
             name: "Papyrus",
+            dependencies: [
+                .byName(name: "PapyrusCore")
+            ],
+            path: "Papyrus"
+        ),
+        .target(
+            name: "PapyrusAlamofire",
             dependencies: [
                 .byName(name: "PapyrusCore"),
                 .product(name: "Alamofire", package: "Alamofire"),
             ],
-            path: "Papyrus"
+            path: "PapyrusAlamofire"
         ),
         .target(
             name: "PapyrusCore",
@@ -39,6 +53,9 @@ let package = Package(
             ],
             path: "PapyrusCore/Sources"
         ),
+        
+        // MARK: Plugin
+        
         .macro(
             name: "PapyrusPlugin",
             dependencies: [
@@ -51,6 +68,9 @@ let package = Package(
             ],
             path: "PapyrusPlugin/Sources"
         ),
+        
+        // MARK: Tests
+        
         .testTarget(
             name: "PapyrusCoreTests",
             dependencies: ["PapyrusCore"],
