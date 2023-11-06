@@ -4,7 +4,7 @@
 
 extension Provider {
     public convenience init(baseURL: String,
-                            session: Session = Session.default,
+                            session: Session,
                             modifiers: [RequestModifier] = [],
                             interceptors: [PapyrusCore.Interceptor] = []) {
         self.init(baseURL: baseURL, http: session, modifiers: modifiers, interceptors: interceptors)
@@ -19,15 +19,15 @@ extension Session: HTTPService {
         request.httpMethod = method
         request.httpBody = body
         request.allHTTPHeaderFields = headers
-        return RequestProxy(request: request)
+        return AnyRequest(request: request)
     }
 
     public func request(_ req: PapyrusCore.Request) async -> Response {
-        await request(req.request).validate().serializingData().response
+        await request(req.urlRequest).validate().serializingData().response
     }
 
     public func request(_ req: PapyrusCore.Request, completionHandler: @escaping (Response) -> Void) {
-        request(req.request).validate().response(completionHandler: completionHandler)
+        request(req.urlRequest).validate().response(completionHandler: completionHandler)
     }
 }
 
@@ -53,7 +53,7 @@ extension Response {
 
 // MARK: `Request` Conformance
 
-private struct RequestProxy: PapyrusCore.Request {
+struct AnyRequest: PapyrusCore.Request {
     var request: URLRequest
 
     public var url: URL {
@@ -78,7 +78,11 @@ private struct RequestProxy: PapyrusCore.Request {
 }
 
 extension PapyrusCore.Request {
-    public var request: URLRequest {
-        (self as! RequestProxy).request
+    var urlRequest: URLRequest {
+        var request = URLRequest(url: url)
+        request.httpBody = body
+        request.httpMethod = method
+        request.allHTTPHeaderFields = headers
+        return request
     }
 }
