@@ -30,7 +30,7 @@ public struct Todo: Codable {
 
 // MARK: 1. Create a Provider with any custom configuration.
 
-let provider = Provider(baseURL: "http://127.0.0.1:3000", urlSession: .shared)
+let provider = Provider(baseURL: "http://127.0.0.1:3000")
     .intercept { req, next in
         let start = Date()
         let res = try await next(req)
