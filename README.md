@@ -25,8 +25,8 @@ protocol Users {
 
 ```swift
 let provider = Provider(baseURL: "https://api.example.com/")
-let github: GitHub = GitHubAPI(provider: provider)
-let repos = try await github.getRepositories(username: "alchemy-swift")
+let users: Users = UsersAPI(provider: provider)
+let todos = try await users.getTodos(username: "joshuawright11")
 ```
 
 Each endpoint of your API is represented as function on the protocol. 
