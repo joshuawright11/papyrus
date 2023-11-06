@@ -10,10 +10,16 @@ public protocol Response {
 extension Response {
     @discardableResult
     public func validate() throws -> Self {
+        if let statusCode {
+            guard (200..<300).contains(statusCode) else {
+                throw PapyrusError("Unsuccessful status code: \(statusCode).")
+            }
+        }
+        
         guard let error else {
             return self
         }
-
+        
         throw error
     }
 
