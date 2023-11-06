@@ -1,4 +1,7 @@
 @_exported import Foundation
+#if os(Linux)
+@_exported import FoundationNetworking
+#endif
 @_exported import PapyrusCore
 
 extension Provider {
