@@ -1,4 +1,5 @@
 import Papyrus
+//import PapyrusAlamofire /* uncomment this and remove 'import Papyrus' if you'd prefer the Alamofire backed version */
 
 // MARK: 0. Define your API.
 
