@@ -1,8 +1,9 @@
 @_exported import Foundation
-@_exported import PapyrusCore
 #if os(Linux)
-// URLSession isn't supported on Linux. If you need to target Linux, please use https://github.com/joshuawright11/papyrus-async-http-client instead.
-#else
+@_exported import FoundationNetworking
+#endif
+@_exported import PapyrusCore
+
 extension Provider {
     public convenience init(baseURL: String,
                             urlSession: URLSession = .shared,
@@ -24,6 +25,11 @@ extension URLSession: HTTPService {
     }
 
     public func request(_ req: Request) async -> Response {
+#if os(Linux) // Linux doesn't have access to async URLSession APIs
+        await withCheckedContinuation { continuation in
+            request(req, completionHandler: continuation.resume)
+        }
+#else
         let urlRequest = req.urlRequest
         do {
             let (data, res) = try await data(for: urlRequest)
@@ -31,6 +37,7 @@ extension URLSession: HTTPService {
         } catch {
             return _Response(request: urlRequest, response: nil, error: error, body: nil)
         }
+#endif
     }
 
     public func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
@@ -109,4 +116,3 @@ private struct _Request: Request {
         set { request.allHTTPHeaderFields = newValue }
     }
 }
-#endif
