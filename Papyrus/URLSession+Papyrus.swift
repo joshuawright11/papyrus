@@ -1,7 +1,4 @@
 @_exported import Foundation
-#if os(Linux)
-@_exported import FoundationNetworking
-#endif
 @_exported import PapyrusCore
 
 extension Provider {
@@ -25,6 +22,11 @@ extension URLSession: HTTPService {
     }
 
     public func request(_ req: Request) async -> Response {
+#if os(Linux) // Linux doesn't have access to async URLSession APIs
+        await withCheckedContinuation { continuation in
+            request(req, completionHandler: continuation.resume)
+        }
+#else
         let urlRequest = req.urlRequest
         do {
             let (data, res) = try await self.data(for: urlRequest)
@@ -32,6 +34,7 @@ extension URLSession: HTTPService {
         } catch {
             return _Response(request: urlRequest, response: nil, error: error, body: nil)
         }
+#endif
     }
 
     public func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
