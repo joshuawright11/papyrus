@@ -1,4 +1,5 @@
 #if os(Linux)
+import FoundationNetworking
 import Papyrus
 
 // This is so CI on Linux compiles
