@@ -10,9 +10,16 @@ It turns your APIs into clean and concise Swift protocols.
 
 ```swift
 @API
-protocol GitHub {
-    @GET("/users/:username/repos")
-    func getRepositories(username: String) async throws -> [Repository]
+@Authorization(.bearer("<my-auth-token>"))
+protocol Users {
+    @GET("/user")
+    func getUser() async throws -> User
+
+    @POST("/user")
+    func createUser(email: String, password: String) async throws -> User
+
+    @GET("/users/:username/todos")
+    func getTodos(username: String) async throws -> [Todo]
 }
 ```
 
@@ -22,22 +29,9 @@ let github: GitHub = GitHubAPI(provider: provider)
 let repos = try await github.getRepositories(username: "alchemy-swift")
 ```
 
-Each function on your protocol represents an endpoint on your API.
+Each endpoint of your API is represented as function on the protocol. 
 
 Annotations on the protocol, functions, and parameters help construct requests and decode responses.
-
-```swift
-@API
-@Authorization(.bearer("<my-auth-token>"))
-protocol Users {
-    @GET("/user")
-    func getUser() async throws -> User
-
-    @URLForm
-    @POST("/user")
-    func createUser(email: String, password: String) async throws -> User
-}
-```
 
 ## Features
 
