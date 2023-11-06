@@ -32,7 +32,7 @@ extension URLSession: HTTPService {
 #else
         let urlRequest = req.urlRequest
         do {
-            let (data, res) = try await self.data(for: urlRequest)
+            let (data, res) = try await data(for: urlRequest)
             return _Response(request: urlRequest, response: res, error: nil, body: data)
         } catch {
             return _Response(request: urlRequest, response: nil, error: error, body: nil)
