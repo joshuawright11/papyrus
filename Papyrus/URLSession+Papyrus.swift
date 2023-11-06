@@ -1,8 +1,8 @@
 @_exported import Foundation
-@_exported import PapyrusCore
 #if os(Linux)
 @_exported import FoundationNetworking
 #endif
+@_exported import PapyrusCore
 
 extension Provider {
     public convenience init(baseURL: String,
@@ -27,7 +27,7 @@ extension URLSession: HTTPService {
     public func request(_ req: Request) async -> Response {
         let urlRequest = req.urlRequest
         do {
-            let (data, res) = try await data(for: urlRequest)
+            let (data, res) = try await self.data(for: urlRequest)
             return _Response(request: urlRequest, response: res, error: nil, body: data)
         } catch {
             return _Response(request: urlRequest, response: nil, error: error, body: nil)
