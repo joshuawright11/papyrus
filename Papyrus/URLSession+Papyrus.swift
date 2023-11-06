@@ -1,7 +1,7 @@
+@_exported import Foundation
 #if os(Linux)
 // URLSession isn't supported on Linux. If you need to target Linux, please use https://github.com/joshuawright11/papyrus-async-http-client instead.
 #else
-@_exported import Foundation
 @_exported import PapyrusCore
 
 extension Provider {
