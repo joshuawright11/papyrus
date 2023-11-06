@@ -42,21 +42,21 @@ protocol Users {
 ## Features
 
 -   [x] Turn REST APIs into Swift protocols
--   [x] Generate Swift Concurrency _or_ completion handler based APIs
+-   [x] Swift Concurrency _or_ completion handler based APIs
 -   [x] JSON, URLForm and Multipart encoding
 -   [x] Easy to configure key mapping
 -   [x] Sensible parameter defaults so you can write less code
 -   [x] Automatically decode responses with `Codable`
 -   [x] Custom Interceptors & Builders
--   [x] Generate mock APIs for testing
--   [x] iOS / macOS support powered by [Alamofire](https://github.com/Alamofire/Alamofire)
+-   [x] Optional, automatic API mocks for testing
+-   [x] Out of the box powered by `URLSession` or [Alamofire](https://github.com/Alamofire/Alamofire)
 -   [x] Swift on Server support powered by [async-http-client](https://github.com/swift-server/async-http-client)
 
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Defining APIs](#defining-apis)
-3. [Handling the Response](#handling-the-response)
+2. [Requests](#requests)
+3. [Responses](#responses)
 4. [Configuration](#configuration)
 5. [Testing](#testing)
 6. [Acknowledgements](#acknowledgements)
@@ -76,11 +76,11 @@ Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book
 
 While using concurrency is recommended, if you haven't yet migrated and need a closure based API, see the section on [closure based APIs](#closure-based-apis).
 
-### Swift on the Server
+### Alamofire & Linux drivers
 
-Out of the box, Papyrus is powered by [Alamofire](https://github.com/Alamofire/Alamofire).
+Out of the box, Papyrus is powered by `URLSession`. 
 
-If you're using Linux / Swift on Server, use [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client) which is driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
+If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
 ### Installation
 
@@ -92,7 +92,35 @@ dependencies: [
 ]
 ```
 
-## Defining APIs
+#### URLSession driver
+
+Out of the box, Papyrus is powered by `URLSession`.
+
+```swift
+.product(name: "Papyrus", package: "papyrus")
+```
+
+```swift
+import Papyrus
+```
+
+#### Alamofire driver
+
+If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use the `PapyrusAlamofire` library in this package.
+
+```swift
+.product(name: "PapyrusAlamofire", package: "papyrus")
+```
+
+```swift
+import PapyrusAlamofire
+```
+
+#### Linux driver
+
+If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
+
+## Requests
 
 Each API you need to consume is represented by a _protocol_.
 
@@ -268,7 +296,7 @@ protocol Todos {
 }
 ```
 
-## Handling the Response
+## Responses
 
 The return type of your function represents the response of your endpoint.
 
