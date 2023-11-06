@@ -24,7 +24,7 @@ protocol Users {
 ```
 
 ```swift
-let provider = Provider(baseURL: "https://api.github.com/")
+let provider = Provider(baseURL: "https://api.example.com/")
 let github: GitHub = GitHubAPI(provider: provider)
 let repos = try await github.getRepositories(username: "alchemy-swift")
 ```
