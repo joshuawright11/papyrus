@@ -8,29 +8,32 @@ public protocol Response {
 }
 
 extension Response {
+    /// Validates the status code of a Response, as well as any transport errors that may have occurred.
     @discardableResult
     public func validate() throws -> Self {
-        if let statusCode {
-            guard (200..<300).contains(statusCode) else {
-                throw PapyrusError("Unsuccessful status code: \(statusCode).")
-            }
-        }
-        
-        guard let error else {
-            return self
-        }
-        
-        throw error
+        if let error { throw error }
+        if let statusCode, !(200..<300).contains(statusCode) { throw PapyrusError("Unsuccessful status code: \(statusCode).") }
+        return self
     }
-
+    
+    public func decode(_ type: Data?.Type = Data?.self, using decoder: ResponseDecoder) throws -> Data? {
+        try validate().body
+    }
+    
+    public func decode(_ type: Data.Type = Data.self, using decoder: ResponseDecoder) throws -> Data {
+        guard let body = try decode(Data?.self, using: decoder) else {
+            throw PapyrusError("Unable to return the body of a `Response`; the body was nil.")
+        }
+        
+        return body
+    }
+    
     public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
-        try validate()
-
-        guard let data = body else {
+        guard let body = try validate().body else {
             throw PapyrusError("Unable to decode `\(Self.self)` from a `Response`; body was nil.")
         }
-
-        return try decoder.decode(type, from: data)
+        
+        return try decoder.decode(type, from: body)
     }
 }
 
