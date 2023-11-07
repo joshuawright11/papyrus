@@ -307,6 +307,22 @@ Endpoint functions should return a type that conforms to `Decodable`. It will au
 func getUser() async throws -> User
 ```
 
+### Accessing just the body
+
+If you only need a response's raw body bytes, you can just return `Data` from your function.  
+
+```swift
+@GET("/bytes")
+func getBytes() async throws -> Data
+```
+
+The above will throw if the request body is empty, even if the status code is successful. If you don't want to throw in that case, set the response as `Data?`; it will successfully return nil if the response body is empty.
+
+```swift
+@GET("/bytes")
+func getBytes() async throws -> Data?
+```
+
 ### Empty responses
 
 If you don't need to decode something from the response and just want to confirm it was successful, you may leave out the return type.
