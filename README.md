@@ -389,25 +389,6 @@ protocol Todos {
 
 When you use `@API` or [`@Mock`](#mocking-with-mock), Papyrus will generate an implementation named `<protocol>API` or `<protocol>Mock` respectively. The [access level](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/accesscontrol/) will match the access level of the protocol.
 
-### Alamofire
-
-Under the hood, Papyrus uses [Alamofire](https://github.com/Alamofire/Alamofire) to make requests. If you'd like to use a custom Alamofire `Session` for making requests, pass it in when initializing a `Provider`.
-
-```swift
-let customSession: Session = ...
-let provider = Provider(baseURL: "https://api.github.com", session: customSession)
-let github: GitHub = GitHubAPI(provider: provider)
-```
-
-If needbe, you can also access the under-the-hood `Alamofire` and `URLSession` objects on a `Response`.
-
-```swift
-let response: Response = ...
-let afResponse: DataResponse<Data, AFError> = response.alamofire
-let urlResponse: HTTPURLResponse = response.request!
-let urlRequest: URLRequest = response.response!
-```
-
 ### Request Modifiers
 
 If you'd like to manually run custom request build logic before executing any request on a provider, you may use the `modifyRequests()` function.
