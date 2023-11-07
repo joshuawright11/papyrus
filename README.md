@@ -44,7 +44,7 @@ Annotations on the protocol, functions, and parameters help construct requests a
 -   [x] Custom Interceptors & Builders
 -   [x] Optional, automatic API mocks for testing
 -   [x] Out of the box powered by `URLSession` or [Alamofire](https://github.com/Alamofire/Alamofire)
--   [x] Swift on Server support powered by [async-http-client](https://github.com/swift-server/async-http-client)
+-   [x] Linux / Swift on Server support powered by [async-http-client](https://github.com/swift-server/async-http-client)
 
 ## Table of Contents
 
