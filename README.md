@@ -75,12 +75,10 @@ While using concurrency is recommended, if you haven't yet migrated and need a c
 You can install Papyrus using the [Swift Package Manager](https://www.swift.org/package-manager/).
 
 ```swift
-dependencies: [
-    .package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.5.2")
-]
+.package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
 ```
 
-#### URLSession driver
+#### URLSession Driver
 
 Out of the box, Papyrus is powered by `URLSession`.
 
@@ -92,7 +90,7 @@ Out of the box, Papyrus is powered by `URLSession`.
 import Papyrus
 ```
 
-#### Alamofire driver
+#### Alamofire Driver
 
 If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use the `PapyrusAlamofire` library in this package.
 
@@ -104,9 +102,21 @@ If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use 
 import PapyrusAlamofire
 ```
 
-#### Linux driver
+#### Linux Driver
 
 If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
+
+```swift
+.package(url: "https://github.com/joshuawright11/papyrus-async-http-client.git", from: "0.2.0")
+```
+
+```swift
+.product(name: "PapyrusAsyncHTTPClient", package: "papyrus-async-http-client")
+```
+
+```swift
+import PapyrusAsyncHTTPClient
+```
 
 ## Requests
 
