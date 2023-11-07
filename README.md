@@ -70,12 +70,6 @@ Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book
 
 While using concurrency is recommended, if you haven't yet migrated and need a closure based API, see the section on [closure based APIs](#closure-based-apis).
 
-### Alamofire & Linux drivers
-
-Out of the box, Papyrus is powered by `URLSession`. 
-
-If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
-
 ### Installation
 
 You can install Papyrus using the [Swift Package Manager](https://www.swift.org/package-manager/).
