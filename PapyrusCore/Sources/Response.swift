@@ -29,7 +29,7 @@ extension Response {
     }
     
     public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
-        guard let body = try validate().body else {
+        guard let body = body else {
             throw PapyrusResponseError("Unable to decode `\(Self.self)` from a `Response`; body was nil.", self)
         }
         

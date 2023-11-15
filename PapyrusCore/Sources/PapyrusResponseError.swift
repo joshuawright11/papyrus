@@ -3,7 +3,7 @@ public class PapyrusResponseError: PapyrusError {
     /// Failed response.
     public let response: Response
     
-    /// Create an error with the specified message.
+    /// Create an error with the specified message and failed response.
     ///
     /// - Parameter message: What went wrong.
     /// - Parameter response: Failed response.

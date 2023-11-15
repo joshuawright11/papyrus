@@ -136,6 +136,7 @@ extension FunctionDeclSyntax {
 
                 return """
                     let res = try await provider.request(req)
+                    try res.validate()
                     return \(resultExpression)
                     """
             }
