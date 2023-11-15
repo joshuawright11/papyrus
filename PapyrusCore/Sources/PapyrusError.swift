@@ -1,5 +1,5 @@
 /// A Papyrus related error.
-public struct PapyrusError: Error {
+public class PapyrusError: Error {
     /// What went wrong.
     public let message: String
     
