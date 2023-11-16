@@ -12,7 +12,7 @@ extension Response {
     @discardableResult
     public func validate() throws -> Self {
         if let error { throw error }
-        if let statusCode, !(200..<300).contains(statusCode) { throw PapyrusResponseError("Unsuccessful status code: \(statusCode).", self) }
+        if let statusCode, !(200..<300).contains(statusCode) { throw toPapyrusResponseError(with: "Unsuccessful status code: \(statusCode).") }
         return self
     }
     
@@ -22,18 +22,22 @@ extension Response {
     
     public func decode(_ type: Data.Type = Data.self, using decoder: ResponseDecoder) throws -> Data {
         guard let body = try decode(Data?.self, using: decoder) else {
-            throw PapyrusResponseError("Unable to return the body of a `Response`; the body was nil.", self)
+            throw toPapyrusResponseError(with: "Unable to return the body of a `Response`; the body was nil.")
         }
         
         return body
     }
     
     public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
-        guard let body = body else {
-            throw PapyrusResponseError("Unable to decode `\(Self.self)` from a `Response`; body was nil.", self)
+        guard let body else {
+            throw toPapyrusResponseError(with: "Unable to decode `\(Self.self)` from a `Response`; body was nil.")
         }
         
         return try decoder.decode(type, from: body)
+    }
+    
+    private func toPapyrusResponseError(with message: String) -> PapyrusResponseError {
+        PapyrusResponseError(message, self)
     }
 }
 
