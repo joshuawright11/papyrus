@@ -21,7 +21,7 @@ extension URLSession: HTTPService {
         request.httpMethod = method
         request.httpBody = body
         request.allHTTPHeaderFields = headers
-        return _Request(request: request)
+        return request
     }
 
     public func request(_ req: Request) async -> Response {
@@ -51,21 +51,23 @@ extension URLSession: HTTPService {
 // MARK: `Response` Conformance
 
 extension Response {
-    public var urlRequest: URLRequest { (self as! _Response).request }
-    public var urlResponse: URLResponse? { (self as! _Response).response }
+    public var urlRequest: URLRequest { (self as! _Response).urlRequest }
+    public var urlResponse: URLResponse? { (self as! _Response).urlResponse }
 }
 
 private struct _Response: Response {
-    let request: URLRequest
-    let response: URLResponse?
+    let urlRequest: URLRequest
+    let urlResponse: URLResponse?
+    
+    var request: Request? { urlRequest }
     let error: Error?
     let body: Data?
     let headers: [String: String]?
     var statusCode: Int? { (urlResponse as? HTTPURLResponse)?.statusCode }
     
     init(request: URLRequest, response: URLResponse?, error: Error?, body: Data?) {
-        self.request = request
-        self.response = response
+        self.urlRequest = request
+        self.urlResponse = response
         self.error = error
         self.body = body
         let headerPairs = (response as? HTTPURLResponse)?
@@ -89,30 +91,23 @@ private struct _Response: Response {
 
 extension Request {
     public var urlRequest: URLRequest {
-        (self as! _Request).request
+        (self as! URLRequest)
     }
 }
 
-private struct _Request: Request {
-    var request: URLRequest
-
-    public var url: URL {
-        get { request.url! }
-        set { request.url = newValue }
-    }
-
+extension URLRequest: Request {
     public var body: Data? {
-        get { request.httpBody }
-        set { request.httpBody = newValue }
+        get { httpBody }
+        set { httpBody = newValue }
     }
 
     public var method: String {
-        get { request.httpMethod ?? "" }
-        set { request.httpMethod = newValue }
+        get { httpMethod ?? "" }
+        set { httpMethod = newValue }
     }
 
     public var headers: [String: String] {
-        get { request.allHTTPHeaderFields ?? [:] }
-        set { request.allHTTPHeaderFields = newValue }
+        get { allHTTPHeaderFields ?? [:] }
+        set { allHTTPHeaderFields = newValue }
     }
 }

@@ -19,7 +19,7 @@ extension Session: HTTPService {
         request.httpMethod = method
         request.httpBody = body
         request.allHTTPHeaderFields = headers
-        return _Request(request: request)
+        return request
     }
 
     public func request(_ req: PapyrusCore.Request) async -> Response {
@@ -42,6 +42,8 @@ extension Response {
 }
 
 extension DataResponse: Response {
+    @_implements(Response, request)
+    public var _request: PapyrusCore.Request? { request }
     public var body: Data? { data }
     public var headers: [String : String]? { response?.headers.dictionary }
     public var statusCode: Int? { response?.statusCode }
@@ -55,30 +57,23 @@ extension DataResponse: Response {
 
 extension PapyrusCore.Request {
     public var urlRequest: URLRequest {
-        (self as! _Request).request
+        (self as! URLRequest)
     }
 }
 
-private struct _Request: PapyrusCore.Request {
-    var request: URLRequest
-
-    public var url: URL {
-        get { request.url! }
-        set { request.url = newValue }
-    }
-
+extension URLRequest: PapyrusCore.Request {
     public var body: Data? {
-        get { request.httpBody }
-        set { request.httpBody = newValue }
+        get { httpBody }
+        set { httpBody = newValue }
     }
 
     public var method: String {
-        get { request.httpMethod ?? "" }
-        set { request.httpMethod = newValue }
+        get { httpMethod ?? "" }
+        set { httpMethod = newValue }
     }
 
     public var headers: [String: String] {
-        get { request.allHTTPHeaderFields ?? [:] }
-        set { request.allHTTPHeaderFields = newValue }
+        get { allHTTPHeaderFields ?? [:] }
+        set { allHTTPHeaderFields = newValue }
     }
 }

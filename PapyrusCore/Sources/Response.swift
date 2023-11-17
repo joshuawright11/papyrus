@@ -1,6 +1,7 @@
 import Foundation
 
 public protocol Response {
+    var request: Request? { get }
     var body: Data? { get }
     var headers: [String: String]? { get }
     var statusCode: Int? { get }
@@ -12,7 +13,7 @@ extension Response {
     @discardableResult
     public func validate() throws -> Self {
         if let error { throw error }
-        if let statusCode, !(200..<300).contains(statusCode) { throw toPapyrusResponseError(with: "Unsuccessful status code: \(statusCode).") }
+        if let statusCode, !(200..<300).contains(statusCode) { throw makePapyrusError(with: "Unsuccessful status code: \(statusCode).") }
         return self
     }
     
@@ -22,7 +23,7 @@ extension Response {
     
     public func decode(_ type: Data.Type = Data.self, using decoder: ResponseDecoder) throws -> Data {
         guard let body = try decode(Data?.self, using: decoder) else {
-            throw toPapyrusResponseError(with: "Unable to return the body of a `Response`; the body was nil.")
+            throw makePapyrusError(with: "Unable to return the body of a `Response`; the body was nil.")
         }
         
         return body
@@ -30,14 +31,14 @@ extension Response {
     
     public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
         guard let body else {
-            throw toPapyrusResponseError(with: "Unable to decode `\(Self.self)` from a `Response`; body was nil.")
+            throw makePapyrusError(with: "Unable to decode `\(Self.self)` from a `Response`; body was nil.")
         }
         
         return try decoder.decode(type, from: body)
     }
     
-    private func toPapyrusResponseError(with message: String) -> PapyrusResponseError {
-        PapyrusResponseError(message, self)
+    private func makePapyrusError(with message: String) -> PapyrusError {
+        PapyrusError(message, request, self)
     }
 }
 
@@ -54,6 +55,7 @@ public struct ErrorResponse: Response {
         self._error = error
     }
 
+    public var request: Request? { nil }
     public var body: Data? { nil }
     public var headers: [String : String]? { nil }
     public var statusCode: Int? { nil }
