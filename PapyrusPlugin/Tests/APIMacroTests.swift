@@ -98,6 +98,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "GET", path: "some/path")
                     req.addQuery("userId", value: userId)
                     let res = try await provider.request(req)
+                    try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
 
@@ -139,6 +140,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "GET", path: "some/path")
                     req.addQuery("userId", value: userId)
                     let res = try await provider.request(req)
+                    try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
 
@@ -177,6 +179,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "GET", path: "some/path")
                     req.addField("userId", value: userId)
                     let res = try await provider.request(req)
+                    try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
 
@@ -222,6 +225,7 @@ final class APIMacroTests: XCTestCase {
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
                     let res = try await provider.request(req)
+                    try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
 
@@ -268,6 +272,7 @@ final class APIMacroTests: XCTestCase {
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
                     let res = try await provider.request(req)
+                    try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
 
