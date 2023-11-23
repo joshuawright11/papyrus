@@ -64,59 +64,56 @@ Supports iOS 13+ / macOS 10.15+.
 
 Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 to compile.
 
-### Swift Concurrency
-
-Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html).
-
-While using concurrency is recommended, if you haven't yet migrated and need a closure based API, see the section on [closure based APIs](#closure-based-apis).
+Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html). Using concurrency is recommended but if you haven't yet migrated and need a closure based API, [they are available](#closure-based-apis).
 
 ### Installation
 
-You can install Papyrus using the [Swift Package Manager](https://www.swift.org/package-manager/).
+Install Papyrus using the [Swift Package Manager](https://www.swift.org/package-manager/), choosing a backing networking library from below.
 
-```swift
-.package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
-```
+<details>
+  <summary>URLSession</summary>
 
-#### URLSession Driver
+  ### URLSession
+  Out of the box, Papyrus is powered by `URLSession`.
 
-Out of the box, Papyrus is powered by `URLSession`.
+  ```swift
+  .package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
+  ```
 
-```swift
-.product(name: "Papyrus", package: "papyrus")
-```
+  ```swift
+  .product(name: "Papyrus", package: "papyrus")
+  ```
+</details>
 
-```swift
-import Papyrus
-```
+<details>
+  <summary>Alamofire</summary>
 
-#### Alamofire Driver
+  ### Alamofire
+  If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use the `PapyrusAlamofire` product.
 
-If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use the `PapyrusAlamofire` library in this package.
+  ```swift
+  .package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
+  ```
 
-```swift
-.product(name: "PapyrusAlamofire", package: "papyrus")
-```
+  ```swift
+  .product(name: "PapyrusAlamofire", package: "papyrus")
+  ```
+</details>
 
-```swift
-import PapyrusAlamofire
-```
+<details>
+  <summary>AsyncHTTPClient (Linux)</summary>
+  
+  ### AsyncHTTPClient (Linux)
+  If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
-#### Linux Driver
+  ```swift
+  .package(url: "https://github.com/joshuawright11/papyrus-async-http-client.git", from: "0.2.0")
+  ```
 
-If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
-
-```swift
-.package(url: "https://github.com/joshuawright11/papyrus-async-http-client.git", from: "0.2.0")
-```
-
-```swift
-.product(name: "PapyrusAsyncHTTPClient", package: "papyrus-async-http-client")
-```
-
-```swift
-import PapyrusAsyncHTTPClient
-```
+  ```swift
+  .product(name: "PapyrusAsyncHTTPClient", package: "papyrus-async-http-client")
+  ```
+</details>
 
 ## Requests
 
