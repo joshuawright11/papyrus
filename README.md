@@ -332,13 +332,9 @@ If you don't need to decode something from the response and just want to confirm
 func logout() async throws
 ```
 
-Note that if the function return type is Codable or empty, any error that occurs during the request flight, such as an unsuccessful response code, will be thrown.
-
 ### Accessing the Raw Response
 
 To just get the raw response you may set the return type to `Response`.
-
-Note that in this case, errors that occur during the flight of the request will NOT be thrown so you should check the `Response.error` property before assuming it was successful.
 
 ```swift
 @GET("/user")
@@ -358,6 +354,22 @@ func getUser() async throws -> (User, Response)
 
 let (user, res) = try await users.getUser()
 print("The response status code was: \(res.statusCode!)")
+```
+
+### Error handling
+
+If any error occurs during the request flight, such as an unsuccessful response code, `PapyrusError` will be thrown. You can use it to access failed request and response (if present).
+```swift
+@GET("/user")
+func getUser() async throws -> User
+
+do {
+    let user = try await users.getUser()
+} catch {
+    if let error = error as? PapyrusError {
+        print("Error making request \(error.request). Response was: \(error.response)")
+    }
+}
 ```
 
 ## Configuration
