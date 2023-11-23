@@ -45,9 +45,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct FooAPI: Foo {
-                private let provider: Papyrus.Provider
+                private let provider: PapyrusCore.Provider
 
-                init(provider: Papyrus.Provider) {
+                init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
@@ -88,9 +88,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Papyrus.Provider
+                private let provider: PapyrusCore.Provider
 
-                init(provider: Papyrus.Provider) {
+                init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
@@ -130,9 +130,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Papyrus.Provider
+                private let provider: PapyrusCore.Provider
 
-                init(provider: Papyrus.Provider) {
+                init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
@@ -169,9 +169,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Papyrus.Provider
+                private let provider: PapyrusCore.Provider
 
-                init(provider: Papyrus.Provider) {
+                init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
@@ -214,9 +214,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Papyrus.Provider
+                private let provider: PapyrusCore.Provider
 
-                init(provider: Papyrus.Provider) {
+                init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
@@ -261,9 +261,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: Papyrus.Provider
+                private let provider: PapyrusCore.Provider
 
-                init(provider: Papyrus.Provider) {
+                init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
