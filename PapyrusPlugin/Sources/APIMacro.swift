@@ -10,7 +10,7 @@ public struct APIMacro: PeerMacro {
                 throw PapyrusPluginError("@API can only be applied to protocols.")
             }
 
-            let name = node.firstArgument ?? "\(type.typeName)API"
+            let name = node.firstArgument ?? "\(type.typeName)\(node.attributeName)"
             return try type.createAPI(named: name)
         }
     }

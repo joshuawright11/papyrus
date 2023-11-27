@@ -10,7 +10,7 @@ public struct MockMacro: PeerMacro {
                 throw PapyrusPluginError("@Mock can only be applied to protocols.")
             }
 
-            let name = node.firstArgument ?? "\(type.typeName)Mock"
+            let name = node.firstArgument ?? "\(type.typeName)\(node.attributeName)"
             return try type.createMock(named: name)
         }
     }
