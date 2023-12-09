@@ -38,7 +38,7 @@ final class RequestBuilderTests: XCTestCase {
 
         // 1. Assert Body
 
-        XCTAssertEqual(body, """
+        XCTAssertEqual(body.string, """
             --\(encoder.boundary)\r
             Content-Disposition: form-data; name="a"; filename="one.txt"\r
             Content-Type: text/plain\r
@@ -50,7 +50,66 @@ final class RequestBuilderTests: XCTestCase {
             two\r
             --\(encoder.boundary)--\r
 
-            """.data(using: .utf8)
+            """
         )
+    }
+
+    func testJSON() async throws {
+        var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+        req.requestEncoder = encoder
+        req.addField("a", value: "one")
+        req.addField("b", value: "two")
+        let (body, headers) = try req.bodyAndHeaders()
+        guard let body else {
+            XCTFail()
+            return
+        }
+
+        // 0. Assert Headers
+
+        XCTAssertEqual(headers, [
+            "Content-Type": "application/json",
+            "Content-Length": "32"
+        ])
+
+        // 1. Assert Body
+
+        XCTAssertEqual(body.string, """
+            {
+              "a" : "one",
+              "b" : "two"
+            }
+            """
+        )
+    }
+
+    func testURLForm() async throws {
+        var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
+        req.requestEncoder = URLEncodedFormEncoder()
+        req.addField("a", value: "one")
+        req.addField("b", value: "two")
+        let (body, headers) = try req.bodyAndHeaders()
+        guard let body else {
+            XCTFail()
+            return
+        }
+
+        // 0. Assert Headers
+
+        XCTAssertEqual(headers, [
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": "11"
+        ])
+
+        // 1. Assert Body
+        XCTAssertTrue(["a=one&b=two", "b=two&a=one"].contains(body.string))
+    }
+}
+
+extension Data {
+    fileprivate var string: String {
+        String(decoding: self, as: UTF8.self)
     }
 }

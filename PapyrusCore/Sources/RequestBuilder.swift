@@ -158,7 +158,7 @@ public struct RequestBuilder {
         var parts: [ContentKey: Part] = [:]
         if let body = body {
             guard case .multipart(let existingParts) = body else {
-                preconditionFailure("Tried to add a multipart Part, \(key), to a request but it already had non multipart fields added to it. If you use Multipart, all fields in the body of the request must be of type Part.")
+                preconditionFailure("Tried to add a multipart Part, \(key), to a request but it already had non multipart fields added to it. If you use @Multipart, all fields on the request must be of type Part.")
             }
 
             parts = existingParts
@@ -173,7 +173,7 @@ public struct RequestBuilder {
         var fields: [ContentKey: ContentValue] = [:]
         if let body = body {
             guard case .fields(let existingFields) = body else {
-                preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a Body or Multipart parameters, \(body). @Body and @Field are mutually exclusive.")
+                preconditionFailure("Tried to add a Field, \(key): \(E.self), to a request, but it already had Body or Multipart parameters, \(body). Body, Field, and Multipart are mutually exclusive.")
             }
             
             fields = existingFields
