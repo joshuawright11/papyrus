@@ -16,7 +16,7 @@ public struct MultipartEncoder: RequestEncoder {
 
     public func encode(_ value: some Encodable) throws -> Data {
         guard let parts = value as? [String: Part] else {
-            preconditionFailure("Can only encode `[String: Part]` with `MultipartEncoder`.")
+            preconditionFailure("Can only encode `[String: Part]` with `MultipartEncoder`. Got \(type(of: value)) instead")
         }
 
         let initialBoundary = Data("--\(boundary)\(crlf)".utf8)
@@ -24,7 +24,7 @@ public struct MultipartEncoder: RequestEncoder {
         let finalBoundary = Data("\(crlf)--\(boundary)--\(crlf)".utf8)
 
         var body = Data()
-        for (key, part) in parts {
+        for (key, part) in parts.sorted(by: { $0.key < $1.key }) {
             body += body.isEmpty ? initialBoundary : middleBoundary
             body += partHeaderData(part, key: key)
             body += part.data
@@ -44,7 +44,7 @@ public struct MultipartEncoder: RequestEncoder {
             headers["Content-Type"] = mimeType
         }
 
-        let string = headers.map { "\($0): \($1)\(crlf)" }.joined() + crlf
+        let string = headers.map { "\($0): \($1)\(crlf)" }.sorted().joined() + crlf
         return Data(string.utf8)
     }
 
