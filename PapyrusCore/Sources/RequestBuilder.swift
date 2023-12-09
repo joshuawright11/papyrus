@@ -70,6 +70,7 @@ public struct RequestBuilder {
     public enum Content {
         case value(ContentValue)
         case fields([ContentKey: ContentValue])
+        case multipart([ContentKey: Part])
     }
 
     public static var defaultQueryEncoder: URLEncodedFormEncoder = URLEncodedFormEncoder()
@@ -153,11 +154,26 @@ public struct RequestBuilder {
         body = .value(ContentValue(value))
     }
 
+    public mutating func addField(_ key: String, value: Part, mapKey: Bool = true) {
+        var parts: [ContentKey: Part] = [:]
+        if let body = body {
+            guard case .multipart(let existingParts) = body else {
+                preconditionFailure("Tried to add a multipart Part, \(key), to a request but it already had non multipart fields added to it. If you use Multipart, all fields in the body of the request must be of type Part.")
+            }
+
+            parts = existingParts
+        }
+
+        let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
+        parts[key] = value
+        body = .multipart(parts)
+    }
+
     public mutating func addField<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
         var fields: [ContentKey: ContentValue] = [:]
         if let body = body {
             guard case .fields(let existingFields) = body else {
-                preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a @Body, \(body). @Body and @Field are mutually exclusive.")
+                preconditionFailure("Tried to add a @Field, \(key): \(E.self), to a request, but it already had a Body or Multipart parameters, \(body). @Body and @Field are mutually exclusive.")
             }
             
             fields = existingFields
@@ -204,6 +220,10 @@ public struct RequestBuilder {
             return nil
         case .value(let value):
             return try requestEncoder.encode(value)
+        case .multipart(let fields):
+            let pairs = fields.map { ($0.mapped(keyMapping), $1) }
+            let dict = Dictionary(uniqueKeysWithValues: pairs)
+            return try requestEncoder.encode(dict)
         case .fields(let fields):
             let pairs = fields.map { ($0.mapped(keyMapping), $1) }
             let dict = Dictionary(uniqueKeysWithValues: pairs)
