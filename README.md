@@ -6,7 +6,7 @@
 
 Papyrus is a type-safe HTTP client for Swift.
 
-It turns your APIs into clean and concise Swift protocols.
+It drastically reduces network boilerplate by turning your APIs into clean and concise Swift protocols.
 
 ```swift
 @API
@@ -29,32 +29,34 @@ let users: Users = UsersAPI(provider: provider)
 let todos = try await users.getTodos(username: "joshuawright11")
 ```
 
-Each endpoint of your API is represented as function on the protocol. 
+Each endpoint of your API is represented as function on the protocol.
 
 Annotations on the protocol, functions, and parameters help construct requests and decode responses.
 
-## Features
-
--   [x] Turn REST APIs into Swift protocols
--   [x] Swift Concurrency _or_ completion handler based APIs
--   [x] JSON, URLForm and Multipart encoding
--   [x] Easy to configure key mapping
--   [x] Sensible parameter defaults so you can write less code
--   [x] Automatically decode responses with `Codable`
--   [x] Custom Interceptors & Builders
--   [x] Optional, automatic API mocks for testing
--   [x] Out of the box powered by `URLSession` or [Alamofire](https://github.com/Alamofire/Alamofire)
--   [x] Linux / Swift on Server support powered by [async-http-client](https://github.com/swift-server/async-http-client)
-
 ## Table of Contents
 
+0. [Features](#features)
 1. [Getting Started](#getting-started)
 2. [Requests](#requests)
 3. [Responses](#responses)
-4. [Configuration](#configuration)
+4. [Advanced](#advanced)
 5. [Testing](#testing)
 6. [Acknowledgements](#acknowledgements)
 7. [License](#license)
+
+## Features
+
+-   [x] Turn REST APIs into Swift Protocols
+-   [x] `async`/`await` _or_ [Callback APIs](#callback-apis)
+-   [x] JSON, URLForm and Multipart Encoding Support
+-   [x] Automatic Key Mapping
+-   [x] Sensible Parameter Defaults Based on HTTP Verb
+-   [x] Automatically Decode Responses with `Codable`
+-   [x] Custom Interceptors & Request Builders
+-   [x] Advanced Error Handling
+-   [x] Automatic Mocks for Testing
+-   [x] Powered by `URLSession` or [Alamofire](https://github.com/Alamofire/Alamofire) Out of the Box
+-   [x] Linux / Swift on Server Support Powered by [async-http-client](https://github.com/swift-server/async-http-client)
 
 ## Getting Started
 
@@ -64,8 +66,6 @@ Supports iOS 13+ / macOS 10.15+.
 
 Keep in mind that Papyrus uses [macros](https://developer.apple.com/documentation/swift/macros) which require Swift 5.9 / Xcode 15 to compile.
 
-Documentation examples use [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html). Using concurrency is recommended but if you haven't yet migrated and need a closure based API, [they are available](#closure-based-apis).
-
 ### Installation
 
 Install Papyrus using the [Swift Package Manager](https://www.swift.org/package-manager/), choosing a backing networking library from below.
@@ -73,103 +73,113 @@ Install Papyrus using the [Swift Package Manager](https://www.swift.org/package-
 <details>
   <summary>URLSession</summary>
 
-  ### URLSession
-  Out of the box, Papyrus is powered by `URLSession`.
+### URLSession
 
-  ```swift
-  .package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
-  ```
+Out of the box, Papyrus is powered by `URLSession`.
 
-  ```swift
-  .product(name: "Papyrus", package: "papyrus")
-  ```
+```swift
+.package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
+```
+
+```swift
+.product(name: "Papyrus", package: "papyrus")
+```
+
 </details>
 
 <details>
   <summary>Alamofire</summary>
 
-  ### Alamofire
-  If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use the `PapyrusAlamofire` product.
+### Alamofire
 
-  ```swift
-  .package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
-  ```
+If you'd prefer to use [Alamofire](https://github.com/Alamofire/Alamofire), use the `PapyrusAlamofire` product.
 
-  ```swift
-  .product(name: "PapyrusAlamofire", package: "papyrus")
-  ```
+```swift
+.package(url: "https://github.com/joshuawright11/papyrus.git", from: "0.6.0")
+```
+
+```swift
+.product(name: "PapyrusAlamofire", package: "papyrus")
+```
+
 </details>
 
 <details>
   <summary>AsyncHTTPClient (Linux)</summary>
-  
-  ### AsyncHTTPClient (Linux)
-  If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
 
-  ```swift
-  .package(url: "https://github.com/joshuawright11/papyrus-async-http-client.git", from: "0.2.0")
-  ```
+### AsyncHTTPClient (Linux)
 
-  ```swift
-  .product(name: "PapyrusAsyncHTTPClient", package: "papyrus-async-http-client")
-  ```
+If you're using Linux / Swift on Server, use the separate package [PapyrusAsyncHTTPClient](https://github.com/joshuawright11/papyrus-async-http-client). It's driven by the [swift-nio](https://github.com/apple/swift-nio) backed [async-http-client](https://github.com/swift-server/async-http-client).
+
+```swift
+.package(url: "https://github.com/joshuawright11/papyrus-async-http-client.git", from: "0.2.0")
+```
+
+```swift
+.product(name: "PapyrusAsyncHTTPClient", package: "papyrus-async-http-client")
+```
+
 </details>
 
 ## Requests
 
-Each API you need to consume is represented by a _protocol_.
+You'll represent each of your REST APIs with a _protocol_.
 
-Individual endpoints are represented by the _protocol's functions_.
+Individual endpoints are represented by a _function_ on that protocol.
 
-The function's _parameters_ and _return type_ represent the request content and response, respectively.
+The function's _parameters_ help Papyrus build the request and the _return type_ indicates how to handle the response.
 
-### Setting the Method and Path
+### Method and Path
 
-Set the request method and path as an attribute on the function. Available methods are `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS`, `HEAD`, `TRACE`, and `CONNECT`. Use `@Http(path:method:)` if you need a custom method.
-
-```swift
-@DELETE("/transfers/:id")
-```
-
-### Configuring the URL
-
-The `Path` type replaces a named parameter in the path. Parameters are denoted with a leading `:`.
+Set the request method and path as an attribute on the function. Available methods are `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS`, `HEAD`, `TRACE`, and `CONNECT`. Use `@HTTP(_ path:method:)` if you need a custom method.
 
 ```swift
-@GET("/users/:username/repos/:id")
-func getRepository(username: Path<String>, id: Path<Int>) async throws -> [Repository]
+@POST("/accounts/transfers")
 ```
 
-Note that you don't actually need to include the `Path<...>` wrapper if the path parameter matches the function parameter. It will be inferred.
+### Path Parameters
+
+Parameters in the path, marked with a leading `:`, will be automatically replaced by matching parameters in the function.
 
 ```swift
 @GET("/users/:username/repos/:id")
 func getRepository(username: String, id: Int) async throws -> [Repository]
 ```
 
-#### Adding Query Parameters
+#### Query Parameters
 
-You may set url queries with the `Query` type.
+Function parameters on a `@GET`, `@HEAD`, or `@DELETE` request are inferred to be a query.
 
 ```swift
-@GET("/transactions")
-func getTransactions(merchant: Query<String>) async throws -> [Transaction]
+@GET("/transactions") // GET /transactions?merchant=...
+func getTransactions(merchant: String) async throws -> [Transaction]
 ```
 
-You can also set static queries directly in the path string.
+If you need to add query paramters to requests of other HTTP Verbs, mark the parameter with `Query<T>`.
+
+```swift
+@POST("/cards") // POST /cards?username=...
+func fetchCards(username: Query<String>) async throws -> [Card]
+```
+
+### Static Query Parameters
+
+Static queries can be set directly in the path string.
 
 ```swift
 @GET("/transactions?merchant=Apple")
 ```
 
-For convenience, a unattributed function parameter on a `@GET`, `@HEAD`, or `@DELETE` request is inferred to be a `Query`.
+### Headers
+
+A variable request header can be set with the `Header<T>` type. It's key will be automatically mapped to Capital-Kebab-Case. e.g. `Custom-Header` in the following endpoint.
 
 ```swift
-@GET("/transactions")
-func getTransactions(merchant: String) async throws -> [Transaction]
+@GET("/accounts")
+func getRepository(customHeader: Header<String>) async throws
 ```
 
-### Headers
+#### Static Headers
 
 You can set static headers on a request using `@Headers` at the function or protocol scope.
 
@@ -182,14 +192,10 @@ func getUser() async throws -> User
 ```swift
 @API
 @Headers(["X-Client-Version": "1.2.3"])
-protocol Users {
-    @GET("/user")
-    func getUser() async throws -> User
-
-    @PATCH("/user/:id")
-    func updateUser(id: Int, name: String) async throws
-}
+protocol Users { ... }
 ```
+
+#### Authorization Header
 
 For convenience, the `@Authorization` attribute can be used to set a static `"Authorization"` header.
 
@@ -200,18 +206,25 @@ protocol Users {
 }
 ```
 
-A variable header can be set with the `Header` type.
+### Body
+
+Function parameters on a request that _isn't_ a `@GET`, `@HEAD`, or `@DELETE` are inferred to be a field in the body.
 
 ```swift
-@GET("/accounts")
-func getRepository(customHeader: Header<String>) async throws
+@POST("/todo")
+func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-Note that variable headers are automatically mapped to Capital-Kebab-Case. In this case, `Custom-Header`.
+If you need to explicitly mark a parameter as a body field, use `Field<T>`.
 
-### Setting a Body
+```swift
+@POST("/todo")
+func createTodo(name: Field<String>, isDone: Field<Bool>, tags: Field<[String]>) async throws
+```
 
-The request body can be set using `Body` on a `Codable` parameter. A function can only have one `Body` parameter.
+#### `Body<T>`
+
+Aternatively, the entire request body can be set using `Body<T>`. An endpoint can only have one `Body<T>` parameter and it is mutually exclusive with `Field<T>`.
 
 ```swift
 struct Todo: Codable {
@@ -224,25 +237,27 @@ struct Todo: Codable {
 func createTodo(todo: Body<Todo>) async throws
 ```
 
-Alternatively, you can set individual fields on the body `Field`. These are mutually exclusive with `Body`.
+#### Body Encoding
+
+By default, all `Body` and `Field` parameters are encoded as `application/json`. You can encode with a custom `JSONEncoder` using the `@JSON` attribute.
 
 ```swift
-@POST("/todo")
-func createTodo(name: Field<String>, isDone: Field<Bool>, tags: Field<[String]>) async throws
+extension JSONEncoder {
+    static var iso8601: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }
+}
+
+@JSON(encoder: .iso8601)
+@POST("/user")
+func createUser(username: String, password: String) async throws
 ```
 
-For convenience, an unattributed parameter on a request that _isn't_ a `@GET`, `@HEAD`, or `@DELETE` is inferred to be a `Field`.
+##### URLForm
 
-```swift
-@POST("/todo")
-func createTodo(name: String, isDone: Bool, tags: [String]) async throws
-```
-
-### Encoding the Body
-
-By default, all `Body` and `Field` parameters are encoded as `application/json`.
-
-You may encode parameters as `application/x-www-form-urlencoded` using `@URLForm`.
+You may encode body parameters as `application/x-www-form-urlencoded` using `@URLForm`.
 
 ```swift
 @URLForm
@@ -250,13 +265,17 @@ You may encode parameters as `application/x-www-form-urlencoded` using `@URLForm
 func createTodo(name: String, isDone: Bool, tags: [String]) async throws
 ```
 
-You can also encode parameters as `multipart/form-data` using `@Multipart`. If you do, all non-path parameter fields must be of type `Part`.
+##### Multipart
+
+You can also encode body parameters as `multipart/form-data` using `@Multipart`. If you do, all body parameters must be of type `Part`.
 
 ```swift
 @Multipart
 @POST("/attachments")
 func uploadAttachments(file1: Part, file2: Part) async throws
 ```
+
+##### Global Encoding
 
 You can attribute your protocol with an encoding attribute to encode all requests as such.
 
@@ -272,9 +291,9 @@ protocol Todos {
 }
 ```
 
-#### Custom Body Encoders
+##### Custom Body Encoders
 
-If you'd like to use a custom JSON or URLForm encoder, you may pass them as arguments to `@JSON` and `@URLForm`.
+If you'd like to use a custom encoder, you may pass them as arguments to `@JSON`, `@URLForm` and `@Multipart`.
 
 ```swift
 extension JSONEncoder {
@@ -286,61 +305,53 @@ extension JSONEncoder {
 }
 
 @JSON(encoder: .iso8601)
-protocol Todos {
-    ...
-}
+protocol Todos { ... }
 ```
 
 ## Responses
 
-The return type of your function represents the response of your endpoint.
+The return type of your function tells Papyrus how to handle the endpoint response.
 
-### Decoding from the Response
+### `Decodable`
 
-Endpoint functions should return a type that conforms to `Decodable`. It will automatically be decoded from the HTTP response body using JSON by default.
+If your function returns a type conforming to `Decodable`, Papyrus will automatically decode it from the response body using `JSONDecoder`.
 
 ```swift
 @GET("/user")
 func getUser() async throws -> User
 ```
 
-### Accessing just the body
+### `Data`
 
-If you only need a response's raw body bytes, you can just return `Data` from your function.  
-
-```swift
-@GET("/bytes")
-func getBytes() async throws -> Data
-```
-
-The above will throw if the request body is empty, even if the status code is successful. If you don't want to throw in that case, set the response as `Data?`; it will successfully return nil if the response body is empty.
+If you only need a response's raw body bytes, you can just return `Data?` or `Data` from your function.
 
 ```swift
 @GET("/bytes")
 func getBytes() async throws -> Data?
+
+@GET("/image")
+func getImage() async throws -> Data // this will throw an error if `GET /image` returns an empty body
 ```
 
-### Empty responses
+### `Void`
 
-If you don't need to decode something from the response and just want to confirm it was successful, you may leave out the return type.
+If you just want to confirm the response was successful and don't need to access the body, you may leave out the return type.
 
 ```swift
 @DELETE("/logout")
 func logout() async throws
 ```
 
-### Accessing the Raw Response
+### `Response`
 
-To just get the raw response you may set the return type to `Response`.
+If you want the raw response data, e.g. to access headers, set the return type to `Response`.
 
 ```swift
 @GET("/user")
 func getUser() async throws -> Response
 
 let res = try await users.getUser()
-if res.error == nil {
-    print("The response was successful!")
-}
+print("The response had headers \(res.headers)")
 ```
 
 If you'd like to automatically decode a type AND access the `Response`, you may return a tuple with both.
@@ -353,9 +364,10 @@ let (user, res) = try await users.getUser()
 print("The response status code was: \(res.statusCode!)")
 ```
 
-### Error handling
+### Error Handling
 
-If any error occurs during the request flight, such as an unsuccessful response code, `PapyrusError` will be thrown. You can use it to access failed request and response (if present).
+If any errors occur while making a request, a `PapyrusError` will be thrown. Use it to access any `Request` and `Response` associated with the error.
+
 ```swift
 @GET("/user")
 func getUser() async throws -> User
@@ -364,14 +376,14 @@ do {
     let user = try await users.getUser()
 } catch {
     if let error = error as? PapyrusError {
-        print("Error making request \(error.request). Response was: \(error.response)")
+        print("Error making request \(error.request): \(error.message). Response was: \(error.response)")
     }
 }
 ```
 
-## Configuration
+## Advanced
 
-### Custom Keys
+### Parameter Labels
 
 If you use two labels for a function parameter, the second one will be inferred as the relevant key.
 
@@ -380,7 +392,7 @@ If you use two labels for a function parameter, the second one will be inferred 
 func getPost(id postId: Int) async throws -> Post
 ```
 
-#### Key Mapping
+### Key Mapping
 
 Often, you'll want to encode request fields and decode response fields using something other than camelCase. Instead of setting a custom key for each individual attribute, you can use `@KeyMapping` at the function or protocol level.
 
@@ -394,7 +406,7 @@ protocol Todos {
 }
 ```
 
-### Customizing the Generated Type
+### Access Control
 
 When you use `@API` or [`@Mock`](#mocking-with-mock), Papyrus will generate an implementation named `<protocol>API` or `<protocol>Mock` respectively. The [access level](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/accesscontrol/) will match the access level of the protocol.
 
@@ -413,7 +425,7 @@ let plaid: Plaid = PlaidAPI(provider: provider)
 
 ### Interceptors
 
-You may also inspect a provider's raw requests and responses by using `intercept()`. Remember that you'll need to call the second closure parameter if you want the request to continue.
+You may also inspect a `Provider`'s raw `Request`s and `Response`s using `intercept()`. Make sure to call the second closure parameter if you want the request to continue.
 
 ```swift
 let provider = Provider(baseURL: "http://localhost:3000")
@@ -427,19 +439,21 @@ let provider = Provider(baseURL: "http://localhost:3000")
     }
 ```
 
-If you'd like to decouple your request modifier or interceptor logic from the `Provider`, you can pass instances of the `RequestModifer` and `Interceptor` protocols on provider initialization.
+### `RequestModifer` & `Interceptor` protocols
+
+You can isolate request modifier and interceptor logic to a specific type for use across multiple `Provider`s using the `RequestModifer` and `Interceptor` protocols. Pass them to a `Provider`'s initializer.
 
 ```swift
-let interceptor: Interceptor = ...
-let modifier: Interceptor = ...
-let provider = Provider(baseURL: "http://localhost:3000", modifiers: [modifier], interceptors: [interceptor])
+struct MyRequestModifier: RequestModifier { ... }
+struct MyInterceptor: Interceptor { ... }
+let provider = Provider(baseURL: "http://localhost:3000", modifiers: [MyRequestModifier()], interceptors: [MyInterceptor()])
 ```
 
-### Closure Based APIs
+### Callback APIs
 
 [Swift concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html) is the modern way of running asynchronous code in Swift.
 
-While using it is highly recommended, if you haven't yet migrated to Swift concurrency and need access to a closure based API, you can pass an `@escaping` completion handler as the last argument in an endpoint function.
+If you haven't yet migrated to Swift concurrency and need access to a callback based API, you can pass an `@escaping` completion handler as the last argument in your endpoint functions.
 
 The function must have no return type and the closure must have a single argument of type `Result<T: Codable, Error>`, `Result<Void, Error>`, or `Response` argument.
 
@@ -461,20 +475,21 @@ func getResponse(completion: @escaping (Response) -> Void)
 
 Because APIs defined with Papyrus are protocols, they're simple to mock in tests; just implement the protocol.
 
-Note that the `Path`, `Header`, `Field`, and `Body` types are just typealiases for whever they wrap so you don't need to include them when conforming to the protocol.
+If you use `Path<T>`, `Header<T>`, `Field<T>`, or `Body<T>` types, you don't need to include them in your protocol conformance. They are just typealiases used to hint Papyrus how to use the parameter.
 
 ```swift
 @API
 protocol GitHub {
     @GET("/users/:username/repos")
-    func getRepositories(username: String, specialHeader: Header<String>) async throws -> [Repository]
+    func getRepositories(username: String) async throws -> [Repository]
 }
 
 struct GitHubMock: GitHub {
-    func getRepositories(username: String, specialHeader: String) async throws -> [Repository] {
+    func getRepositories(username: String) async throws -> [Repository] {
         return [
             Repository(name: "papyrus"),
-            Repository(name: "alchemy")
+            Repository(name: "alchemy"),
+            Repository(name: "fusion"),
         ]
     }
 }
@@ -483,27 +498,19 @@ struct GitHubMock: GitHub {
 You can then use your mock during tests when the protocol is required.
 
 ```swift
-struct CounterService {
-    let github: GitHub
-
-    func countRepositories(of username: String) async throws -> Int {
-        try await getRepositories(username: username).count
-    }
-}
-
 func testCounting() {
     let mock: GitHub = GitHubMock()
     let service = MyService(github: mock)
     let count = service.countRepositories(of: "joshuawright11")
-    XCTAssertEqual(count, 2)
+    XCTAssertEqual(count, 3)
 }
 ```
 
-### Mocking with @Mock
+### @Mock
 
-A mock implementation can be automatically generated with the `@Mock` attribute. Like `@API`, this generates an implementation of your protocol.
+For convenience, you can leverage macros to automatically generated mocks using `@Mock`. Like `@API`, this generates an implementation of your protocol.
 
-A generated `Mock` type has `mock` functions to easily verify request parameters and mock their responses.
+The generated `Mock` type has `mock` functions to easily verify request parameters and mock responses.
 
 ```swift
 @API  // Generates `GitHubAPI: GitHub`
@@ -533,7 +540,7 @@ func testCounting() {
 
 👋 Thanks for checking out Papyrus!
 
-If you'd like to contribute please [file an issue](https://github.com/joshuawright11/papyrus/issues), [open a pull request](https://github.com/joshuawright11/papyrus/issues) or [start a discussion](https://github.com/joshuawright11/papyrus/discussions).
+If you'd like to contribute please [file an issue](https://github.com/joshuawright11/papyrus/issues), [open a pull request](https://github.com/joshuawright11/papyrus/pulls) or [start a discussion](https://github.com/joshuawright11/papyrus/discussions).
 
 ## Acknowledgements
 
