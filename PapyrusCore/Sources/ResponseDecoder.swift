@@ -7,8 +7,8 @@ public protocol ResponseDecoder: KeyMappable {
 // MARK: application/json
 
 extension ResponseDecoder where Self == JSONDecoder {
-    public static var json: Self {
-        JSONDecoder()
+    public static func json(_ decoder: JSONDecoder) -> Self {
+        decoder
     }
 }
 
