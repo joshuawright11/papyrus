@@ -27,7 +27,7 @@ enum APIAttribute {
         if case let .argumentList(list) = syntax.arguments {
             for argument in list {
                 if let label = argument.label {
-                    labeledArguments[label.description] = argument.expression.description
+                    labeledArguments[label.text] = argument.expression.description
                 }
             }
 

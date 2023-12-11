@@ -287,30 +287,21 @@ final class APIMacroTests: XCTestCase {
     func testJSON() {
         assertMacro(["API": APIMacro.self]) {
             """
-            struct User {
-                let id: Int
-                let name: String
-            }
-
             @API
             @KeyMapping(.snakeCase)
             @JSON(encoder: .foo, decoder: .bar)
             protocol MyService {
                 @POST("users")
-                func getUser(name: String) async throws -> User
+                func getUser() async throws
             }
             """
         } expansion: {
             """
-            struct User {
-                let id: Int
-                let name: String
-            }
             @KeyMapping(.snakeCase)
             @JSON(encoder: .foo, decoder: .bar)
             protocol MyService {
                 @POST("users")
-                func getUser(name: String) async throws -> User
+                func getUser() async throws
             }
 
             struct MyServiceAPI: MyService {
@@ -320,12 +311,59 @@ final class APIMacroTests: XCTestCase {
                     self.provider = provider
                 }
 
-                func getUser(name: String) async throws -> User {
-                    var req = builder(method: "POST", path: "users")
-                    req.addField("name", value: name)
-                    let res = try await provider.request(req)
-                    try res.validate()
-                    return try res.decode(User.self, using: req.responseDecoder)
+                func getUser() async throws {
+                    let req = builder(method: "POST", path: "users")
+                    try await provider.request(req).validate()
+                }
+
+                private func builder(method: String, path: String) -> RequestBuilder {
+                    var req = provider.newBuilder(method: method, path: path)
+                    req.keyMapping = .snakeCase
+                    req.requestEncoder = .json(.foo)
+                    req.responseDecoder = .json(.bar)
+                    return req
+                }
+            }
+            """
+        }
+    }
+
+    func testJSONMultiline() {
+        assertMacro(["API": APIMacro.self]) {
+            """
+            @API
+            @KeyMapping(.snakeCase)
+            @JSON(
+                encoder: .foo,
+                decoder: .bar
+            )
+            protocol MyService {
+                @POST("users")
+                func getUser() async throws
+            }
+            """
+        } expansion: {
+            """
+            @KeyMapping(.snakeCase)
+            @JSON(
+                encoder: .foo,
+                decoder: .bar
+            )
+            protocol MyService {
+                @POST("users")
+                func getUser() async throws
+            }
+
+            struct MyServiceAPI: MyService {
+                private let provider: PapyrusCore.Provider
+
+                init(provider: PapyrusCore.Provider) {
+                    self.provider = provider
+                }
+
+                func getUser() async throws {
+                    let req = builder(method: "POST", path: "users")
+                    try await provider.request(req).validate()
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
