@@ -7,6 +7,7 @@ let package = Package(
     platforms: [
         .iOS("13.0"),
         .macOS("10.15"),
+        .tvOS("13.0")
     ],
     products: [
         .executable(name: "Example", targets: ["Example"]),
