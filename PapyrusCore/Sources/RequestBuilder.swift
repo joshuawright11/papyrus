@@ -205,13 +205,23 @@ public struct RequestBuilder {
     }
 
     private func parameterizedPath() throws -> String {
-        try parameters.reduce(into: path.split(separator: "/")) { newPath, component in
+        var pathComponents = path.split(separator: "/")
+        var staticQuery: Substring? = nil
+
+        if let lastComponent = pathComponents.last, let startOfQuery = lastComponent.lastIndex(of: "?") {
+            pathComponents.removeLast()
+            staticQuery = lastComponent.suffix(from: startOfQuery)
+            pathComponents.append(lastComponent.prefix(upTo: startOfQuery))
+        }
+
+        return try parameters.reduce(into: pathComponents) { newPath, component in
+            print(newPath, component)
             guard let index = newPath.firstIndex(of: ":\(component.key)") else {
                 throw PapyrusError("Tried to set path parameter `\(component.key)` but did not find `:\(component.key)` in path `\(path)`.")
             }
 
             newPath[index] = component.value[...]
-        }.joined(separator: "/")
+        }.joined(separator: "/") + (staticQuery ?? "")
     }
 
     private func bodyData() throws -> Data? {
