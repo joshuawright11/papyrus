@@ -173,8 +173,6 @@ final class CurlTests: XCTestCase {
 
         let request = try TestRequest(from: req)
 
-        let normalizedCurl = request.curl(sortedHeaders: true)
-
         var message: String? = nil
 
         let logger = CurlLogger(when: .onError, using: {
