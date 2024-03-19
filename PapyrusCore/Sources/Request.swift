@@ -32,8 +32,8 @@ public extension Request {
         components += sortedHeaders ? headerOptions.sorted() : headerOptions
 
         // Add body
-        if let bodyData = body {
-            let bodyString = String(data: bodyData, encoding: .utf8) ?? ""
+        if let body {
+            let bodyString = String(data: body, encoding: .utf8) ?? ""
             components.append("-d '\(bodyString)'")
         }
 
