@@ -28,15 +28,8 @@ public extension Request {
         components.append("-X \(method)")
 
         // Add headers
-        if sortedHeaders {
-            for (key, value) in headers.sorted(by: { $0.key < $1.key }) {
-                components.append("-H '\(key): \(value)'")
-            }
-        } else {
-            for (key, value) in headers {
-                components.append("-H '\(key): \(value)'")
-            }
-        }
+        let headerOptions = headers.map { "-H '\($0): \($1)'" }
+        components += sortedHeaders ? headerOptions.sorted() : headerOptions
 
         // Add body
         if let bodyData = body {
