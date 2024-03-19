@@ -18,7 +18,7 @@ public extension Request {
         var components = [String]()
 
         // Add URL on same line
-        if let url = self.url {
+        if let url {
             components.append("curl '\(url.absoluteString)'")
         } else {
             components.append("curl")
