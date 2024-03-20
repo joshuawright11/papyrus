@@ -29,6 +29,14 @@ extension Response {
         return body
     }
     
+    public func decode<D: Decodable>(_ type: D?.Type = D?.self, using decoder: ResponseDecoder) throws -> D? {
+        guard let body, !body.isEmpty else {
+            return nil
+        }
+        
+        return try decoder.decode(type, from: body)
+    }
+    
     public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
         guard let body else {
             throw makePapyrusError(with: "Unable to decode `\(Self.self)` from a `Response`; body was nil.")
