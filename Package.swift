@@ -21,17 +21,17 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.1.0"),
     ],
     targets: [
-        
+
         // MARK: Demo
-        
+
         .executableTarget(
             name: "Example",
             dependencies: ["Papyrus"],
             path: "Example"
         ),
-        
+
         // MARK: Libraries
-        
+
         .target(
             name: "Papyrus",
             dependencies: [
@@ -54,9 +54,9 @@ let package = Package(
             ],
             path: "PapyrusCore/Sources"
         ),
-        
+
         // MARK: Plugin
-        
+
         .macro(
             name: "PapyrusPlugin",
             dependencies: [
@@ -69,9 +69,9 @@ let package = Package(
             ],
             path: "PapyrusPlugin/Sources"
         ),
-        
+
         // MARK: Tests
-        
+
         .testTarget(
             name: "PapyrusCoreTests",
             dependencies: ["PapyrusCore"],
@@ -84,6 +84,12 @@ let package = Package(
                 .product(name: "MacroTesting", package: "swift-macro-testing"),
             ],
             path: "PapyrusPlugin/Tests"
+        ),
+        // MARK: New Test Target
+        .testTarget(
+            name: "PapyrusNewTests",
+            dependencies: ["PapyrusCore"],
+            path: "PapyrusCore/Tests/PapyrusNewTests"
         ),
     ]
 )
