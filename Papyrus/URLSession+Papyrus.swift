@@ -114,20 +114,39 @@ extension URLRequest: Request {
 
 // MARK: Retry Interceptor
 
+/**
+ A `RetryInterceptor` that conforms to the `Interceptor` protocol.
+ This interceptor will retry a request up to a specified number of times
+ if it fails with a status code in the range 500-599.
+
+ - Parameters:
+   - maxRetryCount: The maximum number of retry attempts. Default is 3.
+   - initialBackoff: The initial backoff time in seconds before the first retry. Default is 2 seconds.
+   - exponentialBackoff: The multiplier to apply to the backoff time after each retry. Default is 2.
+ */
 public struct RetryInterceptor: Interceptor {
-    public init() {}
+    private let maxRetryCount: Int
+    private let initialBackoff: UInt64
+    private let exponentialBackoff: UInt64
+
+    public init(maxRetryCount: Int = 3, initialBackoff: UInt64 = 2, exponentialBackoff: UInt64 = 2) {
+        self.maxRetryCount = maxRetryCount
+        self.initialBackoff = initialBackoff
+        self.exponentialBackoff = exponentialBackoff
+    }
 
     public func intercept(req: Request, next: Next) async throws -> Response {
         var response: Response
         var retryCount = 0
-        let maxRetryCount = 3
+        var backoff = initialBackoff
 
         repeat {
             do {
                 response = try await next(req)
                 if let statusCode = response.statusCode, (500...599).contains(statusCode) {
                     retryCount += 1
-                    try await Task.sleep(nanoseconds: 2_000_000_000 * UInt64(retryCount)) // Exponential backoff
+                    try await Task.sleep(nanoseconds: backoff * 1_000_000_000) // Backoff in seconds
+                    backoff *= exponentialBackoff
                 } else {
                     return response
                 }
