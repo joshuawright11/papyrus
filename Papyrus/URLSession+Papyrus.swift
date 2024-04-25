@@ -8,7 +8,7 @@ extension Provider {
     public convenience init(baseURL: String,
                             urlSession: URLSession = .shared,
                             modifiers: [RequestModifier] = [],
-                            interceptors: [Interceptor] = []) {
+                            interceptors: [Interceptor] = [RetryInterceptor()]) {
         self.init(baseURL: baseURL, http: urlSession, modifiers: modifiers, interceptors: interceptors)
     }
 }
@@ -58,13 +58,13 @@ extension Response {
 private struct _Response: Response {
     let urlRequest: URLRequest
     let urlResponse: URLResponse?
-    
+
     var request: Request? { urlRequest }
     let error: Error?
     let body: Data?
     let headers: [String: String]?
     var statusCode: Int? { (urlResponse as? HTTPURLResponse)?.statusCode }
-    
+
     init(request: URLRequest, response: URLResponse?, error: Error?, body: Data?) {
         self.urlRequest = request
         self.urlResponse = response
@@ -76,7 +76,7 @@ private struct _Response: Response {
                 guard let key = key as? String, let value = value as? String else {
                     return nil
                 }
-                
+
                 return (key, value)
             }
         if let headerPairs {
@@ -109,5 +109,33 @@ extension URLRequest: Request {
     public var headers: [String: String] {
         get { allHTTPHeaderFields ?? [:] }
         set { allHTTPHeaderFields = newValue }
+    }
+}
+
+// MARK: Retry Interceptor
+
+public struct RetryInterceptor: Interceptor {
+    public init() {}
+
+    public func intercept(req: Request, next: Next) async throws -> Response {
+        var response: Response
+        var retryCount = 0
+        let maxRetryCount = 3
+
+        repeat {
+            do {
+                response = try await next(req)
+                if let statusCode = response.statusCode, (500...599).contains(statusCode) {
+                    retryCount += 1
+                    try await Task.sleep(nanoseconds: 2_000_000_000 * UInt64(retryCount)) // Exponential backoff
+                } else {
+                    return response
+                }
+            } catch {
+                throw error
+            }
+        } while retryCount < maxRetryCount
+
+        return response
     }
 }
