@@ -21,7 +21,7 @@ final class APITests: XCTestCase {
         // Act
         let expectation = self.expectation(description: "The endpoint with the non-optional return type should throw an error for an invalid body.")
         do {
-            let _ = try await sut.get()
+            _ = try await sut.get()
         } catch {
             expectation.fulfill()
         }
@@ -48,7 +48,7 @@ final class APITests: XCTestCase {
         // Act
         let expectation = self.expectation(description: "The endpoint with the non-optional return type should throw an error for an invalid body.")
         do {
-            let _ = try await sut.get()
+            _ = try await sut.get()
         } catch {
             expectation.fulfill()
         }

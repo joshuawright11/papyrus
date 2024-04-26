@@ -114,16 +114,14 @@ extension URLRequest: Request {
 
 // MARK: Retry Interceptor
 
-/**
- A `RetryInterceptor` that conforms to the `Interceptor` protocol.
- This interceptor will retry a request up to a specified number of times
- if it fails with a status code in the range 500-599.
-
- - Parameters:
-   - maxRetryCount: The maximum number of retry attempts. Default is 3.
-   - initialBackoff: The initial backoff time in seconds before the first retry. Default is 2 seconds.
-   - exponentialBackoff: The multiplier to apply to the backoff time after each retry. Default is 2.
- */
+/// A `RetryInterceptor` that conforms to the `Interceptor` protocol.
+/// This interceptor will retry a request up to a specified number of times
+/// if it fails with a status code in the range 500-599.
+///
+/// - Parameters:
+///   - maxRetryCount: The maximum number of retry attempts. Default is 3.
+///   - initialBackoff: The initial backoff time in seconds before the first retry. Default is 2 seconds.
+///   - exponentialBackoff: The multiplier to apply to the backoff time after each retry. Default is 2.
 public struct RetryInterceptor: Interceptor {
     private let maxRetryCount: Int
     private let initialBackoff: UInt64

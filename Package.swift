@@ -74,7 +74,7 @@ let package = Package(
 
         .testTarget(
             name: "PapyrusCoreTests",
-            dependencies: ["PapyrusCore", "Papyrus"],
+            dependencies: ["PapyrusCore"],
             path: "PapyrusCore/Tests"
         ),
         .testTarget(
