@@ -6,12 +6,14 @@ public final class Provider {
     public let http: HTTPService
     public var interceptors: [Interceptor]
     public var modifiers: [RequestModifier]
+    public var retryInterceptor: RetryInterceptor?
 
-    public init(baseURL: String, http: HTTPService, modifiers: [RequestModifier] = [], interceptors: [Interceptor] = []) {
+    public init(baseURL: String, http: HTTPService, modifiers: [RequestModifier] = [], interceptors: [Interceptor] = [], retryInterceptor: RetryInterceptor? = nil) {
         self.baseURL = baseURL
         self.http = http
         self.interceptors = interceptors
         self.modifiers = modifiers
+        self.retryInterceptor = retryInterceptor
     }
 
     public func newBuilder(method: String, path: String) -> RequestBuilder {
@@ -54,6 +56,11 @@ public final class Provider {
             next = { try await interceptor.intercept(req: $0, next: _next) }
         }
 
+        if let retryInterceptor = retryInterceptor {
+            let _next = next
+            next = { try await retryInterceptor.intercept(req: $0, next: _next) }
+        }
+
         return try await next(request)
     }
 
@@ -92,6 +99,13 @@ extension Provider {
                 }
             }
 
+            if let retryInterceptor = retryInterceptor {
+                let _next = next
+                next = {
+                    retryInterceptor.intercept(req: $0, completionHandler: $1, next: _next)
+                }
+            }
+
             return next(request, completionHandler)
         } catch {
             completionHandler(.error(error))
@@ -116,5 +130,50 @@ extension Interceptor {
                 completionHandler(.error(error))
             }
         }
+    }
+}
+
+/// Retry interceptor that retries failed requests based on configurable conditions.
+public class RetryInterceptor: Interceptor {
+    private let retryConditions: [(Request, Response) -> Bool]
+    private let maxRetryCount: Int
+    private let retryDelay: TimeInterval
+
+    /// Initializes a new `RetryInterceptor`.
+    /// - Parameters:
+    ///   - retryConditions: A list of conditions to evaluate whether a request should be retried.
+    ///   - maxRetryCount: The maximum number of times a request should be retried.
+    ///   - retryDelay: The delay, in seconds, before retrying a request.
+    public init(retryConditions: [(Request, Response) -> Bool], maxRetryCount: Int = 3, retryDelay: TimeInterval = 1.0) {
+        self.retryConditions = retryConditions
+        self.maxRetryCount = maxRetryCount
+        self.retryDelay = retryDelay
+    }
+
+    public func intercept(req: Request, next: Next) async throws -> Response {
+        var retryCount = 0
+        var lastResponse: Response?
+
+        while retryCount < maxRetryCount {
+            let response = try await next(req)
+            if shouldRetry(request: req, response: response) {
+                retryCount += 1
+                lastResponse = response
+                try await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+                continue
+            }
+            return response
+        }
+
+        throw PapyrusError("Request failed after \(maxRetryCount) retries.", req, lastResponse)
+    }
+
+    private func shouldRetry(request: Request, response: Response) -> Bool {
+        for condition in retryConditions {
+            if condition(request, response) {
+                return true
+            }
+        }
+        return false
     }
 }

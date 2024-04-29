@@ -57,6 +57,7 @@ Annotations on the protocol, functions, and parameters help construct requests a
 -   [x] Automatic Mocks for Testing
 -   [x] Powered by `URLSession` or [Alamofire](https://github.com/Alamofire/Alamofire) Out of the Box
 -   [x] Linux / Swift on Server Support Powered by [async-http-client](https://github.com/swift-server/async-http-client)
+-   [x] Retry Interceptor for handling failed requests based on configurable conditions
 
 ## Getting Started
 
@@ -382,6 +383,23 @@ do {
 ```
 
 ## Advanced
+
+### Retry Interceptor
+
+Papyrus supports adding a retry interceptor to your `Provider` to handle failed requests based on configurable conditions such as HTTP status codes or network errors.
+
+To use the retry interceptor, create an instance of `RetryInterceptor` with your desired retry conditions and maximum retry count. Then, add it to your `Provider` instance.
+
+```swift
+let retryInterceptor = RetryInterceptor(retryConditions: [{ _, response in
+    guard let statusCode = response.statusCode else { return false }
+    return statusCode == 500
+}], maxRetryCount: 3, retryDelay: 1.0)
+
+let provider = Provider(baseURL: "https://api.example.com", retryInterceptor: retryInterceptor)
+```
+
+In this example, the interceptor will retry any request that fails with a 500 status code, up to 3 times, with a 1-second delay between retries.
 
 ### Parameter Labels
 
