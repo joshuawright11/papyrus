@@ -28,13 +28,14 @@ final class ProviderTests: XCTestCase {
 }
 
 private struct TestHTTPService: HTTPService {
+    static var attempt = 0
+    
     func build(method: String, url: URL, headers: [String : String], body: Data?) -> Request {
         fatalError()
     }
     
     func request(_ req: Request) async -> Response {
         // Simulate a retry scenario
-        static var attempt = 0
         defer { attempt += 1 }
         
         if attempt < 2 {
