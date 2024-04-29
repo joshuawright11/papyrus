@@ -6,7 +6,9 @@
 
 Papyrus is a type-safe HTTP client for Swift.
 
-It drastically reduces network boilerplate by turning your APIs into clean and concise Swift protocols.
+It reduces your network boilerplate by turning turns your APIs into clean and concise Swift protocols.
+
+It's [Retrofit](https://github.com/square/retrofit) for Swift!
 
 ```swift
 @API
