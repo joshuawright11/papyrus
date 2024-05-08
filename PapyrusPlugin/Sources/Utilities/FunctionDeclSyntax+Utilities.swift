@@ -57,7 +57,7 @@ extension FunctionDeclSyntax {
         signature
             .parameterClause
             .parameters
-            .compactMap { $0.as(FunctionParameterSyntax.self) }
+            .compactMap { FunctionParameterSyntax($0) }
     }
 
     // MARK: Parameter Information
