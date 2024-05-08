@@ -137,7 +137,8 @@ public struct RequestBuilder {
         }
     }
 
-    public mutating func addHeader<L: LosslessStringConvertible>(_ key: String, value: L, convertToHeaderCase: Bool = true) {
+    public mutating func addHeader<L: LosslessStringConvertible>(_ key: String, value: L?, convertToHeaderCase: Bool = true) {
+        guard let value else { return }
         let key = convertToHeaderCase ? key.httpHeaderCase() : key
         headers[key] = value.description
     }
