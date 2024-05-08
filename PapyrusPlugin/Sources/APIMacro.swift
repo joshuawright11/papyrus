@@ -1,3 +1,4 @@
+import Foundation
 import SwiftSyntax
 import SwiftSyntaxMacros
 
@@ -68,9 +69,16 @@ extension FunctionDeclSyntax {
     fileprivate func apiFunction() throws -> String {
         let (method, path) = try apiMethodAndPath()
         let pathParameters = path.components(separatedBy: "/")
-            .filter { $0.hasPrefix(":") }
-            .map { String($0.dropFirst()) }
-        
+            .compactMap { component in
+                if component.hasPrefix(":") {
+                    return String(component.dropFirst())
+                } else if component.hasPrefix("{") && component.hasSuffix("}") {
+                    return String(component.dropFirst().dropLast())
+                } else {
+                    return nil
+                }
+            }
+
         try validateSignature()
 
         let attributes = parameters.compactMap({ $0.apiAttribute(httpMethod: method, pathParameters: pathParameters) })
@@ -237,6 +245,9 @@ extension FunctionParameterSyntax {
         } else if pathParameters.contains(variableName) {
             // If matches a path param, roll with that
             return .path(key: nil)
+        } else if pathParameters.contains(KeyMapping.snakeCase.encode(variableName)) {
+            // If matches snake cased param, add that
+            return .path(key: KeyMapping.snakeCase.encode(variableName))
         } else if ["GET", "HEAD", "DELETE"].contains(httpMethod) {
             // If method is GET, HEAD, DELETE
             return .query(key: nil)
@@ -265,5 +276,79 @@ extension FunctionParameterSyntax {
 
     private var isClosure: Bool {
         type.as(AttributedTypeSyntax.self)?.baseType.is(FunctionTypeSyntax.self) ?? false
+    }
+}
+
+/// Represents the mapping between your type's property names and
+/// their corresponding request field key.
+private enum KeyMapping {
+    /// Convert property names from camelCase to snake_case for field keys.
+    ///
+    /// e.g. `someGreatString` -> `some_great_string`
+    case snakeCase
+
+    /// Encode String from camelCase to this KeyMapping strategy.
+    func encode(_ string: String) -> String {
+        switch self {
+        case .snakeCase:
+            return string.camelCaseToSnakeCase()
+        }
+    }
+}
+
+extension String {
+    /// Map camelCase to snake_case. Assumes `self` is already in
+    /// camelCase. Copied from `Foundation`.
+    ///
+    /// - Returns: The snake_cased version of `self`.
+    fileprivate func camelCaseToSnakeCase() -> String {
+        guard !self.isEmpty else { return self }
+
+        var words : [Range<String.Index>] = []
+        // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
+        //
+        // myProperty -> my_property
+        // myURLProperty -> my_url_property
+        //
+        // We assume, per Swift naming conventions, that the first character of the key is lowercase.
+        var wordStart = self.startIndex
+        var searchRange = self.index(after: wordStart)..<self.endIndex
+
+        // Find next uppercase character
+        while let upperCaseRange = self.rangeOfCharacter(from: CharacterSet.uppercaseLetters, options: [], range: searchRange) {
+            let untilUpperCase = wordStart..<upperCaseRange.lowerBound
+            words.append(untilUpperCase)
+
+            // Find next lowercase character
+            searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
+            guard let lowerCaseRange = self.rangeOfCharacter(from: CharacterSet.lowercaseLetters, options: [], range: searchRange) else {
+                // There are no more lower case letters. Just end here.
+                wordStart = searchRange.lowerBound
+                break
+            }
+
+            // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
+            let nextCharacterAfterCapital = self.index(after: upperCaseRange.lowerBound)
+            if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
+                // The next character after capital is a lower case character and therefore not a word boundary.
+                // Continue searching for the next upper case for the boundary.
+                wordStart = upperCaseRange.lowerBound
+            } else {
+                // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
+                let beforeLowerIndex = self.index(before: lowerCaseRange.lowerBound)
+                words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
+
+                // Next word starts at the capital before the lowercase we just found
+                wordStart = beforeLowerIndex
+            }
+            searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
+        }
+
+        words.append(wordStart..<searchRange.upperBound)
+        return words
+            .map { range in
+                self[range].lowercased()
+            }
+            .joined(separator: "_")
     }
 }

@@ -126,6 +126,10 @@ public struct RequestBuilder {
         parameters[key] = value.description
     }
 
+    public mutating func addParameter<L: LosslessStringConvertible, R: RawRepresentable<L>>(_ key: String, value: R) {
+        parameters[key] = value.rawValue.description
+    }
+
     public mutating func addQuery<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
         let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
         queries[key] = ContentValue(value)
@@ -216,9 +220,10 @@ public struct RequestBuilder {
         }
 
         return try parameters.reduce(into: pathComponents) { newPath, component in
-            print(newPath, component)
-            guard let index = newPath.firstIndex(of: ":\(component.key)") else {
-                throw PapyrusError("Tried to set path parameter `\(component.key)` but did not find `:\(component.key)` in path `\(path)`.")
+            let colonEscapedIndex = newPath.firstIndex(of: ":\(component.key)")
+            let curlyEscapedIndex = newPath.firstIndex(of: "{\(component.key)}")
+            guard let index = colonEscapedIndex ?? curlyEscapedIndex else {
+                throw PapyrusError("Tried to set path parameter `\(component.key)` but did not find `:\(component.key)` or `{\(component)}` in path `\(path)`.")
             }
 
             newPath[index] = component.value[...]
