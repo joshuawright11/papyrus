@@ -68,6 +68,8 @@ extension ProtocolDeclSyntax {
 extension FunctionDeclSyntax {
     fileprivate func apiFunction() throws -> String {
         let (method, path) = try apiMethodAndPath()
+        try validateSignature()
+
         let pathParameters = path.components(separatedBy: "/")
             .compactMap { component in
                 if component.hasPrefix(":") {
@@ -79,14 +81,12 @@ extension FunctionDeclSyntax {
                 }
             }
 
-        try validateSignature()
-
         let attributes = parameters.compactMap({ $0.apiAttribute(httpMethod: method, pathParameters: pathParameters) })
         try validateAttributes(attributes)
 
         let decl = parameters.isEmpty && apiAttributes.count <= 1 ? "let" : "var"
         var buildRequest = """
-            \(decl) req = builder(method: "\(method)", path: \(path))
+            \(decl) req = builder(method: "\(method)", path: "\(path)")
             """
 
         for statement in apiAttributes.compactMap({ $0.apiBuilderStatement() }) {

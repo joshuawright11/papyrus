@@ -377,4 +377,44 @@ final class APIMacroTests: XCTestCase {
             """
         }
     }
+
+    func testMultiplePaths() {
+        assertMacro(["API": APIMacro.self]) {
+            """
+            @API
+            protocol MyService {
+                @GET("users/:foo/:b_ar/{baz}/{z_ip}")
+                func getUser(foo: String, bAr: String, baz: Int, zIp: Int) async throws
+            }
+            """
+        } expansion: {
+            """
+            protocol MyService {
+                @GET("users/:foo/:b_ar/{baz}/{z_ip}")
+                func getUser(foo: String, bAr: String, baz: Int, zIp: Int) async throws
+            }
+
+            struct MyServiceAPI: MyService {
+                private let provider: PapyrusCore.Provider
+
+                init(provider: PapyrusCore.Provider) {
+                    self.provider = provider
+                }
+
+                func getUser(foo: String, bAr: String, baz: Int, zIp: Int) async throws {
+                    var req = builder(method: "GET", path: "users/:foo/:b_ar/{baz}/{z_ip}")
+                    req.addParameter("foo", value: foo)
+                    req.addParameter("b_ar", value: bAr)
+                    req.addParameter("baz", value: baz)
+                    req.addParameter("z_ip", value: zIp)
+                    try await provider.request(req).validate()
+                }
+
+                private func builder(method: String, path: String) -> RequestBuilder {
+                    provider.newBuilder(method: method, path: path)
+                }
+            }
+            """
+        }
+    }
 }

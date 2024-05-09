@@ -42,13 +42,13 @@ enum APIAttribute {
                 return nil
             }
 
-            self = .http(method: name, path: firstArgument)
+            self = .http(method: name, path: firstArgument.withoutQuotes)
         case "HTTP":
             guard let firstArgument, let secondArgument else {
                 return nil
             }
 
-            self = .http(method: secondArgument.withoutQuotes, path: firstArgument)
+            self = .http(method: secondArgument.withoutQuotes, path: firstArgument.withoutQuotes)
         case "Body":
             self = .body
         case "Field":
