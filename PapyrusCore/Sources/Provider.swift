@@ -46,8 +46,8 @@ public final class Provider {
     }
 
     @discardableResult
-    public func request(_ builder: RequestBuilder) async throws -> Response {
-        let request = try createRequest(builder)
+    public func request(_ builder: inout RequestBuilder) async throws -> Response {
+        let request = try createRequest(&builder)
         var next: (Request) async throws -> Response = http.request
         for interceptor in interceptors.reversed() {
             let _next = next
@@ -57,15 +57,14 @@ public final class Provider {
         return try await next(request)
     }
 
-    private func createRequest(_ builder: RequestBuilder) throws -> Request {
-        var _builder = builder
+    private func createRequest(_ builder: inout RequestBuilder) throws -> Request {
         for modifier in modifiers {
-            try modifier.modify(req: &_builder)
+            try modifier.modify(req: &builder)
         }
 
-        let url = try _builder.fullURL()
-        let (body, headers) = try _builder.bodyAndHeaders()
-        return http.build(method: _builder.method, url: url, headers: headers, body: body)
+        let url = try builder.fullURL()
+        let (body, headers) = try builder.bodyAndHeaders()
+        return http.build(method: builder.method, url: url, headers: headers, body: body)
     }
 }
 
@@ -81,9 +80,9 @@ public protocol RequestModifier {
 // MARK: Closure Based APIs
 
 extension Provider {
-    public func request(_ builder: RequestBuilder, completionHandler: @escaping (Response) -> Void) {
+    public func request(_ builder: inout RequestBuilder, completionHandler: @escaping (Response) -> Void) {
         do {
-            let request = try createRequest(builder)
+            let request = try createRequest(&builder)
             var next = http.request
             for interceptor in interceptors.reversed() {
                 let _next = next

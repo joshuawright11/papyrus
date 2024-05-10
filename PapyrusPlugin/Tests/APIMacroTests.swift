@@ -52,13 +52,13 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func bar() async throws {
-                    let req = builder(method: "GET", path: "/bar")
-                    try await provider.request(req).validate()
+                    var req = builder(method: "GET", path: "/bar")
+                    try await provider.request(&req).validate()
                 }
 
                 func baz() async throws -> Void {
-                    let req = builder(method: "GET", path: "/baz")
-                    try await provider.request(req).validate()
+                    var req = builder(method: "GET", path: "/baz")
+                    try await provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -97,7 +97,7 @@ final class APIMacroTests: XCTestCase {
                 func myQuery(id userId: String) async throws -> String {
                     var req = builder(method: "GET", path: "some/path")
                     req.addQuery("userId", value: userId)
-                    let res = try await provider.request(req)
+                    let res = try await provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
@@ -139,7 +139,7 @@ final class APIMacroTests: XCTestCase {
                 func myQuery(id userId: String) async throws -> String {
                     var req = builder(method: "GET", path: "some/path")
                     req.addQuery("userId", value: userId)
-                    let res = try await provider.request(req)
+                    let res = try await provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
@@ -178,7 +178,7 @@ final class APIMacroTests: XCTestCase {
                 func myQuery(id userId: Field<Int>) async throws -> String {
                     var req = builder(method: "GET", path: "some/path")
                     req.addField("userId", value: userId)
-                    let res = try await provider.request(req)
+                    let res = try await provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
@@ -224,7 +224,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "GET", path: "users/:userId")
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
-                    let res = try await provider.request(req)
+                    let res = try await provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
@@ -271,7 +271,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "POST", path: "users/:userId")
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
-                    let res = try await provider.request(req)
+                    let res = try await provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseDecoder)
                 }
@@ -312,8 +312,8 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser() async throws {
-                    let req = builder(method: "POST", path: "users")
-                    try await provider.request(req).validate()
+                    var req = builder(method: "POST", path: "users")
+                    try await provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -362,8 +362,8 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser() async throws {
-                    let req = builder(method: "POST", path: "users")
-                    try await provider.request(req).validate()
+                    var req = builder(method: "POST", path: "users")
+                    try await provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -407,7 +407,7 @@ final class APIMacroTests: XCTestCase {
                     req.addParameter("b_ar", value: bAr)
                     req.addParameter("baz", value: baz)
                     req.addParameter("z_ip", value: zIp)
-                    try await provider.request(req).validate()
+                    try await provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
