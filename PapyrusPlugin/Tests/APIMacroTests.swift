@@ -52,12 +52,16 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func bar() async throws {
-                    var req = builder(method: "GET", path: "/bar")
+                    let pathComponents: [String] = ["bar"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     try await provider.request(&req).validate()
                 }
 
                 func baz() async throws -> Void {
-                    var req = builder(method: "GET", path: "/baz")
+                    let pathComponents: [String] = ["baz"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     try await provider.request(&req).validate()
                 }
 
@@ -95,7 +99,9 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func myQuery(id userId: String) async throws -> String {
-                    var req = builder(method: "GET", path: "some/path")
+                    let pathComponents: [String] = ["some", "path"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     req.addQuery("userId", value: userId)
                     let res = try await provider.request(&req)
                     try res.validate()
@@ -137,7 +143,9 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func myQuery(id userId: String) async throws -> String {
-                    var req = builder(method: "GET", path: "some/path")
+                    let pathComponents: [String] = ["some", "path"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     req.addQuery("userId", value: userId)
                     let res = try await provider.request(&req)
                     try res.validate()
@@ -176,7 +184,9 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func myQuery(id userId: Field<Int>) async throws -> String {
-                    var req = builder(method: "GET", path: "some/path")
+                    let pathComponents: [String] = ["some", "path"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     req.addField("userId", value: userId)
                     let res = try await provider.request(&req)
                     try res.validate()
@@ -221,7 +231,12 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser(userId: Path<String>, since: Query<Since>) async throws -> String {
-                    var req = builder(method: "GET", path: "users/:userId")
+                    var pathComponents: [String] = ["users", ":userId"]
+                    if userId as Any? == nil {
+                        pathComponents.remove(at: 0)
+                    }
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
                     let res = try await provider.request(&req)
@@ -268,7 +283,12 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser(userId: Path<String>, since: Query<Since>) async throws -> String {
-                    var req = builder(method: "POST", path: "users/:userId")
+                    var pathComponents: [String] = ["users", ":userId"]
+                    if userId as Any? == nil {
+                        pathComponents.remove(at: 0)
+                    }
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "POST", path: path)
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
                     let res = try await provider.request(&req)
@@ -312,7 +332,9 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser() async throws {
-                    var req = builder(method: "POST", path: "users")
+                    let pathComponents: [String] = ["users"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "POST", path: path)
                     try await provider.request(&req).validate()
                 }
 
@@ -362,7 +384,9 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser() async throws {
-                    var req = builder(method: "POST", path: "users")
+                    let pathComponents: [String] = ["users"]
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "POST", path: path)
                     try await provider.request(&req).validate()
                 }
 
@@ -402,7 +426,21 @@ final class APIMacroTests: XCTestCase {
                 }
 
                 func getUser(foo: String, bAr: String, baz: Int, zIp: Int) async throws {
-                    var req = builder(method: "GET", path: "users/:foo/:b_ar/{baz}/{z_ip}")
+                    var pathComponents: [String] = ["users", ":foo", ":b_ar", "{baz}", "{z_ip}"]
+                    if foo as Any? == nil {
+                        pathComponents.remove(at: 0)
+                    }
+                    if b_ar as Any? == nil {
+                        pathComponents.remove(at: 1)
+                    }
+                    if baz as Any? == nil {
+                        pathComponents.remove(at: 2)
+                    }
+                    if z_ip as Any? == nil {
+                        pathComponents.remove(at: 3)
+                    }
+                    let path = pathComponents.joined(separator: "/")
+                    var req = builder(method: "GET", path: path)
                     req.addParameter("foo", value: foo)
                     req.addParameter("b_ar", value: bAr)
                     req.addParameter("baz", value: baz)

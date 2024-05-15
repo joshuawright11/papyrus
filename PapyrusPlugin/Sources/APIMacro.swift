@@ -90,7 +90,6 @@ extension FunctionDeclSyntax {
         var buildRequest = """
             \(declaration) pathComponents: [String] = [\(
                 pathComponents
-                    .dropFirst()
                     .filter { !$0.isEmpty }
                     .map { "\"\($0)\"" }
                     .joined(separator: ", "))]
