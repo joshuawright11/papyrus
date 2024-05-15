@@ -86,19 +86,20 @@ extension FunctionDeclSyntax {
         let attributes = parameters.compactMap({ $0.apiAttribute(httpMethod: method, pathParameters: pathParameters) })
         try validateAttributes(attributes)
 
+		let declaration = pathParameters.isEmpty ? "let" : "var"
         var buildRequest = """
-            var pathComponents = [\(
+            \(declaration) pathComponents: [String] = [\(
                 pathComponents
                     .dropFirst()
                     .filter { !$0.isEmpty }
                     .map { "\"\($0)\"" }
                     .joined(separator: ", "))]
             """
-        
+
         for (index, component) in pathComponents.dropFirst().enumerated() {
             if let parameter = pathParameter(from: component) {
                 buildRequest += """
-                    if \(parameter) == nil {
+                    if \(parameter) as Any? == nil {
                         pathComponents.remove(at: \(index))
                     }
                     """
