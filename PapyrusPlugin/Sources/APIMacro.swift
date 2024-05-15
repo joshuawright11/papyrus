@@ -95,7 +95,7 @@ extension FunctionDeclSyntax {
                     .joined(separator: ", "))]
             """
 
-        for (index, component) in pathComponents.dropFirst().enumerated() {
+		for (index, component) in pathComponents.filter { !$0.isEmpty }.enumerated() {
             if let parameter = pathParameter(from: component) {
                 buildRequest += """
                     if \(parameter) as Any? == nil {

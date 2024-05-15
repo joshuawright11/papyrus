@@ -233,7 +233,7 @@ final class APIMacroTests: XCTestCase {
                 func getUser(userId: Path<String>, since: Query<Since>) async throws -> String {
                     var pathComponents: [String] = ["users", ":userId"]
                     if userId as Any? == nil {
-                        pathComponents.remove(at: 0)
+                        pathComponents.remove(at: 1)
                     }
                     let path = pathComponents.joined(separator: "/")
                     var req = builder(method: "GET", path: path)
@@ -285,7 +285,7 @@ final class APIMacroTests: XCTestCase {
                 func getUser(userId: Path<String>, since: Query<Since>) async throws -> String {
                     var pathComponents: [String] = ["users", ":userId"]
                     if userId as Any? == nil {
-                        pathComponents.remove(at: 0)
+                        pathComponents.remove(at: 1)
                     }
                     let path = pathComponents.joined(separator: "/")
                     var req = builder(method: "POST", path: path)
@@ -428,16 +428,16 @@ final class APIMacroTests: XCTestCase {
                 func getUser(foo: String, bAr: String, baz: Int, zIp: Int) async throws {
                     var pathComponents: [String] = ["users", ":foo", ":b_ar", "{baz}", "{z_ip}"]
                     if foo as Any? == nil {
-                        pathComponents.remove(at: 0)
-                    }
-                    if b_ar as Any? == nil {
                         pathComponents.remove(at: 1)
                     }
-                    if baz as Any? == nil {
+                    if b_ar as Any? == nil {
                         pathComponents.remove(at: 2)
                     }
-                    if z_ip as Any? == nil {
+                    if baz as Any? == nil {
                         pathComponents.remove(at: 3)
+                    }
+                    if z_ip as Any? == nil {
+                        pathComponents.remove(at: 4)
                     }
                     let path = pathComponents.joined(separator: "/")
                     var req = builder(method: "GET", path: path)
