@@ -130,7 +130,8 @@ public struct RequestBuilder {
         parameters[key] = value.rawValue.description
     }
 
-    public mutating func addQuery<E: Encodable>(_ key: String, value: E, mapKey: Bool = true) {
+    public mutating func addQuery<E: Encodable>(_ key: String, value: E?, mapKey: Bool = true) {
+        guard let value else { return }
         let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
         queries[key] = ContentValue(value)
     }
