@@ -174,7 +174,7 @@ Static queries can be set directly in the path string.
 
 ### Headers
 
-A variable request header can be set with the `Header<T>` type. It's key will be automatically mapped to Capital-Kebab-Case. e.g. `Custom-Header` in the following endpoint.
+A variable request header can be set with the `Header<T>` type. Its key will be automatically mapped to Capital-Kebab-Case. e.g. `Custom-Header` in the following endpoint.
 
 ```swift
 @GET("/accounts")
