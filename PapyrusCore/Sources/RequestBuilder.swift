@@ -122,11 +122,13 @@ public struct RequestBuilder {
 
     // MARK: Building
 
-    public mutating func addParameter<L: LosslessStringConvertible>(_ key: String, value: L) {
+    public mutating func addParameter<L: LosslessStringConvertible>(_ key: String, value: L?) {
+        guard let value else { return }
         parameters[key] = value.description
     }
 
-    public mutating func addParameter<L: LosslessStringConvertible, R: RawRepresentable<L>>(_ key: String, value: R) {
+    public mutating func addParameter<L: LosslessStringConvertible, R: RawRepresentable<L>>(_ key: String, value: R?) {
+        guard let value else { return }
         parameters[key] = value.rawValue.description
     }
 

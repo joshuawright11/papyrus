@@ -70,23 +70,45 @@ extension FunctionDeclSyntax {
         let (method, path) = try apiMethodAndPath()
         try validateSignature()
 
-        let pathParameters = path.components(separatedBy: "/")
-            .compactMap { component in
-                if component.hasPrefix(":") {
-                    return String(component.dropFirst())
-                } else if component.hasPrefix("{") && component.hasSuffix("}") {
-                    return String(component.dropFirst().dropLast())
-                } else {
-                    return nil
-                }
+        func pathParameter(from component: String) -> String? {
+            if component.hasPrefix(":") {
+                return String(component.dropFirst())
+            } else if component.hasPrefix("{") && component.hasSuffix("}") {
+                return String(component.dropFirst().dropLast())
+            } else {
+                return nil
             }
+        }
+
+        let pathComponents = path.components(separatedBy: "/")
+        let pathParameters = pathComponents.compactMap(pathParameter)
 
         let attributes = parameters.compactMap({ $0.apiAttribute(httpMethod: method, pathParameters: pathParameters) })
         try validateAttributes(attributes)
 
         var buildRequest = """
-            var req = builder(method: "\(method)", path: "\(path)")
+            var pathComponents = [\(
+                pathComponents
+                    .dropFirst()
+                    .filter { !$0.isEmpty }
+                    .map { "\"\($0)\"" }
+                    .joined(separator: ", "))]
             """
+        
+        for (index, component) in pathComponents.dropFirst().enumerated() {
+            if let parameter = pathParameter(from: component) {
+                buildRequest += """
+                    if \(parameter) == nil {
+                        pathComponents.remove(at: \(index))
+                    }
+                    """
+            }
+        }
+
+        buildRequest += """
+           let path = pathComponents.joined(separator: "/")
+           var req = builder(method: \"\(method)\", path: path)
+           """
 
         for statement in apiAttributes.compactMap({ $0.apiBuilderStatement() }) {
             buildRequest.append("\n" + statement)
