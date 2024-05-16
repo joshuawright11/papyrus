@@ -19,7 +19,7 @@ public struct MockMacro: PeerMacro {
 extension ProtocolDeclSyntax {
     fileprivate func createMock(named mockName: String) throws -> String {
         """
-        \(access)final class \(mockName): \(typeName) {
+        \(access)final class \(mockName): \(typeName), @unchecked Sendable {
             private let notMockedError: Error
             private var mocks: [String: Any]
 
