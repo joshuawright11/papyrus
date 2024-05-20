@@ -135,13 +135,13 @@ extension FunctionDeclSyntax {
 
             if returnResponseOnly {
                 return """
-                    provider.request(&req) { res in
+                    self.provider.request(&req) { res in
                     \(callbackName)(res)
                     }
                     """
             } else {
                 return """
-                    provider.request(&req) { res in
+                    self.provider.request(&req) { res in
                         do {
                             try res.validate()
                             \(resultExpression.map { "let res = \($0)" } ?? "")
@@ -155,16 +155,16 @@ extension FunctionDeclSyntax {
         case .concurrency:
             switch responseType {
             case .type("Void"), .none:
-                return "try await provider.request(&req).validate()"
+                return "try await self.provider.request(&req).validate()"
             case .type where returnResponseOnly:
-                return "return try await provider.request(&req)"
+                return "return try await self.provider.request(&req)"
             case .type, .tuple:
                 guard let resultExpression else {
                     throw PapyrusPluginError("Missing result expression!")
                 }
 
                 return """
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return \(resultExpression)
                     """
