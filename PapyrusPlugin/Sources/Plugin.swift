@@ -6,6 +6,7 @@ import SwiftSyntaxMacros
 struct MyPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         APIMacro.self,
+        APIRoutesMacro.self,
         MockMacro.self,
         DecoratorMacro.self,
     ]

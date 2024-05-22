@@ -4,7 +4,7 @@ import Papyrus
 
 @API
 @Mock
-protocol Sample {
+public protocol Sample {
     @GET("/todos")
     func getTodos() async throws -> [Todo]
 

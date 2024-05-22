@@ -79,6 +79,10 @@ extension FunctionParameterSyntax {
     var name: String {
         (secondName ?? firstName).text
     }
+
+    var typeName: String {
+        trimmed.type.description
+    }
 }
 
 extension AttributeSyntax {

@@ -10,7 +10,7 @@ jobs:
     test-macos:
         runs-on: macos-13
         env:
-            DEVELOPER_DIR: /Applications/Xcode_15.0.app/Contents/Developer
+            DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
         steps:
             - uses: actions/checkout@v3
             - name: Build
@@ -21,7 +21,7 @@ jobs:
         runs-on: ubuntu-22.04
         strategy:
             matrix:
-                swift: [5.9]
+                swift: [5.10]
         container: swift:${{ matrix.swift }}
         steps:
             - uses: actions/checkout@v3
