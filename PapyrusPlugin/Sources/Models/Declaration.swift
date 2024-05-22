@@ -151,11 +151,7 @@ extension Declaration {
 
 @resultBuilder
 struct DeclarationsBuilder {
-    protocol Block {
-        var declarations: [Declaration] { get }
-    }
-
-    static func buildBlock(_ components: Block...) -> [Declaration] {
+    static func buildBlock(_ components: DeclarationBuilderBlock...) -> [Declaration] {
         components.flatMap(\.declarations)
     }
 
@@ -210,10 +206,14 @@ struct DeclarationsBuilder {
     }
 }
 
-extension Declaration: DeclarationsBuilder.Block {
+protocol DeclarationBuilderBlock {
+    var declarations: [Declaration] { get }
+}
+
+extension Declaration: DeclarationBuilderBlock {
     var declarations: [Declaration] { [self] }
 }
 
-extension [Declaration]: DeclarationsBuilder.Block {
+extension [Declaration]: DeclarationBuilderBlock {
     var declarations: [Declaration] { self }
 }
