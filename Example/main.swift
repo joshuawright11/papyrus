@@ -4,8 +4,6 @@ import Papyrus
 
 @API
 @Mock
-@KeyMapping(.snakeCase)
-@Authorization(.bearer("<my-auth-token>"))
 protocol Sample {
     @GET("/todos")
     func getTodos() async throws -> [Todo]
@@ -30,6 +28,10 @@ public struct Todo: Codable {
 // MARK: 1. Create a Provider with any custom configuration.
 
 let provider = Provider(baseURL: "http://127.0.0.1:3000")
+    .modifyRequests {
+        $0.addAuthorization(.bearer("<my-auth-token>"))
+        $0.keyMapping = .snakeCase
+    }
     .intercept { req, next in
         let start = Date()
         let res = try await next(req)

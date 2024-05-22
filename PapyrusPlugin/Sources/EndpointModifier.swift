@@ -1,6 +1,8 @@
 import SwiftSyntax
 
-enum APIAttribute {
+/// To be parsed from protocol and function attributes. Modifies requests /
+/// responses in some way.
+enum EndpointModifier {
     /// Type or Function attributes
     case json(encoder: String, decoder: String)
     case urlForm(encoder: String)
@@ -13,14 +15,7 @@ enum APIAttribute {
     /// Function attributes
     case http(method: String, path: String)
 
-    /// Parameter attributes
-    case body
-    case field(key: String?)
-    case query(key: String?)
-    case header(key: String?)
-    case path(key: String?)
-
-    init?(syntax: AttributeSyntax) {
+    init?(_ syntax: AttributeSyntax) {
         var firstArgument: String?
         var secondArgument: String?
         var labeledArguments: [String: String] = [:]
@@ -49,16 +44,6 @@ enum APIAttribute {
             }
 
             self = .http(method: secondArgument.withoutQuotes, path: firstArgument.withoutQuotes)
-        case "Body":
-            self = .body
-        case "Field":
-            self = .field(key: firstArgument?.withoutQuotes)
-        case "Query":
-            self = .query(key: firstArgument?.withoutQuotes)
-        case "Header":
-            self = .header(key: firstArgument?.withoutQuotes)
-        case "Path":
-            self = .path(key: firstArgument?.withoutQuotes)
         case "Headers":
             guard let firstArgument else {
                 return nil
@@ -96,84 +81,54 @@ enum APIAttribute {
         }
     }
 
-    func apiBuilderStatement(input: String? = nil) -> String? {
+    func builderStatement() -> String? {
         switch self {
-        case .body:
-            guard let input else {
-                return "Input Required!"
-            }
-
-            return """
-            req.setBody(\(input))
-            """
-        case let .query(key):
-            guard let input else {
-                return "Input Required!"
-            }
-
-            let mapParameter = key == nil ? "" : ", mapKey: false"
-            return """
-            req.addQuery("\(key ?? input)", value: \(input)\(mapParameter))
-            """
-        case let .header(key):
-            guard let input else {
-                return "Input Required!"
-            }
-
-            let hasCustomKey = key == nil
-            let convertParameter = hasCustomKey ? "" : ", convertToHeaderCase: true"
-            return """
-            req.addHeader("\(key ?? input)", value: \(input)\(convertParameter))
-            """
-        case let .path(key):
-            guard let input else {
-                return "Input Required!"
-            }
-
-            return """
-            req.addParameter("\(key ?? input)", value: \(input))
-            """
-        case let .field(key):
-            guard let input else {
-                return "Input Required!"
-            }
-
-            let mapParameter = key == nil ? "" : ", mapKey: false"
-            return """
-            req.addField("\(key ?? input)", value: \(input)\(mapParameter))
-            """
         case .json(let encoder, let decoder):
-            return """
+            """
             req.requestEncoder = .json(\(encoder))
             req.responseDecoder = .json(\(decoder))
             """
         case .urlForm(let encoder):
-            return """
-            req.requestEncoder = .urlForm(\(encoder))
-            """
+            "req.requestEncoder = .urlForm(\(encoder))"
         case .multipart(let encoder):
-            return """
-            req.requestEncoder = .multipart(\(encoder))
-            """
+            "req.requestEncoder = .multipart(\(encoder))"
         case .converter(let encoder, let decoder):
-            return """
+            """
             req.requestEncoder = \(encoder)
             req.responseDecoder = \(decoder)
             """
         case .headers(let value):
-            return """
-            req.addHeaders(\(value))
-            """
+            "req.addHeaders(\(value))"
         case .keyMapping(let value):
-            return """
-            req.keyMapping = \(value)
-            """
+            "req.keyMapping = \(value)"
         case .authorization(value: let value):
-            return """
-            req.addAuthorization(\(value))
-            """
+            "req.addAuthorization(\(value))"
         case .http:
-            return nil
+            nil
         }
+    }
+}
+
+extension [EndpointModifier] {
+    func parseMethodAndPath() throws -> (method: String, path: String, parameters: [String]) {
+        guard let (method, path) = compactMap({
+            if case let .http(method, path) = $0 { return (method, path) }
+            else { return nil }
+        }).first else {
+            throw PapyrusPluginError("No method or path!")
+        }
+
+        let parameters = path.components(separatedBy: "/")
+            .compactMap { component in
+                if component.hasPrefix(":") {
+                    return String(component.dropFirst())
+                } else if component.hasPrefix("{") && component.hasSuffix("}") {
+                    return String(component.dropFirst().dropLast())
+                } else {
+                    return nil
+                }
+            }
+
+        return (method, path, parameters)
     }
 }

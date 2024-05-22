@@ -7,7 +7,6 @@ public protocol Request {
     var body: Data? { get set }
 }
 
-
 public extension Request {
     /// Create a cURL command from this instance
     ///

@@ -3,10 +3,10 @@ import Foundation
 // MARK: Protocol attributes
 
 @attached(peer, names: suffixed(API))
-public macro API(_ typeName: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
+public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
 
 @attached(peer, names: suffixed(Mock))
-public macro Mock(_ typeName: String? = nil) = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
+public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 
 // MARK: Function or Protocol attributes
 

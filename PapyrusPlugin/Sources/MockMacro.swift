@@ -5,21 +5,21 @@ public struct MockMacro: PeerMacro {
     public static func expansion(of node: AttributeSyntax,
                           providingPeersOf declaration: some DeclSyntaxProtocol,
                           in context: some MacroExpansionContext) throws -> [DeclSyntax] {
-        try handleError {
-            guard let type = declaration.as(ProtocolDeclSyntax.self) else {
-                throw PapyrusPluginError("@Mock can only be applied to protocols.")
-            }
-
-            let name = node.firstArgument ?? "\(type.typeName)\(node.attributeName)"
-            return try type.createMock(named: name)
+        guard let proto = declaration.as(ProtocolDeclSyntax.self) else {
+            throw PapyrusPluginError("@Mock can only be applied to protocols.")
         }
+
+        let mock = try proto.createMock(named: "\(proto.protocolName)\(node.attributeName)")
+        return [
+            DeclSyntax(stringLiteral: mock)
+        ]
     }
 }
 
 extension ProtocolDeclSyntax {
     fileprivate func createMock(named mockName: String) throws -> String {
         """
-        \(access)final class \(mockName): \(typeName), @unchecked Sendable {
+        \(access)final class \(mockName): \(protocolName), @unchecked Sendable {
             private let notMockedError: Error
             private var mocks: [String: Any]
 
@@ -43,32 +43,13 @@ extension ProtocolDeclSyntax {
 
 extension FunctionDeclSyntax {
     fileprivate func mockImplementation() throws -> String {
-        try validateSignature()
-
-        let notFoundExpression: String
-        switch style {
-        case .concurrency:
-            notFoundExpression = "throw notMockedError"
-        case .completionHandler:
-            guard let callbackName else {
-                throw PapyrusPluginError("Missing @escaping completion handler as final function argument.")
-            }
-
-            let unimplementedError = returnResponseOnly ? ".error(notMockedError)" : ".failure(notMockedError)"
-            notFoundExpression = """
-                \(callbackName)(\(unimplementedError))
-                return
-                """
+        guard effects == ["async", "throws"] else {
+            throw PapyrusPluginError("Function signature must have `async throws`.")
         }
 
-        let mockerArguments = parameters.map(\.variableName).joined(separator: ", ")
-        let matchExpression: String =
-            switch style {
-            case .concurrency:
-                "return try await mocker(\(mockerArguments))"
-            case .completionHandler:
-                "mocker(\(mockerArguments))"
-            }
+        let notFoundExpression = "throw notMockedError"
+        let mockerArguments = parameters.map(\.name).joined(separator: ", ")
+        let matchExpression = "return try await mocker(\(mockerArguments))"
 
         return """
             func \(functionName)\(signature) {
