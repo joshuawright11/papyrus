@@ -6,8 +6,8 @@ import Foundation
 public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
 
 @attached(extension, names: named(useAPI))
-@attached(peer, names: suffixed(Live), suffixed(Registry))
-public macro APIRoutes() = #externalMacro(module: "PapyrusPlugin", type: "APIRoutesMacro")
+@attached(peer, names: suffixed(Live), suffixed(Routes))
+public macro Routes() = #externalMacro(module: "PapyrusPlugin", type: "RoutesMacro")
 
 @attached(peer, names: suffixed(Mock))
 public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")

@@ -3,69 +3,60 @@ import SwiftSyntaxMacros
 
 public struct MockMacro: PeerMacro {
     public static func expansion(
-        of node: AttributeSyntax,
+        of attribute: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let proto = declaration.as(ProtocolDeclSyntax.self) else {
-            throw PapyrusPluginError("@Mock can only be applied to protocols.")
-        }
-
-        return [
-            try proto
-                .mockService(named: "\(proto.protocolName)\(node.attributeName)")
+        try [
+            API.parse(declaration)
+                .mockImplementation(suffix: attribute.name)
                 .declSyntax()
         ]
     }
 }
 
-extension ProtocolDeclSyntax {
-    fileprivate func mockService(named mockName: String) throws -> Declaration {
-        try Declaration("\(access)final class \(mockName): \(protocolName), @unchecked Sendable") {
+extension API {
+    fileprivate func mockImplementation(suffix: String) -> Declaration {
+        Declaration("final class \(name)\(suffix): \(name)") {
             "private let notMockedError: Error"
             "private var mocks: [String: Any]"
 
-            Declaration("\(access)init(notMockedError: Error = PapyrusError(\"Not mocked\"))") {
+            Declaration("init(notMockedError: Error = PapyrusError(\"Not mocked\"))") {
                 "self.notMockedError = notMockedError"
                 "mocks = [:]"
             }
+            .access(access)
 
-            for function in functions {
-                try function.mockEndpointFunction(access: access)
-
-                function.mockerFunction(access: access)
+            for endpoint in endpoints {
+                endpoint.mockFunction().access(access)
+                endpoint.mockerFunction().access(access)
             }
         }
+        .access(access)
     }
 }
 
-extension FunctionDeclSyntax {
-    fileprivate func mockEndpointFunction(access: String) throws -> Declaration {
-        guard effects == ["async", "throws"] else {
-            throw PapyrusPluginError("Function signature must have `async throws`.")
-        }
-
-        return Declaration("\(access)func \(functionName)\(signature)") {
-            Declaration("guard let mocker = mocks[\(functionName.inQuotes)] as? \(mockClosureType) else") {
+extension API.Endpoint {
+    fileprivate func mockFunction() -> Declaration {
+        Declaration("func \(name)\(functionSignature)") {
+            Declaration("guard let mocker = mocks[\(name.inQuotes)] as? \(mockClosureType) else") {
                 "throw notMockedError"
             }
 
-            ""
-
-            let mockerArguments = parameters.map(\.name).joined(separator: ", ")
-            "return try await mocker(\(mockerArguments))"
+            let arguments = parameters.map(\.name).joined(separator: ", ")
+            "return try await mocker(\(arguments))"
         }
     }
 
-    fileprivate func mockerFunction(access: String) -> Declaration {
-        Declaration("\(access)func mock\(functionName.capitalizeFirst)(mock: @escaping \(mockClosureType))") {
-            "mocks[\(functionName.inQuotes)] = mock"
+    fileprivate func mockerFunction() -> Declaration {
+        Declaration("func mock\(name.capitalizeFirst)(mock: @escaping \(mockClosureType))") {
+            "mocks[\(name.inQuotes)] = mock"
         }
     }
 
     private var mockClosureType: String {
-        let parameterTypes = parameters.map(\.typeName).joined(separator: ", ")
-        let returnType = signature.returnClause?.type.trimmedDescription ?? "Void"
+        let parameterTypes = parameters.map(\.type).joined(separator: ", ")
+        let returnType = responseType ?? "Void"
         return "(\(parameterTypes)) async throws -> \(returnType)"
     }
 }

@@ -5,8 +5,8 @@ extension ProtocolDeclSyntax {
         name.text
     }
     
-    var access: String {
-        modifiers.first.map { "\($0.trimmedDescription) " } ?? ""
+    var access: String? {
+        modifiers.first?.trimmedDescription
     }
 
     var functions: [FunctionDeclSyntax] {
@@ -21,10 +21,6 @@ extension ProtocolDeclSyntax {
 }
 
 extension FunctionDeclSyntax {
-    enum ReturnType {
-        case tuple([(label: String?, type: String)])
-        case type(String)
-    }
 
     // MARK: Function effects & attributes
 
@@ -51,31 +47,28 @@ extension FunctionDeclSyntax {
 
     // MARK: Return Data
 
-    var returnResponseOnly: Bool {
-        if case .type("Response") = returnType {
-            return true
-        } else {
-            return false
-        }
+    var returnsResponse: Bool {
+        returnType == "Response"
     }
 
-    var returnType: ReturnType? {
-        guard let type = signature.returnClause?.type else {
-            return nil
+    var returnType: String? {
+        signature.returnClause?.type.trimmedDescription
+    }
+
+    var returnsVoid: Bool {
+        guard let returnType else {
+            return true
         }
 
-        if let type = type.as(TupleTypeSyntax.self) {
-            return .tuple(
-                type.elements
-                    .map { (label: $0.firstName?.text, type: $0.type.trimmedDescription) }
-            )
-        } else {
-            return .type(type.trimmedDescription)
-        }
+        return returnType == "Void"
     }
 }
 
 extension FunctionParameterSyntax {
+    var label: String? {
+        secondName != nil ? firstName.text : nil
+    }
+
     var name: String {
         (secondName ?? firstName).text
     }
@@ -86,11 +79,17 @@ extension FunctionParameterSyntax {
 }
 
 extension AttributeSyntax {
-    var firstArgument: String? {
-        if case let .argumentList(list) = arguments {
-            return list.first?.expression.description.withoutQuotes
+    var name: String {
+        attributeName.trimmedDescription
+    }
+
+    var labeledArguments: [(label: String?, value: String)] {
+        guard case let .argumentList(list) = arguments else {
+            return []
         }
 
-        return nil
+        return list.map {
+            ($0.label?.text, $0.expression.description)
+        }
     }
 }

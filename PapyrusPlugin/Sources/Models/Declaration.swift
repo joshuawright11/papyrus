@@ -1,21 +1,28 @@
 import SwiftSyntax
 
 struct Declaration: ExpressibleByStringLiteral {
-    let text: String
+    var text: String
+    let closureParameters: String?
     /// Declarations inside a closure following `text`.
     let nested: [Declaration]?
 
     init(stringLiteral value: String) {
-        self.init(value, nested: nil)
+        self.init(value)
     }
 
-    init(_ text: String, nested: [Declaration]? = nil) {
+    init(_ text: String, _ closureParameters: String? = nil, nested: [Declaration]? = nil) {
         self.text = text
+        self.closureParameters = closureParameters
         self.nested = nested
     }
 
-    init(_ text: String, @DeclarationsBuilder nested: () throws -> [Declaration]) rethrows {
+    init(
+        _ text: String,
+        _ closureParameters: String? = nil,
+        @DeclarationsBuilder nested: () throws -> [Declaration]
+    ) rethrows {
         self.text = text
+        self.closureParameters = closureParameters
         self.nested = try nested()
     }
 
@@ -32,18 +39,59 @@ struct Declaration: ExpressibleByStringLiteral {
                     .replacingOccurrences(of: "\n", with: "\n\t")
             }
 
+        let closureParamterText = closureParameters.map { " \($0) in" } ?? ""
         let nestedText = nestedFormatted.joined(separator: "\n\t")
         return """
-        \(text) {
+        \(text) {\(closureParamterText)
         \t\(nestedText)
         }
         """
         // Using \t screws up macro syntax highlighting
         .replacingOccurrences(of: "\t", with: "    ")
     }
+    
+    // MARK: Access Levels
+
+    func access(_ level: String?) -> Declaration {
+        guard let level else {
+            return self
+        }
+
+        var copy = self
+        copy.text = "\(level) \(text)"
+        return copy
+    }
+
+    func `private`() -> Declaration {
+        access("private")
+    }
+
+    func `public`() -> Declaration {
+        access("public")
+    }
+
+    func `internal`() -> Declaration {
+        access("internal")
+    }
+
+    func `package`() -> Declaration {
+        access("package")
+    }
+
+    func `fileprivate`() -> Declaration {
+        access("fileprivate")
+    }
+
+    // MARK: SwiftSyntax conversion
 
     func declSyntax() -> DeclSyntax {
         DeclSyntax(stringLiteral: formattedString())
+    }
+
+    func extensionDeclSyntax() throws -> ExtensionDeclSyntax {
+        try ExtensionDeclSyntax(
+            .init(stringLiteral: formattedString())
+        )
     }
 }
 
@@ -175,11 +223,19 @@ struct DeclarationsBuilder {
         Declaration(expression)
     }
 
+    static func buildExpression(_ expression: String?) -> [Declaration] {
+        expression.map { [Declaration($0)] } ?? []
+    }
+
     static func buildExpression(_ expression: [String]) -> [Declaration] {
         expression.map { Declaration($0) }
     }
 
     // MARK: `for`
+
+    static func buildArray(_ components: [String]) -> [Declaration] {
+        components.map { Declaration($0) }
+    }
 
     static func buildArray(_ components: [Declaration]) -> [Declaration] {
         components

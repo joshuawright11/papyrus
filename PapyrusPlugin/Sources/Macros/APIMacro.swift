@@ -3,25 +3,21 @@ import SwiftSyntaxMacros
 
 public struct APIMacro: PeerMacro {
     public static func expansion(
-        of node: AttributeSyntax,
+        of attribute: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let proto = declaration.as(ProtocolDeclSyntax.self) else {
-            throw PapyrusPluginError("@API can only be applied to protocols.")
-        }
-
-        return [
-            try proto
-                .liveService(named: "\(proto.protocolName)\(node.attributeName)")
+        try [
+            API.parse(declaration)
+                .liveImplementation(suffix: attribute.name)
                 .declSyntax()
         ]
     }
 }
 
-extension ProtocolDeclSyntax {
-    func liveService(named name: String) throws -> Declaration {
-        try Declaration("\(access)struct \(name): \(protocolName)") {
+extension API {
+    func liveImplementation(suffix: String) throws -> Declaration {
+        Declaration("struct \(name)\(suffix): \(name)") {
 
             // 0. provider reference & init
 
@@ -30,94 +26,111 @@ extension ProtocolDeclSyntax {
             Declaration("init(provider: PapyrusCore.Provider)") {
                 "self.provider = provider"
             }
+            .access(access)
 
             // 1. live endpoint implementations
 
-            for function in functions {
-                try function.liveEndpointFunction(access: access)
+            for endpoint in endpoints {
+                endpoint.liveFunction().access(access)
             }
 
             // 2. builder used by all live endpoint functions
 
-            Declaration("private func builder(method: String, path: String) -> RequestBuilder") {
-                let modifiers = protocolAttributes.compactMap { EndpointModifier($0) }
+            Declaration("func builder(method: String, path: String) -> RequestBuilder") {
                 if modifiers.isEmpty {
                     "provider.newBuilder(method: method, path: path)"
                 } else {
                     "var req = provider.newBuilder(method: method, path: path)"
-
-                    modifiers.compactMap { $0.builderStatement() }
+                    
+                    for modifier in modifiers {
+                        modifier.builderStatement()
+                    }
 
                     "return req"
                 }
             }
+            .private()
         }
+        .access(access)
     }
 }
 
-extension FunctionDeclSyntax {
-    fileprivate func liveEndpointFunction(access: String) throws -> Declaration {
-        guard effects == ["async", "throws"] else {
-            throw PapyrusPluginError("Function signature must have `async throws`.")
-        }
-
-        return try Declaration("\(access)func \(functionName)\(signature)") {
-            let modifiers = functionAttributes.compactMap { EndpointModifier($0) }
-            let (method, path, pathParameters) = try modifiers.parseMethodAndPath()
-
+extension API.Endpoint {
+    func liveFunction() -> Declaration {
+        Declaration("func \(name)\(functionSignature)") {
+            
             // 0. create a request builder
 
             "var req = builder(method: \(method.inQuotes), path: \(path.inQuotes))"
 
             // 1. add function scope modifiers
 
-            modifiers
-                .compactMap { $0.builderStatement() }
+            for modifier in modifiers {
+                modifier.builderStatement()
+            }
 
             // 2. add parameters
 
-            try parameters
-                .map { EndpointParameter($0, httpMethod: method, pathParameters: pathParameters) }
-                .validated()
-                .map { $0.builderStatement() }
+            for parameter in parameters {
+                parameter.builderStatement()
+            }
 
             // 3. handle the response and return
 
-            try responseStatement()
+            switch responseType {
+            case .none, "Void":
+                "try await provider.request(&req).validate()"
+            case "Response":
+                "return try await provider.request(&req)"
+            case .some(let type):
+                "let res = try await provider.request(&req)"
+                "try res.validate()"
+                "return try res.decode(\(type).self, using: req.responseDecoder)"
+            }
         }
     }
+}
 
-    private func responseStatement() throws -> String {
-        let requestAndValidate = """
-            let res = try await provider.request(&req)
-            try res.validate()
+extension EndpointParameter {
+    fileprivate func builderStatement() -> String {
+        switch kind {
+        case .body:
+            "req.setBody(\(name))"
+        case .query:
+            "req.addQuery(\(name.inQuotes), value: \(name))"
+        case .header:
+            "req.addHeader(\(name.inQuotes), value: \(name), convertToHeaderCase: true)"
+        case .path:
+            "req.addParameter(\(name.inQuotes), value: \(name))"
+        case .field:
+            "req.addField(\(name.inQuotes), value: \(name))"
+        }
+    }
+}
+
+extension EndpointModifier {
+    fileprivate func builderStatement() -> String {
+        switch self {
+        case .json(let encoder, let decoder):
             """
-        switch returnType {
-        case .type("Void"), .none:
-            return "try await provider.request(&req).validate()"
-        case .type where returnResponseOnly:
-            return "return try await provider.request(&req)"
-        case .type(let type):
-            return """
-                \(requestAndValidate)
-                return try res.decode(\(type).self, using: req.responseDecoder)
-                """
-        case .tuple(let types):
-            let values = types.map { label, type in
-                let label = label.map { "\($0): " } ?? ""
-                if type == "Response" {
-                    return "\(label)res"
-                } else {
-                    return "\(label)try res.decode(\(type).self, using: req.responseDecoder)"
-                }
-            }
-
-            return """
-                \(requestAndValidate)
-                return (
-                    \(values.joined(separator: ",\n"))
-                )
-                """
+            req.requestEncoder = .json(\(encoder))
+            req.responseDecoder = .json(\(decoder))
+            """
+        case .urlForm(let encoder):
+            "req.requestEncoder = .urlForm(\(encoder))"
+        case .multipart(let encoder):
+            "req.requestEncoder = .multipart(\(encoder))"
+        case .converter(let encoder, let decoder):
+            """
+            req.requestEncoder = \(encoder)
+            req.responseDecoder = \(decoder)
+            """
+        case .headers(let value):
+            "req.addHeaders(\(value))"
+        case .keyMapping(let value):
+            "req.keyMapping = \(value)"
+        case .authorization(value: let value):
+            "req.addAuthorization(\(value))"
         }
     }
 }

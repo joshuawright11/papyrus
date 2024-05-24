@@ -1,5 +1,5 @@
 /// A Papyrus related error.
-public struct PapyrusError: Error {
+public struct PapyrusError: Error, CustomDebugStringConvertible {
     /// What went wrong.
     public let message: String
     /// Error related request.
@@ -16,5 +16,11 @@ public struct PapyrusError: Error {
         self.message = message
         self.request = request
         self.response = response
+    }
+
+    // MARK: CustomDebugStringConvertible
+
+    public var debugDescription: String {
+        "PapyrusError: \(message)"
     }
 }

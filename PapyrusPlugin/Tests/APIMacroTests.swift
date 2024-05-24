@@ -15,7 +15,7 @@ final class APIMacroTests: XCTestCase {
             """
             @API
             ┬───
-            ╰─ 🛑 @API can only be applied to protocols.
+            ╰─ 🛑 APIs must be protocols for now
             struct MyService {
             }
             """
@@ -437,7 +437,7 @@ final class APIMacroTests: XCTestCase {
             public struct MyServiceAPI: MyService {
                 private let provider: PapyrusCore.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                public init(provider: PapyrusCore.Provider) {
                     self.provider = provider
                 }
 
