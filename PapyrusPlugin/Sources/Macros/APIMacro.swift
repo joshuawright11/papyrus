@@ -37,12 +37,12 @@ extension API {
             // 2. builder used by all live endpoint functions
 
             Declaration("func builder(method: String, path: String) -> RequestBuilder") {
-                if modifiers.isEmpty {
+                if attributes.isEmpty {
                     "provider.newBuilder(method: method, path: path)"
                 } else {
                     "var req = provider.newBuilder(method: method, path: path)"
                     
-                    for modifier in modifiers {
+                    for modifier in attributes {
                         modifier.builderStatement()
                     }
 
@@ -63,10 +63,10 @@ extension API.Endpoint {
 
             "var req = builder(method: \(method.inQuotes), path: \(path.inQuotes))"
 
-            // 1. add function scope modifiers
+            // 1. add function scope attributes
 
-            for modifier in modifiers {
-                modifier.builderStatement()
+            for attribute in attributes {
+                attribute.builderStatement()
             }
 
             // 2. add parameters
@@ -108,7 +108,7 @@ extension EndpointParameter {
     }
 }
 
-extension EndpointModifier {
+extension EndpointAttribute {
     fileprivate func builderStatement() -> String {
         switch self {
         case .json(let encoder, let decoder):

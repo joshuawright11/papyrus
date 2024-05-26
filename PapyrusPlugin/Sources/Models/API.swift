@@ -2,9 +2,9 @@ import SwiftSyntax
 
 struct API {
     struct Endpoint {
-        /// Modifiers to be applied to this endpoint. These take precedence
-        /// over modifiers at the API scope.
-        let modifiers: [EndpointModifier]
+        /// Attributes to be applied to this endpoint. These take precedence
+        /// over attributes at the API scope.
+        let attributes: [EndpointAttribute]
         let method: String
         let path: String
         let pathParameters: [String]
@@ -18,8 +18,8 @@ struct API {
     let name: String
     /// The access level of the API (public, internal, etc).
     let access: String?
-    /// Modifiers to be applied to every endpoint of this API.
-    let modifiers: [EndpointModifier]
+    /// Attributes to be applied to every endpoint of this API.
+    let attributes: [EndpointAttribute]
     let endpoints: [Endpoint]
 }
 
@@ -32,7 +32,7 @@ extension API {
         return API(
             name: proto.protocolName,
             access: proto.access,
-            modifiers: proto.protocolAttributes.compactMap { EndpointModifier($0) },
+            attributes: proto.protocolAttributes.compactMap { EndpointAttribute($0) },
             endpoints: try proto.functions.map( { try parse($0) })
         )
     }
@@ -44,7 +44,7 @@ extension API {
 
         let (method, path, pathParameters) = try parseMethodAndPath(function)
         return API.Endpoint(
-            modifiers: function.functionAttributes.compactMap { EndpointModifier($0) },
+            attributes: function.functionAttributes.compactMap { EndpointAttribute($0) },
             method: method,
             path: path,
             pathParameters: pathParameters,

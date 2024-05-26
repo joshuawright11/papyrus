@@ -2,7 +2,7 @@ import SwiftSyntax
 
 /// To be parsed from protocol and function attributes. Modifies requests /
 /// responses in some way.
-enum EndpointModifier {
+enum EndpointAttribute {
     case json(encoder: String, decoder: String)
     case urlForm(encoder: String)
     case multipart(encoder: String)

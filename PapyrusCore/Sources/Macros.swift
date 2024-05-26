@@ -12,7 +12,7 @@ public macro Routes() = #externalMacro(module: "PapyrusPlugin", type: "RoutesMac
 @attached(peer, names: suffixed(Mock))
 public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 
-// MARK: Function or Protocol attributes
+// MARK: Protocol or Function attributes
 
 @attached(peer)
 public macro Headers(_ headers: [String: String]) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")

@@ -31,13 +31,13 @@ struct EndpointParameter {
             } else if type.hasPrefix("Query<") {
                 .query
             } else if pathParameters.contains(name) {
-                // if name matches a path param, assume this belongs in path
+                // if name matches a path param, infer this belongs in path
                 .path
             } else if ["GET", "HEAD", "DELETE"].contains(httpMethod) {
-                // if method is GET, HEAD, DELETE, assume query
+                // if method is GET, HEAD, DELETE, infer query
                 .query
             } else {
-                // otherwise assume it's a body field
+                // otherwise infer it's a body field
                 .field
             }
     }
