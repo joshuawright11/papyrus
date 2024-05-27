@@ -1,5 +1,5 @@
 import XCTest
-@testable import PapyrusCore
+@testable import Papyrus
 
 
 final class CurlTests: XCTestCase {
@@ -7,7 +7,7 @@ final class CurlTests: XCTestCase {
         let req = RequestBuilder(baseURL: "foo/", method: "bar", path: "baz")
 
         let request = try TestRequest(from: req)
-        
+
         // Assert Multi Line
         XCTAssertEqual(request.curl(sortedHeaders: true), """
         curl 'foo/baz' \\
@@ -125,7 +125,7 @@ final class CurlTests: XCTestCase {
         }
 
         XCTAssertNotNil(message, "Logger did not output")
-        
+
         guard let message else { return }
 
         XCTAssertEqual(message, """
@@ -146,7 +146,6 @@ final class CurlTests: XCTestCase {
         var message: String? = nil
 
         let logger = CurlLogger(when: .onError, using: {
-            print("WHAT?")
             message = $0
         })
 

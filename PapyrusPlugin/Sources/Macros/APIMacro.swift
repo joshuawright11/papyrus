@@ -21,9 +21,9 @@ extension API {
 
             // 0. provider reference & init
 
-            "private let provider: PapyrusCore.Provider"
+            "private let provider: Papyrus.Provider"
 
-            Declaration("init(provider: PapyrusCore.Provider)") {
+            Declaration("init(provider: Papyrus.Provider)") {
                 "self.provider = provider"
             }
             .access(access)

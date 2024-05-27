@@ -1,5 +1,5 @@
 import XCTest
-@testable import PapyrusCore
+@testable import Papyrus
 
 final class ResponseDecoderTests: XCTestCase {
     func testWithKeyMappingDoesntMutate() throws {
@@ -73,7 +73,7 @@ fileprivate struct _Person: Decodable {
 }
 
 fileprivate class _Response : Response {
-    var request: PapyrusCore.Request?
+    var request: Papyrus.Request?
     var body: Data?
     var headers: [String : String]?
     var statusCode: Int?

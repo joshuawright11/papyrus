@@ -1,5 +1,5 @@
 import XCTest
-@testable import PapyrusCore
+@testable import Papyrus
 
 final class KeyMappingTests: XCTestCase {
     private let pairs = [

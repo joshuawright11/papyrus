@@ -1,3 +1,4 @@
+import Foundation
 import Papyrus
 
 // MARK: 0. Define your API.

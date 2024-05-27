@@ -1,8 +1,7 @@
-@_exported import Foundation
+import Foundation
 #if os(Linux)
-@_exported import FoundationNetworking
+import FoundationNetworking
 #endif
-@_exported import PapyrusCore
 
 extension Provider {
     public convenience init(baseURL: String,
@@ -58,13 +57,13 @@ extension Response {
 private struct _Response: Response {
     let urlRequest: URLRequest
     let urlResponse: URLResponse?
-    
+
     var request: Request? { urlRequest }
     let error: Error?
     let body: Data?
     let headers: [String: String]?
     var statusCode: Int? { (urlResponse as? HTTPURLResponse)?.statusCode }
-    
+
     init(request: URLRequest, response: URLResponse?, error: Error?, body: Data?) {
         self.urlRequest = request
         self.urlResponse = response
@@ -76,7 +75,7 @@ private struct _Response: Response {
                 guard let key = key as? String, let value = value as? String else {
                     return nil
                 }
-                
+
                 return (key, value)
             }
         if let headerPairs {

@@ -12,41 +12,42 @@ let package = Package(
     products: [
         .executable(name: "Example", targets: ["Example"]),
         .library(name: "Papyrus", targets: ["Papyrus"]),
-        .library(name: "PapyrusCore", targets: ["PapyrusCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax", from: "510.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.1.0"),
     ],
     targets: [
-        
+
         // MARK: Demo
-        
+
         .executableTarget(
             name: "Example",
-            dependencies: ["Papyrus"],
+            dependencies: [
+                "Papyrus"
+            ],
             path: "Example"
         ),
-        
-        // MARK: Libraries
-        
+
+        // MARK: Library
+
         .target(
             name: "Papyrus",
             dependencies: [
-                .byName(name: "PapyrusCore")
+                "PapyrusPlugin"
             ],
-            path: "Papyrus"
+            path: "Papyrus/Sources"
         ),
-        .target(
-            name: "PapyrusCore",
+        .testTarget(
+            name: "PapyrusTests",
             dependencies: [
-                .byName(name: "PapyrusPlugin"),
+                "Papyrus"
             ],
-            path: "PapyrusCore/Sources"
+            path: "Papyrus/Tests"
         ),
-        
+
         // MARK: Plugin
-        
+
         .macro(
             name: "PapyrusPlugin",
             dependencies: [
@@ -58,14 +59,6 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ],
             path: "PapyrusPlugin/Sources"
-        ),
-        
-        // MARK: Tests
-        
-        .testTarget(
-            name: "PapyrusCoreTests",
-            dependencies: ["PapyrusCore"],
-            path: "PapyrusCore/Tests"
         ),
         .testTarget(
             name: "PapyrusPluginTests",

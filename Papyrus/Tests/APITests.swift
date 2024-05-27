@@ -1,6 +1,6 @@
 import XCTest
 import Papyrus
-@testable import PapyrusCore
+@testable import Papyrus
 
 final class APITests: XCTestCase {
     func testApiEndpointReturnsNilForOptionalReturnType_forNilBody() async throws {
@@ -125,11 +125,11 @@ fileprivate class _HTTPServiceMock: HTTPService {
         _Request(method: "", headers: [:])
     }
     
-    func request(_ req: PapyrusCore.Request) async -> PapyrusCore.Response {
+    func request(_ req: Papyrus.Request) async -> Papyrus.Response {
         _Response(body: _responseType.value?.data(using: .utf8), statusCode: 200)
     }
     
-    func request(_ req: PapyrusCore.Request, completionHandler: @escaping (PapyrusCore.Response) -> Void) {
+    func request(_ req: Papyrus.Request, completionHandler: @escaping (Papyrus.Response) -> Void) {
         completionHandler(_Response(body: "".data(using: .utf8)))
     }
 }
@@ -142,7 +142,7 @@ fileprivate struct _Request: Request {
 }
 
 fileprivate struct _Response: Response {
-    var request: PapyrusCore.Request?
+    var request: Papyrus.Request?
     var body: Data?
     var headers: [String : String]?
     var statusCode: Int?

@@ -45,9 +45,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct FooAPI: Foo {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -88,9 +88,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -130,9 +130,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -169,9 +169,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -214,9 +214,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -261,9 +261,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -305,9 +305,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -355,9 +355,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -395,9 +395,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                init(provider: PapyrusCore.Provider) {
+                init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 
@@ -435,9 +435,9 @@ final class APIMacroTests: XCTestCase {
             }
 
             public struct MyServiceAPI: MyService {
-                private let provider: PapyrusCore.Provider
+                private let provider: Papyrus.Provider
 
-                public init(provider: PapyrusCore.Provider) {
+                public init(provider: Papyrus.Provider) {
                     self.provider = provider
                 }
 

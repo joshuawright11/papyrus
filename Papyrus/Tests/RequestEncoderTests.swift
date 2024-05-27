@@ -1,5 +1,5 @@
 import XCTest
-@testable import PapyrusCore
+@testable import Papyrus
 
 final class RequestEncoderTests: XCTestCase {
     func testWithKeyMappingDoesntMutate() throws {
