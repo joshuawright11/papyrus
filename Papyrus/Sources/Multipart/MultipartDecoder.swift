@@ -12,7 +12,7 @@ public struct MultipartDecoder: HTTPBodyDecoder {
         self
     }
 
-    public func decode<D>(_ type: D.Type, from: Data) throws -> D where D : Decodable {
+    public func decode<D>(_ type: D.Type, from: Data) throws -> D where D: Decodable {
         fatalError("multipart decoding isn't supported, yet")
     }
 }
