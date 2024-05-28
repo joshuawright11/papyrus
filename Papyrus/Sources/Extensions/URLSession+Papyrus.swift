@@ -26,7 +26,11 @@ extension URLSession: HTTPService {
     public func request(_ req: Request) async -> Response {
 #if os(Linux) // Linux doesn't have access to async URLSession APIs
         await withCheckedContinuation { continuation in
-            request(req, completionHandler: continuation.resume)
+            let urlRequest = req.urlRequest
+            dataTask(with: urlRequest) { data, response, error in
+                let response = _Response(request: urlRequest, response: response, error: error, body: data)
+                continuation.resume(returning: response)
+            }.resume()
         }
 #else
         let urlRequest = req.urlRequest
