@@ -39,7 +39,7 @@ final class CurlTests: XCTestCase {
     func testConvertMultipart() throws {
         var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
         let encoder = MultipartEncoder(boundary: UUID().uuidString)
-        req.requestEncoder = encoder
+        req.requestBodyEncoder = encoder
         req.addField("a", value: Part(data: Data("one".utf8), fileName: "one.txt", mimeType: "text/plain"))
         req.addField("b", value: Part(data: Data("two".utf8)))
 
@@ -68,7 +68,7 @@ final class CurlTests: XCTestCase {
         var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        req.requestEncoder = encoder
+        req.requestBodyEncoder = encoder
         req.addField("a", value: "one")
         req.addField("b", value: "two")
 
@@ -90,7 +90,7 @@ final class CurlTests: XCTestCase {
 
     func testConvertURLForm() async throws {
         var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
-        req.requestEncoder = URLEncodedFormEncoder()
+        req.requestBodyEncoder = URLEncodedFormEncoder()
         req.addField("a", value: "one")
         req.addField("b", value: "two")
 

@@ -27,7 +27,7 @@ enum EndpointAttribute {
             self = .urlForm(encoder: firstArgument ?? "URLEncodedFormEncoder()")
         case "Multipart":
             self = .multipart(encoder: firstArgument ?? "MultipartEncoder()")
-        case "Converter":
+        case "Coder":
             guard let firstArgument, let secondArgument else { return nil }
             self = .converter(encoder: firstArgument, decoder: secondArgument)
         case "KeyMapping":

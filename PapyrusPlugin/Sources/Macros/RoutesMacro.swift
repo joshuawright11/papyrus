@@ -42,6 +42,21 @@ extension API {
                     endpoint.registerStatement()
                 }
             }
+
+            Declaration("static func parser(req: RouterRequest) -> RequestParser") {
+                if attributes.isEmpty {
+                    "RequestParser(req: req)"
+                } else {
+                    "var req = RequestParser(req: req)"
+
+                    for modifier in attributes {
+                        modifier.parserStatement()
+                    }
+
+                    "return req"
+                }
+            }
+            .private()
         }
         .private()
     }
@@ -59,8 +74,8 @@ extension API {
 extension API.Endpoint {
     func registerStatement() -> Declaration {
         Declaration("router.register(method: \(method.inQuotes), path: \(path.inQuotes))", "req") {
-            for parameter in parameters {
-                parameter.parserStatement(path: path)
+            if !parameters.isEmpty {
+                "let req = parser(req: req)"
             }
 
             let fields = parameters.filter { $0.kind == .field }
@@ -72,6 +87,21 @@ extension API.Endpoint {
                 }
 
                 "let body = try req.getBody(Body.self)"
+            }
+
+            let queries = parameters.filter { $0.kind == .query }
+            if !queries.isEmpty {
+                Declaration("struct Query: Decodable") {
+                    for query in queries {
+                        "let \(query.name): \(query.type)"
+                    }
+                }
+
+                "let query = try req.getQuery(Query.self)"
+            }
+
+            for parameter in parameters {
+                parameter.parserStatement(path: path)
             }
 
             let arguments = parameters.map(\.argumentString).joined(separator: ", ").inParentheses
@@ -92,8 +122,31 @@ extension EndpointParameter {
     fileprivate var argumentString: String {
         let argumentLabel = label == "_" ? nil : label ?? name
         let label = argumentLabel.map { "\($0): " } ?? ""
-        let prefix = kind == .field ? "body." : ""
+        let prefix = switch kind {
+        case .field: "body."
+        case .query: "query."
+        default:     ""
+        }
         return label + prefix + name
+    }
+}
+
+extension EndpointAttribute {
+    fileprivate func parserStatement() -> String? {
+        switch self {
+        case .keyMapping(let value):
+            "req.keyMapping = \(value)"
+        case .json:
+            "req.requestBodyDecoder = JSONDecoder()"
+        case .urlForm:
+            "req.requestBodyDecoder = URLEncodedFormDecoder()"
+        case .multipart:
+            "req.requestBodyDecoder = MultipartDecoder()"
+        case .converter: // custom decoding will need to be at the Router level
+            nil
+        case .authorization, .headers: // nothing to parse here
+            nil
+        }
     }
 }
 
@@ -102,13 +155,11 @@ extension EndpointParameter {
         switch kind {
         case .body:
             "let \(name): \(type) = try req.getBody(\(type).self)"
-        case .query:
-            "let \(name): \(type) = try req.getQuery(\(name.inQuotes))"
         case .header:
             "let \(name): \(type) = try req.getHeader(\(name.inQuotes))"
         case .path:
             "let \(name): \(type) = try req.getParameter(\(name.inQuotes), path: \(path.inQuotes))"
-        case .field:
+        case .field, .query:
             nil
         }
     }

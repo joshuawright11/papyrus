@@ -20,7 +20,7 @@ final class RequestBuilderTests: XCTestCase {
     func testMultipart() throws {
         var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
         let encoder = MultipartEncoder(boundary: UUID().uuidString)
-        req.requestEncoder = encoder
+        req.requestBodyEncoder = encoder
         req.addField("a", value: Part(data: Data("one".utf8), fileName: "one.txt", mimeType: "text/plain"))
         req.addField("b", value: Part(data: Data("two".utf8)))
         let (body, headers) = try req.bodyAndHeaders()
@@ -58,7 +58,7 @@ final class RequestBuilderTests: XCTestCase {
         var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        req.requestEncoder = encoder
+        req.requestBodyEncoder = encoder
         req.addField("a", value: "one")
         req.addField("b", value: "two")
         let (body, headers) = try req.bodyAndHeaders()
@@ -87,7 +87,7 @@ final class RequestBuilderTests: XCTestCase {
 
     func testURLForm() async throws {
         var req = RequestBuilder(baseURL: "foo/", method: "bar", path: "/baz")
-        req.requestEncoder = URLEncodedFormEncoder()
+        req.requestBodyEncoder = URLEncodedFormEncoder()
         req.addField("a", value: "one")
         req.addField("b", value: "two")
         let (body, headers) = try req.bodyAndHeaders()

@@ -85,7 +85,7 @@ extension API.Endpoint {
             case .some(let type):
                 "let res = try await provider.request(&req)"
                 "try res.validate()"
-                "return try res.decode(\(type).self, using: req.responseDecoder)"
+                "return try res.decode(\(type).self, using: req.responseBodyDecoder)"
             }
         }
     }
@@ -113,17 +113,17 @@ extension EndpointAttribute {
         switch self {
         case .json(let encoder, let decoder):
             """
-            req.requestEncoder = .json(\(encoder))
-            req.responseDecoder = .json(\(decoder))
+            req.requestBodyEncoder = .json(\(encoder))
+            req.responseBodyDecoder = .json(\(decoder))
             """
         case .urlForm(let encoder):
-            "req.requestEncoder = .urlForm(\(encoder))"
+            "req.requestBodyEncoder = .urlForm(\(encoder))"
         case .multipart(let encoder):
-            "req.requestEncoder = .multipart(\(encoder))"
+            "req.requestBodyEncoder = .multipart(\(encoder))"
         case .converter(let encoder, let decoder):
             """
-            req.requestEncoder = \(encoder)
-            req.responseDecoder = \(decoder)
+            req.requestBodyEncoder = \(encoder)
+            req.responseBodyDecoder = \(decoder)
             """
         case .headers(let value):
             "req.addHeaders(\(value))"

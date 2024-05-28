@@ -1,12 +1,12 @@
 import Foundation
 
-public struct MultipartEncoder: RequestEncoder {
+public struct MultipartEncoder: HTTPBodyEncoder {
     public var contentType: String { "multipart/form-data; boundary=\(boundary)" }
     public let boundary: String
     private let crlf = "\r\n"
 
     public init(boundary: String? = nil) {
-        self.boundary = boundary ?? MultipartEncoder.randomBoundary()
+        self.boundary = boundary ?? .randomMultipartBoundary()
     }
 
     public func with(keyMapping: KeyMapping) -> MultipartEncoder {
@@ -46,12 +46,5 @@ public struct MultipartEncoder: RequestEncoder {
 
         let string = headers.map { "\($0): \($1)\(crlf)" }.sorted().joined() + crlf
         return Data(string.utf8)
-    }
-
-    private static func randomBoundary() -> String {
-        let first = UInt32.random(in: UInt32.min...UInt32.max)
-        let second = UInt32.random(in: UInt32.min...UInt32.max)
-
-        return String(format: "papyrus.boundary.%08x%08x", first, second)
     }
 }

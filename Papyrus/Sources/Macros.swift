@@ -18,6 +18,12 @@ public macro Mock() = #externalMacro(module: "PapyrusPlugin", type: "MockMacro")
 public macro Headers(_ headers: [String: String]) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer)
+public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+@attached(peer)
+public macro Authorization(_ value: RequestBuilder.AuthorizationHeader) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+
+@attached(peer)
 public macro JSON(encoder: JSONEncoder = JSONEncoder(), decoder: JSONDecoder = JSONDecoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer)
@@ -27,13 +33,7 @@ public macro URLForm(_ encoder: URLEncodedFormEncoder = URLEncodedFormEncoder())
 public macro Multipart(_ encoder: MultipartEncoder = MultipartEncoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer)
-public macro Converter(encoder: RequestEncoder, decoder: ResponseDecoder) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
-
-@attached(peer)
-public macro KeyMapping(_ mapping: KeyMapping) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
-
-@attached(peer)
-public macro Authorization(_ value: RequestBuilder.AuthorizationHeader) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Coder(encoder: HTTPBodyEncoder, decoder: HTTPBodyDecoder) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 // MARK: Function attributes
 

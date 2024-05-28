@@ -1,19 +1,19 @@
 import Foundation
 
-public protocol RequestEncoder: KeyMappable {
+public protocol HTTPBodyEncoder: KeyMappable {
     var contentType: String { get }
     func encode<E: Encodable>(_ value: E) throws -> Data
 }
 
 // MARK: application/json
 
-extension RequestEncoder where Self == JSONEncoder {
-    public static func json(_ encoder: JSONEncoder) -> Self {
+extension HTTPBodyEncoder where Self == JSONEncoder {
+    public static func json(_ encoder: JSONEncoder = JSONEncoder()) -> Self {
         encoder
     }
 }
 
-extension JSONEncoder: RequestEncoder {
+extension JSONEncoder: HTTPBodyEncoder {
     public var contentType: String { "application/json" }
 
     public func with(keyMapping: KeyMapping) -> Self {
@@ -30,13 +30,13 @@ extension JSONEncoder: RequestEncoder {
 
 // MARK: application/x-www-form-urlencoded
 
-extension RequestEncoder where Self == URLEncodedFormEncoder {
-    public static func urlForm(_ encoder: URLEncodedFormEncoder) -> Self {
+extension HTTPBodyEncoder where Self == URLEncodedFormEncoder {
+    public static func urlForm(_ encoder: URLEncodedFormEncoder = URLEncodedFormEncoder()) -> Self {
         encoder
     }
 }
 
-extension URLEncodedFormEncoder: RequestEncoder {
+extension URLEncodedFormEncoder: HTTPBodyEncoder {
     public var contentType: String { "application/x-www-form-urlencoded" }
 
     public func encode<E: Encodable>(_ value: E) throws -> Data {
@@ -57,8 +57,8 @@ extension URLEncodedFormEncoder: RequestEncoder {
 
 // MARK: multipart/form-data
 
-extension RequestEncoder where Self == MultipartEncoder {
-    public static func multipart(_ encoder: MultipartEncoder) -> Self {
+extension HTTPBodyEncoder where Self == MultipartEncoder {
+    public static func multipart(_ encoder: MultipartEncoder = MultipartEncoder()) -> Self {
         encoder
     }
 }

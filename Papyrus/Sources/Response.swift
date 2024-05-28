@@ -17,11 +17,11 @@ extension Response {
         return self
     }
     
-    public func decode(_ type: Data?.Type = Data?.self, using decoder: ResponseDecoder) throws -> Data? {
+    public func decode(_ type: Data?.Type = Data?.self, using decoder: HTTPBodyDecoder) throws -> Data? {
         try validate().body
     }
     
-    public func decode(_ type: Data.Type = Data.self, using decoder: ResponseDecoder) throws -> Data {
+    public func decode(_ type: Data.Type = Data.self, using decoder: HTTPBodyDecoder) throws -> Data {
         guard let body = try decode(Data?.self, using: decoder) else {
             throw makePapyrusError(with: "Unable to return the body of a `Response`; the body was nil.")
         }
@@ -29,7 +29,7 @@ extension Response {
         return body
     }
     
-    public func decode<D: Decodable>(_ type: D?.Type = D?.self, using decoder: ResponseDecoder) throws -> D? {
+    public func decode<D: Decodable>(_ type: D?.Type = D?.self, using decoder: HTTPBodyDecoder) throws -> D? {
         guard let body, !body.isEmpty else {
             return nil
         }
@@ -37,7 +37,7 @@ extension Response {
         return try decoder.decode(type, from: body)
     }
     
-    public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: ResponseDecoder) throws -> D {
+    public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: HTTPBodyDecoder) throws -> D {
         guard let body else {
             throw makePapyrusError(with: "Unable to decode `\(Self.self)` from a `Response`; body was nil.")
         }

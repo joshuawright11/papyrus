@@ -73,10 +73,6 @@ public struct RequestBuilder {
         case multipart([ContentKey: Part])
     }
 
-    public static var defaultQueryEncoder: URLEncodedFormEncoder = URLEncodedFormEncoder()
-    public static var defaultRequestEncoder: RequestEncoder = JSONEncoder()
-    public static var defaultResponseDecoder: ResponseDecoder = JSONDecoder()
-
     // MARK: Data
 
     public var baseURL: String
@@ -96,19 +92,19 @@ public struct RequestBuilder {
         get { _queryEncoder.with(keyMapping: keyMapping) }
     }
 
-    public var requestEncoder: RequestEncoder {
-        set { _requestEncoder = newValue }
-        get { _requestEncoder.with(keyMapping: keyMapping) }
+    public var requestBodyEncoder: HTTPBodyEncoder {
+        set { _requestBodyEncoder = newValue }
+        get { _requestBodyEncoder.with(keyMapping: keyMapping) }
     }
 
-    public var responseDecoder: ResponseDecoder {
-        set { _responseDecoder = newValue }
-        get { _responseDecoder.with(keyMapping: keyMapping) }
+    public var responseBodyDecoder: HTTPBodyDecoder {
+        set { _responseBodyDecoder = newValue }
+        get { _responseBodyDecoder.with(keyMapping: keyMapping) }
     }
 
-    private var _queryEncoder: URLEncodedFormEncoder = defaultQueryEncoder
-    private var _requestEncoder: RequestEncoder = defaultRequestEncoder
-    private var _responseDecoder: ResponseDecoder = defaultResponseDecoder
+    private var _queryEncoder: URLEncodedFormEncoder = Coders.defaultQueryEncoder
+    private var _requestBodyEncoder: HTTPBodyEncoder = Coders.defaultHTTPBodyEncoder
+    private var _responseBodyDecoder: HTTPBodyDecoder = Coders.defaultHTTPBodyDecoder
 
     public init(baseURL: String, method: String, path: String) {
         self.baseURL = baseURL
@@ -205,7 +201,7 @@ public struct RequestBuilder {
     public func bodyAndHeaders() throws -> (Data?, [String: String]) {
         let body = try bodyData()
         var headers = headers
-        headers["Content-Type"] = requestEncoder.contentType
+        headers["Content-Type"] = requestBodyEncoder.contentType
         headers["Content-Length"] = "\(body?.count ?? 0)"
         return (body, headers)
     }
@@ -236,15 +232,15 @@ public struct RequestBuilder {
         case .none:
             return nil
         case .value(let value):
-            return try requestEncoder.encode(value)
+            return try requestBodyEncoder.encode(value)
         case .multipart(let fields):
             let pairs = fields.map { ($0.mapped(keyMapping), $1) }
             let dict = Dictionary(uniqueKeysWithValues: pairs)
-            return try requestEncoder.encode(dict)
+            return try requestBodyEncoder.encode(dict)
         case .fields(let fields):
             let pairs = fields.map { ($0.mapped(keyMapping), $1) }
             let dict = Dictionary(uniqueKeysWithValues: pairs)
-            return try requestEncoder.encode(dict)
+            return try requestBodyEncoder.encode(dict)
         }
     }
     
@@ -261,13 +257,6 @@ public struct RequestBuilder {
         let pairs = queries.map { ($0.mapped(keyMapping), $1) }
         let dict = Dictionary(uniqueKeysWithValues: pairs)
         return try prefix + queryEncoder.encode(dict)
-    }
-}
-
-extension KeyMappable {
-    fileprivate func with(keyMapping: KeyMapping?) -> Self {
-        guard let keyMapping else { return self }
-        return with(keyMapping: keyMapping)
     }
 }
 

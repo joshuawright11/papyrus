@@ -99,13 +99,13 @@ final class APIMacroTests: XCTestCase {
                     req.addQuery("userId", value: userId)
                     let res = try await provider.request(&req)
                     try res.validate()
-                    return try res.decode(String.self, using: req.responseDecoder)
+                    return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
                     var req = provider.newBuilder(method: method, path: path)
-                    req.requestEncoder = .json(JSONEncoder())
-                    req.responseDecoder = .json(JSONDecoder())
+                    req.requestBodyEncoder = .json(JSONEncoder())
+                    req.responseBodyDecoder = .json(JSONDecoder())
                     return req
                 }
             }
@@ -141,7 +141,7 @@ final class APIMacroTests: XCTestCase {
                     req.addQuery("userId", value: userId)
                     let res = try await provider.request(&req)
                     try res.validate()
-                    return try res.decode(String.self, using: req.responseDecoder)
+                    return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -180,7 +180,7 @@ final class APIMacroTests: XCTestCase {
                     req.addField("userId", value: userId)
                     let res = try await provider.request(&req)
                     try res.validate()
-                    return try res.decode(String.self, using: req.responseDecoder)
+                    return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -226,7 +226,7 @@ final class APIMacroTests: XCTestCase {
                     req.addQuery("since", value: since)
                     let res = try await provider.request(&req)
                     try res.validate()
-                    return try res.decode(String.self, using: req.responseDecoder)
+                    return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -273,7 +273,7 @@ final class APIMacroTests: XCTestCase {
                     req.addQuery("since", value: since)
                     let res = try await provider.request(&req)
                     try res.validate()
-                    return try res.decode(String.self, using: req.responseDecoder)
+                    return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {
@@ -319,8 +319,8 @@ final class APIMacroTests: XCTestCase {
                 private func builder(method: String, path: String) -> RequestBuilder {
                     var req = provider.newBuilder(method: method, path: path)
                     req.keyMapping = .snakeCase
-                    req.requestEncoder = .json(.foo)
-                    req.responseDecoder = .json(.bar)
+                    req.requestBodyEncoder = .json(.foo)
+                    req.responseBodyDecoder = .json(.bar)
                     return req
                 }
             }
@@ -369,8 +369,8 @@ final class APIMacroTests: XCTestCase {
                 private func builder(method: String, path: String) -> RequestBuilder {
                     var req = provider.newBuilder(method: method, path: path)
                     req.keyMapping = .snakeCase
-                    req.requestEncoder = .json(.foo)
-                    req.responseDecoder = .json(.bar)
+                    req.requestBodyEncoder = .json(.foo)
+                    req.responseBodyDecoder = .json(.bar)
                     return req
                 }
             }
@@ -445,7 +445,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "GET", path: "name")
                     let res = try await provider.request(&req)
                     try res.validate()
-                    return try res.decode(String.self, using: req.responseDecoder)
+                    return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
                 private func builder(method: String, path: String) -> RequestBuilder {

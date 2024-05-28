@@ -7,7 +7,4 @@ public protocol HTTPService {
 
     /// Concurrency based API
     func request(_ req: Request) async -> Response
-
-    /// Callback based API
-    func request(_ req: Request, completionHandler: @escaping (Response) -> Void)
 }
