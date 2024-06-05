@@ -5,7 +5,7 @@ import Foundation
 @attached(peer, names: suffixed(API))
 public macro API() = #externalMacro(module: "PapyrusPlugin", type: "APIMacro")
 
-@attached(extension, names: named(useAPI))
+@attached(extension, names: named(registerHandlers))
 @attached(peer, names: suffixed(Live), suffixed(Routes))
 public macro Routes() = #externalMacro(module: "PapyrusPlugin", type: "RoutesMacro")
 

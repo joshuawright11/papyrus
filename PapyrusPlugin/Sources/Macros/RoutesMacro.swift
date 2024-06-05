@@ -62,9 +62,9 @@ extension API {
     }
 
     func routesExtension() -> Declaration {
-        Declaration("extension \(name) where Self: PapyrusRouter") {
-            Declaration("func useAPI(_ api: (any \(name)).Type)") {
-                "\(name)Routes.register(api: self, router: self)"
+        Declaration("extension \(name)") {
+            Declaration("func registerHandlers(_ of: (any \(name)).Type = \(name).self, on router: PapyrusRouter)") {
+                "\(name)Routes.register(api: self, router: router)"
             }
         }
         .access(access)

@@ -36,7 +36,7 @@ extension API {
 
             // 2. builder used by all live endpoint functions
 
-            Declaration("func builder(method: String, path: String) -> RequestBuilder") {
+            Declaration("func builder(method: String, path: String) -> Papyrus.RequestBuilder") {
                 if attributes.isEmpty {
                     "provider.newBuilder(method: method, path: path)"
                 } else {
