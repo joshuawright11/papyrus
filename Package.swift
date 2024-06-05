@@ -12,11 +12,9 @@ let package = Package(
     products: [
         .executable(name: "Example", targets: ["Example"]),
         .library(name: "Papyrus", targets: ["Papyrus"]),
-        .library(name: "PapyrusAlamofire", targets: ["PapyrusAlamofire"]),
         .library(name: "PapyrusCore", targets: ["PapyrusCore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.7.1")),
         .package(url: "https://github.com/apple/swift-syntax", from: "510.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.1.0"),
     ],
@@ -38,14 +36,6 @@ let package = Package(
                 .byName(name: "PapyrusCore")
             ],
             path: "Papyrus"
-        ),
-        .target(
-            name: "PapyrusAlamofire",
-            dependencies: [
-                .byName(name: "PapyrusCore"),
-                .product(name: "Alamofire", package: "Alamofire"),
-            ],
-            path: "PapyrusAlamofire"
         ),
         .target(
             name: "PapyrusCore",
