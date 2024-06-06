@@ -61,7 +61,7 @@ final class APIMacroTests: XCTestCase {
                     try await provider.request(&req).validate()
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
@@ -102,7 +102,7 @@ final class APIMacroTests: XCTestCase {
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     var req = provider.newBuilder(method: method, path: path)
                     req.requestBodyEncoder = .json(JSONEncoder())
                     req.responseBodyDecoder = .json(JSONDecoder())
@@ -144,7 +144,7 @@ final class APIMacroTests: XCTestCase {
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
@@ -183,7 +183,7 @@ final class APIMacroTests: XCTestCase {
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
@@ -229,7 +229,7 @@ final class APIMacroTests: XCTestCase {
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
@@ -276,7 +276,7 @@ final class APIMacroTests: XCTestCase {
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
@@ -316,7 +316,7 @@ final class APIMacroTests: XCTestCase {
                     try await provider.request(&req).validate()
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     var req = provider.newBuilder(method: method, path: path)
                     req.keyMapping = .snakeCase
                     req.requestBodyEncoder = .json(.foo)
@@ -366,7 +366,7 @@ final class APIMacroTests: XCTestCase {
                     try await provider.request(&req).validate()
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     var req = provider.newBuilder(method: method, path: path)
                     req.keyMapping = .snakeCase
                     req.requestBodyEncoder = .json(.foo)
@@ -410,7 +410,7 @@ final class APIMacroTests: XCTestCase {
                     try await provider.request(&req).validate()
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
@@ -448,7 +448,7 @@ final class APIMacroTests: XCTestCase {
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
 
-                private func builder(method: String, path: String) -> RequestBuilder {
+                private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
                     provider.newBuilder(method: method, path: path)
                 }
             }
