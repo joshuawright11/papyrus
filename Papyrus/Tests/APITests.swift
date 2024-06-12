@@ -1,5 +1,4 @@
 import XCTest
-import Papyrus
 @testable import Papyrus
 
 final class APITests: XCTestCase {
@@ -121,28 +120,28 @@ fileprivate class _HTTPServiceMock: HTTPService {
         _responseType = responseType
     }
     
-    func build(method: String, url: URL, headers: [String : String], body: Data?) -> Request {
+    func build(method: String, url: URL, headers: [String : String], body: Data?) -> PapyrusRequest {
         _Request(method: "", headers: [:])
     }
     
-    func request(_ req: Papyrus.Request) async -> Papyrus.Response {
+    func request(_ req: PapyrusRequest) async -> PapyrusResponse {
         _Response(body: _responseType.value?.data(using: .utf8), statusCode: 200)
     }
     
-    func request(_ req: Papyrus.Request, completionHandler: @escaping (Papyrus.Response) -> Void) {
+    func request(_ req: PapyrusRequest, completionHandler: @escaping (PapyrusResponse) -> Void) {
         completionHandler(_Response(body: "".data(using: .utf8)))
     }
 }
 
-fileprivate struct _Request: Request {
+fileprivate struct _Request: PapyrusRequest {
     var url: URL?
     var method: String
     var headers: [String : String]
     var body: Data?
 }
 
-fileprivate struct _Response: Response {
-    var request: Papyrus.Request?
+fileprivate struct _Response: PapyrusResponse {
+    var request: PapyrusRequest?
     var body: Data?
     var headers: [String : String]?
     var statusCode: Int?

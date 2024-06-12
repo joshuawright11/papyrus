@@ -1,14 +1,14 @@
 import Foundation
 
-public protocol Response {
-    var request: Request? { get }
+public protocol PapyrusResponse {
+    var request: PapyrusRequest? { get }
     var body: Data? { get }
     var headers: [String: String]? { get }
     var statusCode: Int? { get }
     var error: Error? { get }
 }
 
-extension Response {
+extension PapyrusResponse {
     /// Validates the status code of a Response, as well as any transport errors that may have occurred.
     @discardableResult
     public func validate() throws -> Self {
@@ -50,20 +50,20 @@ extension Response {
     }
 }
 
-extension Response where Self == ErrorResponse {
-    public static func error(_ error: Error) -> Response {
+extension PapyrusResponse where Self == ErrorResponse {
+    public static func error(_ error: Error) -> PapyrusResponse {
         ErrorResponse(error)
     }
 }
 
-public struct ErrorResponse: Response {
+public struct ErrorResponse: PapyrusResponse {
     let _error: Error?
 
     public init(_ error: Error) {
         self._error = error
     }
 
-    public var request: Request? { nil }
+    public var request: PapyrusRequest? { nil }
     public var body: Data? { nil }
     public var headers: [String : String]? { nil }
     public var statusCode: Int? { nil }

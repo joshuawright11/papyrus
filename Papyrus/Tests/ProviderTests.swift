@@ -12,15 +12,15 @@ final class ProviderTests: XCTestCase {
 }
 
 private struct TestHTTPService: HTTPService {
-    func build(method: String, url: URL, headers: [String : String], body: Data?) -> Request {
+    func build(method: String, url: URL, headers: [String : String], body: Data?) -> PapyrusRequest {
         fatalError()
     }
     
-    func request(_ req: Request) async -> Response {
+    func request(_ req: PapyrusRequest) async -> PapyrusResponse {
         fatalError()
     }
     
-    func request(_ req: Request, completionHandler: @escaping (Response) -> Void) {
+    func request(_ req: PapyrusRequest, completionHandler: @escaping (PapyrusResponse) -> Void) {
 
     }
 }

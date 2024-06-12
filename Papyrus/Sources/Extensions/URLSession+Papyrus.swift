@@ -15,7 +15,7 @@ extension Provider {
 // MARK: `HTTPService` Conformance
 
 extension URLSession: HTTPService {
-    public func build(method: String, url: URL, headers: [String: String], body: Data?) -> Request {
+    public func build(method: String, url: URL, headers: [String: String], body: Data?) -> PapyrusRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.httpBody = body
@@ -23,7 +23,7 @@ extension URLSession: HTTPService {
         return request
     }
 
-    public func request(_ req: Request) async -> Response {
+    public func request(_ req: PapyrusRequest) async -> PapyrusResponse {
 #if os(Linux) // Linux doesn't have access to async URLSession APIs
         await withCheckedContinuation { continuation in
             let urlRequest = req.urlRequest
@@ -46,16 +46,16 @@ extension URLSession: HTTPService {
 
 // MARK: `Response` Conformance
 
-extension Response {
+extension PapyrusResponse {
     public var urlRequest: URLRequest { (self as! _Response).urlRequest }
     public var urlResponse: URLResponse? { (self as! _Response).urlResponse }
 }
 
-private struct _Response: Response {
+private struct _Response: PapyrusResponse {
     let urlRequest: URLRequest
     let urlResponse: URLResponse?
 
-    var request: Request? { urlRequest }
+    var request: PapyrusRequest? { urlRequest }
     let error: Error?
     let body: Data?
     let headers: [String: String]?
@@ -85,13 +85,13 @@ private struct _Response: Response {
 
 // MARK: `Request` Conformance
 
-extension Request {
+extension PapyrusRequest {
     public var urlRequest: URLRequest {
         (self as! URLRequest)
     }
 }
 
-extension URLRequest: Request {
+extension URLRequest: PapyrusRequest {
     public var body: Data? {
         get { httpBody }
         set { httpBody = newValue }

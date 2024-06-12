@@ -32,11 +32,11 @@ public final class Provider {
     }
 
     @discardableResult
-    public func intercept(action: @escaping (Request, (Request) async throws -> Response) async throws -> Response) -> Self {
+    public func intercept(action: @escaping (PapyrusRequest, (PapyrusRequest) async throws -> PapyrusResponse) async throws -> PapyrusResponse) -> Self {
         struct AnonymousInterceptor: Interceptor {
-            let action: (Request, Interceptor.Next) async throws -> Response
+            let action: (PapyrusRequest, Interceptor.Next) async throws -> PapyrusResponse
 
-            func intercept(req: Request, next: Interceptor.Next) async throws -> Response {
+            func intercept(req: PapyrusRequest, next: Interceptor.Next) async throws -> PapyrusResponse {
                 try await action(req, next)
             }
         }
@@ -46,9 +46,9 @@ public final class Provider {
     }
 
     @discardableResult
-    public func request(_ builder: inout RequestBuilder) async throws -> Response {
+    public func request(_ builder: inout RequestBuilder) async throws -> PapyrusResponse {
         let request = try createRequest(&builder)
-        var next: (Request) async throws -> Response = http.request
+        var next: (PapyrusRequest) async throws -> PapyrusResponse = http.request
         for interceptor in interceptors.reversed() {
             let _next = next
             next = { try await interceptor.intercept(req: $0, next: _next) }
@@ -57,7 +57,7 @@ public final class Provider {
         return try await next(request)
     }
 
-    private func createRequest(_ builder: inout RequestBuilder) throws -> Request {
+    private func createRequest(_ builder: inout RequestBuilder) throws -> PapyrusRequest {
         for modifier in modifiers {
             try modifier.modify(req: &builder)
         }
@@ -69,8 +69,8 @@ public final class Provider {
 }
 
 public protocol Interceptor {
-    typealias Next = (Request) async throws -> Response
-    func intercept(req: Request, next: Next) async throws -> Response
+    typealias Next = (PapyrusRequest) async throws -> PapyrusResponse
+    func intercept(req: PapyrusRequest, next: Next) async throws -> PapyrusResponse
 }
 
 public protocol RequestModifier {

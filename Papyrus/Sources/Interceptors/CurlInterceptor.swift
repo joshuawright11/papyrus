@@ -23,7 +23,7 @@ public struct CurlLogger {
 }
 
 extension CurlLogger: Interceptor {
-    public func intercept(req: Request, next: Next) async throws -> Response {
+    public func intercept(req: PapyrusRequest, next: Next) async throws -> PapyrusResponse {
         if condition == .always {
             logHandler(req.curl(sortedHeaders: true))
         }
@@ -40,7 +40,7 @@ extension CurlLogger: Interceptor {
     }
 }
 
-public extension Request {
+public extension PapyrusRequest {
     /// Create a cURL command from this instance
     ///
     /// - Parameter sortedHeaders: sort headers in output
