@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Response {
+public protocol Response: Sendable {
     var request: Request? { get }
     var body: Data? { get }
     var headers: [String: String]? { get }
