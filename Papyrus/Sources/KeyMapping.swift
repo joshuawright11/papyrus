@@ -2,7 +2,7 @@ import Foundation
 
 /// Represents the mapping between your type's property names and
 /// their corresponding request field key.
-public enum KeyMapping {
+public enum KeyMapping: Sendable {
     /// Use the literal name for all properties on a type as its field key.
     case useDefaultKeys
     
@@ -12,8 +12,8 @@ public enum KeyMapping {
     case snakeCase
     
     /// A custom key mapping.
-    case custom(to: (String) -> String, from: (String) -> String)
-    
+    case custom(to: @Sendable (String) -> String, from: @Sendable (String) -> String)
+
     /// Encode String from camelCase to this KeyMapping strategy.
     public func encode(_ string: String) -> String {
         switch self {
