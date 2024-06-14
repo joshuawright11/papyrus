@@ -72,8 +72,8 @@ fileprivate struct _Person: Decodable {
     let name: String
 }
 
-fileprivate class _Response : Response {
-    var request: Papyrus.Request?
+fileprivate class _Response : PapyrusResponse {
+    var request: PapyrusRequest?
     var body: Data?
     var headers: [String : String]?
     var statusCode: Int?

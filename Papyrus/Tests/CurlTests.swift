@@ -186,15 +186,15 @@ final class CurlTests: XCTestCase {
     }
 }
 
-private struct TestResponse: Response {
-    var request: Request? = nil
+private struct TestResponse: PapyrusResponse {
+    var request: PapyrusRequest? = nil
     var body: Data? = nil
     var headers: [String : String]? = nil
     var statusCode: Int? = nil
     var error: Error? = nil
 }
 
-private struct TestRequest: Request {
+private struct TestRequest: PapyrusRequest {
     var method: String
     var url: URL?
     var headers: [String : String]
