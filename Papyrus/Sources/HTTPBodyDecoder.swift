@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol HTTPBodyDecoder: KeyMappable {
+public protocol HTTPBodyDecoder: KeyMappable, Sendable {
     func decode<D: Decodable>(_ type: D.Type, from: Data) throws -> D
 }
 
@@ -12,7 +12,7 @@ extension HTTPBodyDecoder where Self == JSONDecoder {
     }
 }
 
-extension JSONDecoder: HTTPBodyDecoder {
+extension JSONDecoder: HTTPBodyDecoder, @unchecked Sendable {
     public func with(keyMapping: KeyMapping) -> Self {
         let new = JSONDecoder()
         new.userInfo = userInfo
