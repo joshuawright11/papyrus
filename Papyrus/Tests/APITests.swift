@@ -95,7 +95,7 @@ fileprivate struct _Person: Decodable {
     let name: String
 }
 
-fileprivate class _HTTPServiceMock: HTTPService {
+fileprivate struct _HTTPServiceMock: HTTPService {
     
     enum ResponseType {
         case `nil`

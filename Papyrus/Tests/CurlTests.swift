@@ -114,27 +114,31 @@ final class CurlTests: XCTestCase {
         req.addHeader("High", value: "Ground")
         let request = try TestRequest(from: req)
 
-        var message: String? = nil
+        let message: ResourceMutex<String?> = .init(resource: nil)
 
-        let logger = CurlLogger(when: .always, using: {
-            message = $0
+        let logger = CurlLogger(when: .always, using: { value in
+            message.withLock { resource in
+                resource = value
+            }
         })
 
         _ = try await logger.intercept(req: request) { req in
             return TestResponse(request: req)
         }
+        
+        message.withLock { resource in
+            XCTAssertNotNil(resource, "Logger did not output")
 
-        XCTAssertNotNil(message, "Logger did not output")
+            guard let resource else { return }
 
-        guard let message else { return }
-
-        XCTAssertEqual(message, """
-        curl 'foo/baz?Hello=There' \\
-        -X GET \\
-        -H 'Content-Length: 0' \\
-        -H 'Content-Type: application/json' \\
-        -H 'High: Ground'
-        """)
+            XCTAssertEqual(resource, """
+            curl 'foo/baz?Hello=There' \\
+            -X GET \\
+            -H 'Content-Length: 0' \\
+            -H 'Content-Type: application/json' \\
+            -H 'High: Ground'
+            """)
+        }
     }
 
     func testInterceptorOnError() async throws {
@@ -143,26 +147,29 @@ final class CurlTests: XCTestCase {
         req.addHeader("High", value: "Ground")
         let request = try TestRequest(from: req)
 
-        var message: String? = nil
+        let message: ResourceMutex<String?> = .init(resource: nil)
 
-        let logger = CurlLogger(when: .onError, using: {
-            message = $0
+        let logger = CurlLogger(when: .onError, using: { value in
+            message.withLock { resource in
+                resource = value
+            }
         })
 
         _ = try? await logger.intercept(req: request) { req in
             throw PapyrusError("")
         }
 
-        XCTAssertNotNil(message, "Logger did not output")
-        guard let message else { return }
-
-        XCTAssertEqual(message, """
-        curl 'foo/baz?Hello=There' \\
-        -X GET \\
-        -H 'Content-Length: 0' \\
-        -H 'Content-Type: application/json' \\
-        -H 'High: Ground'
-        """)
+        message.withLock { resource in
+            XCTAssertNotNil(resource, "Logger did not output")
+            guard let resource else { return }
+            XCTAssertEqual(resource, """
+            curl 'foo/baz?Hello=There' \\
+            -X GET \\
+            -H 'Content-Length: 0' \\
+            -H 'Content-Type: application/json' \\
+            -H 'High: Ground'
+            """)
+        }
     }
 
     func testInterceptorOnErrorNoError() async throws {
@@ -172,17 +179,21 @@ final class CurlTests: XCTestCase {
 
         let request = try TestRequest(from: req)
 
-        var message: String? = nil
+        let message: ResourceMutex<String?> = .init(resource: nil)
 
-        let logger = CurlLogger(when: .onError, using: {
-            message = $0
+        let logger = CurlLogger(when: .onError, using: { value in
+            message.withLock { resource in
+                resource = value
+            }
         })
 
         _ = try await logger.intercept(req: request) { req in
             return TestResponse(request: req)
         }
 
-        XCTAssertNil(message, "Logger did output")
+        message.withLock { resource in
+            XCTAssertNil(resource, "Logger did output")
+        }
     }
 }
 

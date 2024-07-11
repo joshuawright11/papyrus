@@ -19,7 +19,7 @@ final class ResponseDecoderTests: XCTestCase {
     
     func testResponseWithOptionalTypeAndNilBody() throws {
         // Arrange
-        let response = _Response()
+        var response = _Response()
         response.body = nil
 
         // Act
@@ -31,7 +31,7 @@ final class ResponseDecoderTests: XCTestCase {
     
     func testResponseWithOptionalTypeAndEmptyBody() throws {
         // Arrange
-        let response = _Response()
+        var response = _Response()
         response.body = "".data(using: .utf8)
 
         // Act
@@ -43,7 +43,7 @@ final class ResponseDecoderTests: XCTestCase {
     
     func testResponseWithOptionalTypeAndNonNilBody() throws {
         // Arrange
-        let response = _Response()
+        var response = _Response()
         response.body = "{ \"name\": \"Petru\" }".data(using: .utf8)
 
         // Act
@@ -56,7 +56,7 @@ final class ResponseDecoderTests: XCTestCase {
     
     func testResponseWithNonOptionalTypeAndNonNilBody() throws {
         // Arrange
-        let response = _Response()
+        var response = _Response()
         response.body = "{ \"name\": \"Petru\" }".data(using: .utf8)
 
         // Act
@@ -72,7 +72,7 @@ fileprivate struct _Person: Decodable {
     let name: String
 }
 
-fileprivate class _Response : PapyrusResponse {
+fileprivate struct _Response : PapyrusResponse {
     var request: PapyrusRequest?
     var body: Data?
     var headers: [String : String]?
