@@ -36,7 +36,10 @@ let package = Package(
             dependencies: [
                 "PapyrusPlugin"
             ],
-            path: "Papyrus/Sources"
+            path: "Papyrus/Sources",
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
         .testTarget(
             name: "PapyrusTests",
