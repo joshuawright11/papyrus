@@ -20,6 +20,12 @@ public final class Provider: Sendable {
         RequestBuilder(baseURL: baseURL, method: method, path: path)
     }
 
+    public func add(interceptor: any Interceptor) {
+        interceptors.withLock { resource in
+            resource.append(interceptor)
+        }
+    }
+
     public func modifyRequests(action: @escaping (inout RequestBuilder) throws -> Void) -> Self {
         struct AnonymousModifier: RequestModifier {
             let action: (inout RequestBuilder) throws -> Void
