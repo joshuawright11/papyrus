@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol PapyrusResponse {
+public protocol PapyrusResponse: Sendable {
     var request: PapyrusRequest? { get }
     var body: Data? { get }
     var headers: [String: String]? { get }

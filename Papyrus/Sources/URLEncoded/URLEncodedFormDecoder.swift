@@ -15,9 +15,9 @@
 import Foundation
 
 /// The wrapper struct for decoding URL encoded form data to Codable classes
-public struct URLEncodedFormDecoder {
+public struct URLEncodedFormDecoder: Sendable {
     /// The strategy to use for decoding `Date` values.
-    public enum DateDecodingStrategy {
+    public enum DateDecodingStrategy: Sendable {
         /// Defer to `Date` for decoding. This is the default strategy.
         case deferredToDate
 
@@ -35,7 +35,7 @@ public struct URLEncodedFormDecoder {
         case formatted(DateFormatter)
 
         /// Decode the `Date` as a custom value encoded by the given closure.
-        case custom((_ decoder: Decoder) throws -> Date)
+        case custom(@Sendable (_ decoder: Decoder) throws -> Date)
     }
 
     /// The strategy to use in Encoding dates. Defaults to `.deferredToDate`.
@@ -45,7 +45,7 @@ public struct URLEncodedFormDecoder {
     public var keyMapping: KeyMapping
 
     /// Contextual user-provided information for use during encoding.
-    public var userInfo: [CodingUserInfoKey: Any]
+    public var userInfo: [CodingUserInfoKey: any Sendable]
 
     /// Options set on the top-level encoder to pass down the encoding hierarchy.
     fileprivate struct _Options {
@@ -70,7 +70,7 @@ public struct URLEncodedFormDecoder {
     public init(
         dateDecodingStrategy: URLEncodedFormDecoder.DateDecodingStrategy = .deferredToDate,
         keyMapping: KeyMapping = .useDefaultKeys,
-        userInfo: [CodingUserInfoKey: Any] = [:]
+        userInfo: [CodingUserInfoKey: any Sendable] = [:]
     ) {
         self.dateDecodingStrategy = dateDecodingStrategy
         self.keyMapping = keyMapping
