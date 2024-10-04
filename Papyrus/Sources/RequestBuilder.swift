@@ -74,7 +74,6 @@ public struct RequestBuilder {
     }
 
     // MARK: Data
-
     public var baseURL: String
     public var method: String
     public var path: String
@@ -85,34 +84,39 @@ public struct RequestBuilder {
 
     // MARK: Configuration
 
+    private let provider: CoderProvider
     public var keyMapping: KeyMapping?
 
     public var queryEncoder: URLEncodedFormEncoder {
+        get { return _queryEncoder.with(keyMapping: keyMapping) }
         set { _queryEncoder = newValue }
-        get { _queryEncoder.with(keyMapping: keyMapping) }
     }
 
     public var requestBodyEncoder: HTTPBodyEncoder {
+        get { return _requestBodyEncoder.with(keyMapping: keyMapping) }
         set { _requestBodyEncoder = newValue }
-        get { _requestBodyEncoder.with(keyMapping: keyMapping) }
     }
 
     public var responseBodyDecoder: HTTPBodyDecoder {
+        get { return _responseBodyDecoder.with(keyMapping: keyMapping) }
         set { _responseBodyDecoder = newValue }
-        get { _responseBodyDecoder.with(keyMapping: keyMapping) }
     }
 
-    private var _queryEncoder: URLEncodedFormEncoder = Coders.defaultQueryEncoder
-    private var _requestBodyEncoder: HTTPBodyEncoder = Coders.defaultHTTPBodyEncoder
-    private var _responseBodyDecoder: HTTPBodyDecoder = Coders.defaultHTTPBodyDecoder
+    private var _queryEncoder: URLEncodedFormEncoder
+    private var _requestBodyEncoder: HTTPBodyEncoder
+    private var _responseBodyDecoder: HTTPBodyDecoder
 
-    public init(baseURL: String, method: String, path: String) {
+    public init(baseURL: String, method: String, path: String, provider: CoderProvider = DefaultProvider()) {
         self.baseURL = baseURL
         self.method = method
         self.path = path
         self.parameters = [:]
         self.headers = [:]
         self.queries = [:]
+        self.provider = provider
+        self._queryEncoder = provider.provideQueryEncoder()
+        self._requestBodyEncoder = provider.provideHttpBodyEncoder()
+        self._responseBodyDecoder = provider.provideHttpBodyDecoder()
         self.body = nil
     }
 
