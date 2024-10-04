@@ -122,10 +122,6 @@ public struct RequestBuilder {
         parameters[key] = value.description
     }
 
-    public mutating func addParameter<L: LosslessStringConvertible, R: RawRepresentable<L>>(_ key: String, value: R) {
-        parameters[key] = value.rawValue.description
-    }
-
     public mutating func addQuery<E: Encodable>(_ key: String, value: E?, mapKey: Bool = true) {
         guard let value else { return }
         let key: ContentKey = mapKey ? .implicit(key) : .explicit(key)
