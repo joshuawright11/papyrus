@@ -28,7 +28,17 @@ extension API {
         guard let proto = decl.as(ProtocolDeclSyntax.self) else {
             throw PapyrusPluginError("APIs must be protocols for now")
         }
-        
+        return try parse(proto)
+    }
+
+    static func parse(_ decl: some SwiftSyntax.DeclGroupSyntax) throws -> API {
+        guard let proto = decl.as(ProtocolDeclSyntax.self) else {
+            throw PapyrusPluginError("APIs must be protocols for now")
+        }
+        return try parse(proto)
+    }
+
+    private static func parse(_ proto: ProtocolDeclSyntax) throws -> API {
         return API(
             name: proto.protocolName,
             access: proto.access,
