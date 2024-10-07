@@ -330,7 +330,9 @@ extension _URLEncodedFormEncoder {
             try self.encode(Double(date.timeIntervalSince1970).description)
         case .iso8601:
             if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-                try encode(URLEncodedForm.iso8601Formatter.string(from: date))
+                try URLEncodedForm.iso8601Formatter.withLock { resource in
+                    try encode(resource.string(from: date))
+                }
             } else {
                 preconditionFailure("ISO8601DateFormatter is unavailable on this platform")
             }

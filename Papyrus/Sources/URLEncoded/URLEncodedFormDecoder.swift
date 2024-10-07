@@ -601,10 +601,12 @@ extension _URLEncodedFormDecoder {
         case .iso8601:
             if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
                 let dateString = try unbox(node, as: String.self)
-                guard let date = URLEncodedForm.iso8601Formatter.date(from: dateString) else {
-                    throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Invalid date format"))
+                return try URLEncodedForm.iso8601Formatter.withLock { resource in
+                    guard let date = resource.date(from: dateString) else {
+                        throw DecodingError.dataCorrupted(.init(codingPath: self.codingPath, debugDescription: "Invalid date format"))
+                    }
+                    return date
                 }
-                return date
             } else {
                 preconditionFailure("ISO8601DateFormatter is unavailable on this platform")
             }
