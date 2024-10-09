@@ -19,7 +19,7 @@ extension API {
     fileprivate func mockImplementation(suffix: String) -> Declaration {
         Declaration("final class \(name)\(suffix): \(name)") {
             "private let notMockedError: Error"
-            "private var mocks: [String: Any]"
+            "private let mocks: Papyrus.ResourceMutex<[String: Any]> = .init(resource: [:])"
 
             Declaration("init(notMockedError: Error = PapyrusError(\"Not mocked\"))") {
                 "self.notMockedError = notMockedError"
@@ -50,7 +50,9 @@ extension API.Endpoint {
 
     fileprivate func mockerFunction() -> Declaration {
         Declaration("func mock\(name.capitalizeFirst)(mock: @escaping \(mockClosureType))") {
-            "mocks[\(name.inQuotes)] = mock"
+            "mocks.withLock { resource ->"
+            "resource[\(name.inQuotes)] = mock"
+            "}"
         }
     }
 

@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol HTTPBodyEncoder: KeyMappable, Sendable {
+public protocol HTTPBodyEncoder: KeyMappable {
     var contentType: String { get }
     func encode<E: Encodable>(_ value: E) throws -> Data
 }
@@ -13,7 +13,7 @@ extension HTTPBodyEncoder where Self == JSONEncoder {
     }
 }
 
-extension JSONEncoder: HTTPBodyEncoder, @unchecked Sendable {
+extension JSONEncoder: HTTPBodyEncoder {
     public var contentType: String { "application/json" }
 
     public func with(keyMapping: KeyMapping) -> Self {

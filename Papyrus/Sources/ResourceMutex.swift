@@ -8,7 +8,7 @@
 import Foundation
 
 // Note: Can be replaced with Synchronization framework starting with iOS 18.
-final class ResourceMutex<R>: @unchecked Sendable {
+package final class ResourceMutex<R>: @unchecked Sendable {
     private var resource: R
     private let mutex: UnsafeMutablePointer<pthread_mutex_t>
 
