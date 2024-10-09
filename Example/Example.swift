@@ -27,7 +27,7 @@ public struct Todo: Codable, Sendable {
 }
 
 @main
-struct AppBoxCLI {
+struct Example {
   static func main() async throws {
       // MARK: 1. Create a Provider with any custom configuration.
 
@@ -49,6 +49,7 @@ struct AppBoxCLI {
 
       let api: Sample = SampleAPI(provider: provider)
       let todos = try await api.getTodos()
+      print(todos)
 
       // MARK: 3. Easily mock endpoints for tests.
 
@@ -61,5 +62,6 @@ struct AppBoxCLI {
       }
 
       let mockedTodos = try await mock.getTodos()
+      print(mockedTodos)
   }
 }

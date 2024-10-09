@@ -8,11 +8,11 @@
 import Foundation
 
 // Note: Can be replaced with Synchronization framework starting with iOS 18.
-package final class ResourceMutex<R>: @unchecked Sendable {
+public final class ResourceMutex<R>: @unchecked Sendable {
     private var resource: R
     private let mutex: UnsafeMutablePointer<pthread_mutex_t>
 
-    init(resource: R) {
+    public init(resource: R) {
         let mutexAttr = UnsafeMutablePointer<pthread_mutexattr_t>.allocate(capacity: 1)
         pthread_mutexattr_init(mutexAttr)
         pthread_mutexattr_settype(mutexAttr, Int32(PTHREAD_MUTEX_RECURSIVE))
@@ -28,16 +28,22 @@ package final class ResourceMutex<R>: @unchecked Sendable {
         mutex.deallocate()
     }
 
-    func withLock<T>(method: (inout R) throws -> T) throws -> T {
+    public func withLock<T>(method: (inout R) -> T) -> T {
+        defer { unlock() }
+        lock()
+        return method(&resource)
+    }
+
+    public func withLock<T>(method: (inout R) throws -> T) throws -> T {
         defer { unlock() }
         lock()
         return try method(&resource)
     }
 
-    func withLock<T>(method: (inout R) -> T) -> T {
+    public func withLock<T>(method: (inout R) async throws -> T) async throws -> T {
         defer { unlock() }
         lock()
-        return method(&resource)
+        return try await method(&resource)
     }
 }
 
