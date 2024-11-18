@@ -9,21 +9,21 @@ public struct RequestParser {
         get { _requestQueryDecoder.with(keyMapping: keyMapping) }
     }
 
-    public var requestBodyDecoder: HTTPBodyDecoder {
+    public var requestBodyDecoder: any HTTPBodyDecoder {
         set { _requestBodyDecoder = newValue }
         get { _requestBodyDecoder.with(keyMapping: keyMapping) }
     }
 
-    public var responseBodyEncoder: HTTPBodyEncoder {
+    public var responseBodyEncoder: any HTTPBodyEncoder {
         set { _responseBodyEncoder = newValue }
         get { _responseBodyEncoder.with(keyMapping: keyMapping) }
     }
 
     private var _requestQueryDecoder: URLEncodedFormDecoder
-    private var _requestBodyDecoder: HTTPBodyDecoder
-    private var _responseBodyEncoder: HTTPBodyEncoder
+    private var _requestBodyDecoder: any HTTPBodyDecoder
+    private var _responseBodyEncoder: any HTTPBodyEncoder
 
-    public init(req: RouterRequest, provider: CoderProvider) {
+    public init(req: RouterRequest, provider: any CoderProvider) {
         self.request = req
         _requestQueryDecoder = provider.provideQueryDecoder()
         _requestBodyDecoder = provider.provideHttpBodyDecoder()

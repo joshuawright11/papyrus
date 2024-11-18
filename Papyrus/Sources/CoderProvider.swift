@@ -1,6 +1,6 @@
 public protocol CoderProvider: Sendable {
-    func provideHttpBodyEncoder() -> HTTPBodyEncoder
-    func provideHttpBodyDecoder() -> HTTPBodyDecoder
+    func provideHttpBodyEncoder() -> any HTTPBodyEncoder
+    func provideHttpBodyDecoder() -> any HTTPBodyDecoder
     func provideQueryEncoder() -> URLEncodedFormEncoder
     func provideQueryDecoder() -> URLEncodedFormDecoder
 }
@@ -8,11 +8,11 @@ public protocol CoderProvider: Sendable {
 public struct DefaultProvider: CoderProvider {
     public init() {}
 
-    public func provideHttpBodyEncoder() -> HTTPBodyEncoder {
+    public func provideHttpBodyEncoder() -> any HTTPBodyEncoder {
         return .json()
     }
 
-    public func provideHttpBodyDecoder() -> HTTPBodyDecoder {
+    public func provideHttpBodyDecoder() -> any HTTPBodyDecoder {
         return .json()
     }
 

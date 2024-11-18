@@ -18,10 +18,10 @@ public struct MockMacro: PeerMacro {
 extension API {
     fileprivate func mockImplementation(suffix: String) -> Declaration {
         Declaration("final class \(name)\(suffix): \(name)") {
-            "private let notMockedError: Error"
+            "private let notMockedError: any Error"
             "private let mocks: Papyrus.ResourceMutex<[String: Any]> = .init(resource: [:])"
 
-            Declaration("init(notMockedError: Error = PapyrusError(\"Not mocked\"))") {
+            Declaration("init(notMockedError: any Error = PapyrusError(\"Not mocked\"))") {
                 "self.notMockedError = notMockedError"
             }
             .access(access)

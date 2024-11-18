@@ -33,7 +33,7 @@ public macro URLForm(_ encoder: URLEncodedFormEncoder = URLEncodedFormEncoder())
 public macro Multipart(_ encoder: MultipartEncoder = MultipartEncoder()) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 @attached(peer)
-public macro Coder(encoder: HTTPBodyEncoder, decoder: HTTPBodyDecoder) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
+public macro Coder(encoder: any HTTPBodyEncoder, decoder: any HTTPBodyDecoder) = #externalMacro(module: "PapyrusPlugin", type: "DecoratorMacro")
 
 // MARK: Function attributes
 

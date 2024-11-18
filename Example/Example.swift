@@ -47,7 +47,7 @@ struct Example {
 
       // MARK: 2. Initialize an API instance & call an endpoint.
 
-      let api: Sample = SampleAPI(provider: provider)
+      let api: any Sample = SampleAPI(provider: provider)
       let todos = try await api.getTodos()
       print(todos)
 
