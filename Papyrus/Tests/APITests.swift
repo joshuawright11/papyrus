@@ -120,15 +120,15 @@ fileprivate struct _HTTPServiceMock: HTTPService {
         _responseType = responseType
     }
     
-    func build(method: String, url: URL, headers: [String : String], body: Data?) -> PapyrusRequest {
+    func build(method: String, url: URL, headers: [String : String], body: Data?) -> any PapyrusRequest {
         _Request(method: "", headers: [:])
     }
     
-    func request(_ req: PapyrusRequest) async -> PapyrusResponse {
+    func request(_ req: any PapyrusRequest) async -> any PapyrusResponse {
         _Response(body: _responseType.value?.data(using: .utf8), statusCode: 200)
     }
     
-    func request(_ req: PapyrusRequest, completionHandler: @escaping (PapyrusResponse) -> Void) {
+    func request(_ req: any PapyrusRequest, completionHandler: @escaping (any PapyrusResponse) -> Void) {
         completionHandler(_Response(body: "".data(using: .utf8)))
     }
 }
@@ -141,9 +141,9 @@ fileprivate struct _Request: PapyrusRequest {
 }
 
 fileprivate struct _Response: PapyrusResponse {
-    var request: PapyrusRequest?
+    var request: (any PapyrusRequest)?
     var body: Data?
     var headers: [String : String]?
     var statusCode: Int?
-    var error: Error?
+    var error: (any Error)?
 }

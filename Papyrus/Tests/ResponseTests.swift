@@ -7,7 +7,7 @@ final class ResponseTests: XCTestCase {
             case test
         }
 
-        let res: PapyrusResponse = .error(TestError.test)
+        let res: any PapyrusResponse = .error(TestError.test)
         XCTAssertThrowsError(try res.validate())
     }
 }
