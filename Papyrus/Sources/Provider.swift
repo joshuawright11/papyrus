@@ -3,12 +3,18 @@ import Foundation
 /// Makes URL requests.
 public final class Provider: Sendable {
     public let baseURL: String
-    public let http: HTTPService
-    public let provider: CoderProvider
-    private let interceptors: ResourceMutex<[Interceptor]>
-    private let modifiers: ResourceMutex<[RequestModifier]>
+    public let http: any HTTPService
+    public let provider: any CoderProvider
+    private let interceptors: ResourceMutex<[any Interceptor]>
+    private let modifiers: ResourceMutex<[any RequestModifier]>
 
-    public init(baseURL: String, http: HTTPService, modifiers: [RequestModifier] = [], interceptors: [Interceptor] = [], provider: CoderProvider = DefaultProvider()) {
+    public init(
+        baseURL: String,
+        http: any HTTPService,
+        modifiers: [any RequestModifier] = [],
+        interceptors: [any Interceptor] = [],
+        provider: any CoderProvider = DefaultProvider()
+    ) {
         self.baseURL = baseURL
         self.http = http
         self.provider = provider
@@ -48,11 +54,15 @@ public final class Provider: Sendable {
     }
 
     @discardableResult
-    public func intercept(action: @Sendable @escaping (PapyrusRequest, (PapyrusRequest) async throws -> PapyrusResponse) async throws -> PapyrusResponse) -> Self {
+    public func intercept(action: @Sendable @escaping (
+        any PapyrusRequest,
+        (any PapyrusRequest) async throws -> any PapyrusResponse
+    ) async throws -> any PapyrusResponse) -> Self {
         struct AnonymousInterceptor: Interceptor {
-            let action: @Sendable (PapyrusRequest, Interceptor.Next) async throws -> PapyrusResponse
+            let action: @Sendable (any PapyrusRequest, Interceptor.Next) async throws -> any PapyrusResponse
 
-            func intercept(req: PapyrusRequest, next: Interceptor.Next) async throws -> PapyrusResponse {
+            func intercept(req: any PapyrusRequest,
+                           next: Interceptor.Next) async throws -> any PapyrusResponse {
                 try await action(req, next)
             }
         }
@@ -63,9 +73,9 @@ public final class Provider: Sendable {
     }
 
     @discardableResult
-    public func request(_ builder: inout RequestBuilder) async throws -> PapyrusResponse {
+    public func request(_ builder: inout RequestBuilder) async throws -> any PapyrusResponse {
         let request = try createRequest(&builder)
-        var next: @Sendable (PapyrusRequest) async throws -> PapyrusResponse = http.request
+        var next: @Sendable (any PapyrusRequest) async throws -> any PapyrusResponse = http.request
         interceptors.withLock { resource in
             for interceptor in resource.reversed() {
                 let _next = next
@@ -75,7 +85,7 @@ public final class Provider: Sendable {
         return try await next(request)
     }
 
-    private func createRequest(_ builder: inout RequestBuilder) throws -> PapyrusRequest {
+    private func createRequest(_ builder: inout RequestBuilder) throws -> any PapyrusRequest {
         try modifiers.withLock { resource in
             for modifier in resource {
                 try modifier.modify(req: &builder)
@@ -89,8 +99,8 @@ public final class Provider: Sendable {
 }
 
 public protocol Interceptor: Sendable {
-    typealias Next = @Sendable (PapyrusRequest) async throws -> PapyrusResponse
-    func intercept(req: PapyrusRequest, next: Next) async throws -> PapyrusResponse
+    typealias Next = @Sendable (any PapyrusRequest) async throws -> any PapyrusResponse
+    func intercept(req: any PapyrusRequest, next: Next) async throws -> any PapyrusResponse
 }
 
 public protocol RequestModifier {

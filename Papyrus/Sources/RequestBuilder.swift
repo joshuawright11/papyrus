@@ -54,7 +54,7 @@ public struct RequestBuilder {
     }
 
     public struct ContentValue: Encodable {
-        private let _encode: (Encoder) throws -> Void
+        private let _encode: (any Encoder) throws -> Void
 
         public init<T: Encodable>(_ wrapped: T) {
             _encode = wrapped.encode
@@ -62,7 +62,7 @@ public struct RequestBuilder {
 
         // MARK: Encodable
 
-        public func encode(to encoder: Encoder) throws {
+        public func encode(to encoder: any Encoder) throws {
             try _encode(encoder)
         }
     }
@@ -84,7 +84,7 @@ public struct RequestBuilder {
 
     // MARK: Configuration
 
-    private let provider: CoderProvider
+    private let provider: any CoderProvider
     public var keyMapping: KeyMapping?
 
     public var queryEncoder: URLEncodedFormEncoder {
@@ -92,21 +92,21 @@ public struct RequestBuilder {
         set { _queryEncoder = newValue }
     }
 
-    public var requestBodyEncoder: HTTPBodyEncoder {
+    public var requestBodyEncoder: any HTTPBodyEncoder {
         get { return _requestBodyEncoder.with(keyMapping: keyMapping) }
         set { _requestBodyEncoder = newValue }
     }
 
-    public var responseBodyDecoder: HTTPBodyDecoder {
+    public var responseBodyDecoder: any HTTPBodyDecoder {
         get { return _responseBodyDecoder.with(keyMapping: keyMapping) }
         set { _responseBodyDecoder = newValue }
     }
 
     private var _queryEncoder: URLEncodedFormEncoder
-    private var _requestBodyEncoder: HTTPBodyEncoder
-    private var _responseBodyDecoder: HTTPBodyDecoder
+    private var _requestBodyEncoder: any HTTPBodyEncoder
+    private var _responseBodyDecoder: any HTTPBodyDecoder
 
-    public init(baseURL: String, method: String, path: String, provider: CoderProvider = DefaultProvider()) {
+    public init(baseURL: String, method: String, path: String, provider: any CoderProvider = DefaultProvider()) {
         self.baseURL = baseURL
         self.method = method
         self.path = path

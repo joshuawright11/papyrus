@@ -6,8 +6,8 @@ import FoundationNetworking
 extension Provider {
     public convenience init(baseURL: String,
                             urlSession: URLSession = .shared,
-                            modifiers: [RequestModifier] = [],
-                            interceptors: [Interceptor] = []) {
+                            modifiers: [any RequestModifier] = [],
+                            interceptors: [any Interceptor] = []) {
         self.init(baseURL: baseURL, http: urlSession, modifiers: modifiers, interceptors: interceptors)
     }
 }
@@ -15,7 +15,7 @@ extension Provider {
 // MARK: `HTTPService` Conformance
 
 extension URLSession: HTTPService {
-    public func build(method: String, url: URL, headers: [String: String], body: Data?) -> PapyrusRequest {
+    public func build(method: String, url: URL, headers: [String: String], body: Data?) -> any PapyrusRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.httpBody = body
@@ -23,7 +23,7 @@ extension URLSession: HTTPService {
         return request
     }
 
-    public func request(_ req: PapyrusRequest) async -> PapyrusResponse {
+    public func request(_ req: any PapyrusRequest) async -> any PapyrusResponse {
 #if os(Linux) // Linux doesn't have access to async URLSession APIs
         await withCheckedContinuation { continuation in
             let urlRequest = req.urlRequest
@@ -55,13 +55,13 @@ private struct _Response: PapyrusResponse {
     let urlRequest: URLRequest
     let urlResponse: URLResponse?
 
-    var request: PapyrusRequest? { urlRequest }
-    let error: Error?
+    var request: (any PapyrusRequest)? { urlRequest }
+    let error: (any Error)?
     let body: Data?
     let headers: [String: String]?
     var statusCode: Int? { (urlResponse as? HTTPURLResponse)?.statusCode }
 
-    init(request: URLRequest, response: URLResponse?, error: Error?, body: Data?) {
+    init(request: URLRequest, response: URLResponse?, error: (any Error)?, body: Data?) {
         self.urlRequest = request
         self.urlResponse = response
         self.error = error

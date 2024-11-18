@@ -200,7 +200,7 @@ extension Declaration {
 
 @resultBuilder
 struct DeclarationsBuilder {
-    static func buildBlock(_ components: DeclarationBuilderBlock...) -> [Declaration] {
+    static func buildBlock(_ components: any DeclarationBuilderBlock...) -> [Declaration] {
         components.flatMap(\.declarations)
     }
 

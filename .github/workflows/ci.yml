@@ -7,10 +7,20 @@ on:
         branches: [main]
 
 jobs:
-    test-macos:
+    test-macos-xcode-15:
         runs-on: macos-13
         env:
             DEVELOPER_DIR: /Applications/Xcode_15.0.app/Contents/Developer
+        steps:
+            - uses: actions/checkout@v3
+            - name: Build
+              run: swift build -v
+            - name: Test
+              run: swift test -v
+    test-macos-xcode-16:
+        runs-on: macos-14
+        env:
+            DEVELOPER_DIR: /Applications/Xcode_16.0.app/Contents/Developer
         steps:
             - uses: actions/checkout@v3
             - name: Build
@@ -22,6 +32,18 @@ jobs:
         strategy:
             matrix:
                 swift: [5.9]
+        container: swift:${{ matrix.swift }}
+        steps:
+            - uses: actions/checkout@v3
+            - name: Build
+              run: swift build
+            - name: Run tests
+              run: swift test
+    test-linux-swift6:
+        runs-on: ubuntu-24.04
+        strategy:
+            matrix:
+                swift: [6.0.1]
         container: swift:${{ matrix.swift }}
         steps:
             - uses: actions/checkout@v3

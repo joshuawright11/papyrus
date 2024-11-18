@@ -18,12 +18,11 @@ public struct MockMacro: PeerMacro {
 extension API {
     fileprivate func mockImplementation(suffix: String) -> Declaration {
         Declaration("final class \(name)\(suffix): \(name)") {
-            "private let notMockedError: Error"
-            "private var mocks: [String: Any]"
+            "private let notMockedError: any Error"
+            "private let mocks: Papyrus.ResourceMutex<[String: Any]> = .init(resource: [:])"
 
-            Declaration("init(notMockedError: Error = PapyrusError(\"Not mocked\"))") {
+            Declaration("init(notMockedError: any Error = PapyrusError(\"Not mocked\"))") {
                 "self.notMockedError = notMockedError"
-                "mocks = [:]"
             }
             .access(access)
 
@@ -39,18 +38,22 @@ extension API {
 extension API.Endpoint {
     fileprivate func mockFunction() -> Declaration {
         Declaration("func \(name)\(functionSignature)") {
-            Declaration("guard let mocker = mocks[\(name.inQuotes)] as? \(mockClosureType) else") {
-                "throw notMockedError"
-            }
+            Declaration("return try await mocks.withLock", "resource") {
+                Declaration("guard let mocker = resource[\(name.inQuotes)] as? \(mockClosureType) else") {
+                    "throw notMockedError"
+                }
 
-            let arguments = parameters.map(\.name).joined(separator: ", ")
-            "return try await mocker(\(arguments))"
+                let arguments = parameters.map(\.name).joined(separator: ", ")
+                "return try await mocker(\(arguments))"
+            }
         }
     }
 
     fileprivate func mockerFunction() -> Declaration {
         Declaration("func mock\(name.capitalizeFirst)(mock: @escaping \(mockClosureType))") {
-            "mocks[\(name.inQuotes)] = mock"
+            Declaration("mocks.withLock", "resource") {
+                "resource[\(name.inQuotes)] = mock"
+            }
         }
     }
 

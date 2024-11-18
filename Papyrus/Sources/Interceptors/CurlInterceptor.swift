@@ -24,7 +24,7 @@ public struct CurlLogger {
 }
 
 extension CurlLogger: Interceptor {
-    public func intercept(req: PapyrusRequest, next: Next) async throws -> PapyrusResponse {
+    public func intercept(req: any PapyrusRequest, next: Next) async throws -> any PapyrusResponse {
         if condition == .always {
             logHandler(req.curl(sortedHeaders: true))
         }

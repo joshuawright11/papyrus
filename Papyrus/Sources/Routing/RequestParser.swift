@@ -4,26 +4,30 @@ public struct RequestParser {
     public var keyMapping: KeyMapping?
     private let request: RouterRequest
 
-    private var _requestQueryDecoder = Coders.defaultQueryDecoder
     public var requestQueryDecoder: URLEncodedFormDecoder {
         set { _requestQueryDecoder = newValue }
         get { _requestQueryDecoder.with(keyMapping: keyMapping) }
     }
 
-    private var _requestBodyDecoder: HTTPBodyDecoder = Coders.defaultHTTPBodyDecoder
-    public var requestBodyDecoder: HTTPBodyDecoder {
+    public var requestBodyDecoder: any HTTPBodyDecoder {
         set { _requestBodyDecoder = newValue }
         get { _requestBodyDecoder.with(keyMapping: keyMapping) }
     }
 
-    private var _responseBodyEncoder: HTTPBodyEncoder = Coders.defaultHTTPBodyEncoder
-    public var responseBodyEncoder: HTTPBodyEncoder {
+    public var responseBodyEncoder: any HTTPBodyEncoder {
         set { _responseBodyEncoder = newValue }
         get { _responseBodyEncoder.with(keyMapping: keyMapping) }
     }
 
-    public init(req: RouterRequest) {
+    private var _requestQueryDecoder: URLEncodedFormDecoder
+    private var _requestBodyDecoder: any HTTPBodyDecoder
+    private var _responseBodyEncoder: any HTTPBodyEncoder
+
+    public init(req: RouterRequest, provider: any CoderProvider) {
         self.request = req
+        _requestQueryDecoder = provider.provideQueryDecoder()
+        _requestBodyDecoder = provider.provideHttpBodyDecoder()
+        _responseBodyEncoder = provider.provideHttpBodyEncoder()
     }
 
     // MARK: Parsing methods

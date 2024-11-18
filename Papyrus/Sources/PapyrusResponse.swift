@@ -1,11 +1,11 @@
 import Foundation
 
 public protocol PapyrusResponse: Sendable {
-    var request: PapyrusRequest? { get }
+    var request: (any PapyrusRequest)? { get }
     var body: Data? { get }
     var headers: [String: String]? { get }
     var statusCode: Int? { get }
-    var error: Error? { get }
+    var error: (any Error)? { get }
 }
 
 extension PapyrusResponse {
@@ -17,11 +17,11 @@ extension PapyrusResponse {
         return self
     }
     
-    public func decode(_ type: Data?.Type = Data?.self, using decoder: HTTPBodyDecoder) throws -> Data? {
+    public func decode(_ type: Data?.Type = Data?.self, using decoder: any HTTPBodyDecoder) throws -> Data? {
         try validate().body
     }
     
-    public func decode(_ type: Data.Type = Data.self, using decoder: HTTPBodyDecoder) throws -> Data {
+    public func decode(_ type: Data.Type = Data.self, using decoder: any HTTPBodyDecoder) throws -> Data {
         guard let body = try decode(Data?.self, using: decoder) else {
             throw makePapyrusError(with: "Unable to return the body of a `Response`; the body was nil.")
         }
@@ -29,7 +29,7 @@ extension PapyrusResponse {
         return body
     }
     
-    public func decode<D: Decodable>(_ type: D?.Type = D?.self, using decoder: HTTPBodyDecoder) throws -> D? {
+    public func decode<D: Decodable>(_ type: D?.Type = D?.self, using decoder: any HTTPBodyDecoder) throws -> D? {
         guard let body, !body.isEmpty else {
             return nil
         }
@@ -37,7 +37,7 @@ extension PapyrusResponse {
         return try decoder.decode(type, from: body)
     }
     
-    public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: HTTPBodyDecoder) throws -> D {
+    public func decode<D: Decodable>(_ type: D.Type = D.self, using decoder: any HTTPBodyDecoder) throws -> D {
         guard let body else {
             throw makePapyrusError(with: "Unable to decode `\(Self.self)` from a `Response`; body was nil.")
         }
@@ -51,21 +51,21 @@ extension PapyrusResponse {
 }
 
 extension PapyrusResponse where Self == ErrorResponse {
-    public static func error(_ error: Error) -> PapyrusResponse {
+    public static func error(_ error: any Error) -> any PapyrusResponse {
         ErrorResponse(error)
     }
 }
 
 public struct ErrorResponse: PapyrusResponse {
-    let _error: Error?
+    let _error: (any Error)?
 
-    public init(_ error: Error) {
+    public init(_ error: any Error) {
         self._error = error
     }
 
-    public var request: PapyrusRequest? { nil }
+    public var request: (any PapyrusRequest)? { nil }
     public var body: Data? { nil }
     public var headers: [String : String]? { nil }
     public var statusCode: Int? { nil }
-    public var error: Error? { _error }
+    public var error: (any Error)? { _error }
 }

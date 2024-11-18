@@ -121,7 +121,7 @@ enum URLEncodedFormNode: CustomStringConvertible, Equatable {
         /// string value of node (with percent encoding removed)
         let value: String
 
-        init(_ value: LosslessStringConvertible) {
+        init(_ value: any LosslessStringConvertible) {
             self.value = String(describing: value)
         }
 
