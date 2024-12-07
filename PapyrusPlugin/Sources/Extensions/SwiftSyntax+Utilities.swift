@@ -29,7 +29,7 @@ extension FunctionDeclSyntax {
     }
 
     var effects: [String] {
-        [signature.effectSpecifiers?.asyncSpecifier, signature.effectSpecifiers?.throwsSpecifier]
+        [signature.effectSpecifiers?.asyncSpecifier, signature.effectSpecifiers?.throwsClause?.throwsSpecifier]
             .compactMap { $0 }
             .map { $0.text }
     }
