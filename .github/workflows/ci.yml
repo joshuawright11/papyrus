@@ -21,7 +21,7 @@ jobs:
         runs-on: ubuntu-22.04
         strategy:
             matrix:
-                swift: [6.0]
+                swift: ["6.0"]
         container: swift:${{ matrix.swift }}
         steps:
             - uses: actions/checkout@v3
