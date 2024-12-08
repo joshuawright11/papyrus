@@ -1,3 +1,4 @@
+import Foundation
 import SwiftSyntax
 
 struct Declaration: ExpressibleByStringLiteral {
