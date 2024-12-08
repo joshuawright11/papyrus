@@ -80,7 +80,7 @@ extension API.Endpoint {
             switch responseType {
             case .none, "Void":
                 "try await provider.request(&req).validate()"
-            case "Response":
+            case "PapyrusResponse":
                 "return try await provider.request(&req)"
             case .some(let type):
                 "let res = try await provider.request(&req)"
