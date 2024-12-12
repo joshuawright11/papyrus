@@ -1,7 +1,7 @@
 import Foundation
 import SwiftSyntax
 
-struct Declaration: ExpressibleByStringLiteral {
+struct Declaration: ExpressibleByStringLiteral, Sendable {
     var text: String
     let closureParameters: String?
     /// Declarations inside a closure following `text`.
