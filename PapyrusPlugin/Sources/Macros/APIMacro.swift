@@ -79,11 +79,11 @@ extension API.Endpoint {
 
             switch responseType {
             case .none, "Void":
-                "try await provider.request(&req).validate()"
+                "try await self.provider.request(&req).validate()"
             case "Response":
-                "return try await provider.request(&req)"
+                "return try await self.provider.request(&req)"
             case .some(let type):
-                "let res = try await provider.request(&req)"
+                "let res = try await self.provider.request(&req)"
                 "try res.validate()"
                 "return try res.decode(\(type).self, using: req.responseBodyDecoder)"
             }
