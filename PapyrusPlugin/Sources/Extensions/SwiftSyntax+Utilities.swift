@@ -25,7 +25,15 @@ extension FunctionDeclSyntax {
     // MARK: Function effects & attributes
 
     var functionName: String {
-        name.text
+        var text = name.text
+        if let clause = genericParameterClause {
+            text +=
+                clause.leftAngle.text +
+                clause.parameters.map(\.name.text).joined(separator: ", ") +
+                clause.rightAngle.text
+        }
+
+        return text
     }
 
     var effects: [String] {
