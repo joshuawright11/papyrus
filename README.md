@@ -2,7 +2,7 @@
 
 <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version"></a>
 <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-green.svg" alt="Swift Version"></a>
-<a href="https://github.com/kevin-kp/papyrus/releases"><img src="https://img.shields.io/github/release/kevin-kp/papyrus.svg" alt="Latest Release"></a>
+<a href="https://github.com/joshuawright11/papyrus/releases"><img src="https://img.shields.io/github/release/joshuawright11/papyrus.svg" alt="Latest Release"></a>
 <a href="https://github.com/joshuawright11/papyrus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/joshuawright11/papyrus.svg" alt="License"></a>
 
 Papyrus is a type-safe HTTP client for Swift.
