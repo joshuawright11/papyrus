@@ -53,12 +53,12 @@ final class APIMacroTests: XCTestCase {
 
                 func bar() async throws {
                     var req = builder(method: "GET", path: "/bar")
-                    try await provider.request(&req).validate()
+                    try await self.provider.request(&req).validate()
                 }
 
                 func baz() async throws -> Void {
                     var req = builder(method: "GET", path: "/baz")
-                    try await provider.request(&req).validate()
+                    try await self.provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
@@ -97,7 +97,7 @@ final class APIMacroTests: XCTestCase {
                 func myQuery(id userId: String) async throws -> String {
                     var req = builder(method: "GET", path: "some/path")
                     req.addQuery("userId", value: userId)
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
@@ -139,7 +139,7 @@ final class APIMacroTests: XCTestCase {
                 func myQuery(id userId: String) async throws -> String {
                     var req = builder(method: "GET", path: "some/path")
                     req.addQuery("userId", value: userId)
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
@@ -178,7 +178,7 @@ final class APIMacroTests: XCTestCase {
                 func myQuery(id userId: Field<Int>) async throws -> String {
                     var req = builder(method: "GET", path: "some/path")
                     req.addField("userId", value: userId)
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
@@ -224,7 +224,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "GET", path: "users/:userId")
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
@@ -271,7 +271,7 @@ final class APIMacroTests: XCTestCase {
                     var req = builder(method: "POST", path: "users/:userId")
                     req.addParameter("userId", value: userId)
                     req.addQuery("since", value: since)
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
@@ -313,7 +313,7 @@ final class APIMacroTests: XCTestCase {
 
                 func getUser() async throws {
                     var req = builder(method: "POST", path: "users")
-                    try await provider.request(&req).validate()
+                    try await self.provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
@@ -363,7 +363,7 @@ final class APIMacroTests: XCTestCase {
 
                 func getUser() async throws {
                     var req = builder(method: "POST", path: "users")
-                    try await provider.request(&req).validate()
+                    try await self.provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
@@ -407,7 +407,7 @@ final class APIMacroTests: XCTestCase {
                     req.addParameter("bAr", value: bAr)
                     req.addParameter("baz", value: baz)
                     req.addParameter("zIp", value: zIp)
-                    try await provider.request(&req).validate()
+                    try await self.provider.request(&req).validate()
                 }
 
                 private func builder(method: String, path: String) -> Papyrus.RequestBuilder {
@@ -443,7 +443,7 @@ final class APIMacroTests: XCTestCase {
 
                 public func getName() async throws -> String {
                     var req = builder(method: "GET", path: "name")
-                    let res = try await provider.request(&req)
+                    let res = try await self.provider.request(&req)
                     try res.validate()
                     return try res.decode(String.self, using: req.responseBodyDecoder)
                 }
